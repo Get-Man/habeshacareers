@@ -1,0 +1,16 @@
+{
+  "name": "habesha-career",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "db:migrate": "node scripts/migrate.mjs",
+    "sync:once": "node scripts/sync-once.mjs",
+    "test:smoke": "node --test scripts/**/*.test.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}

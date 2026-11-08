@@ -1,0 +1,37 @@
+document.addEventListener('DOMContentLoaded', function() {
+    // Form submission
+    const form = document.getElementById('contactForm');
+    form.addEventListener('submit', handleContactSubmit);
+});
+
+function handleContactSubmit(e) {
+    e.preventDefault();
+
+    // Get form values
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const subject = document.getElementById('subject').value;
+    const message = document.getElementById('message').value;
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+
+    // In a real application, you would send this data to a server
+    console.log('Contact form submitted:', { name, email, subject, message });
+
+    // Show success message
+    document.querySelector('.contact-form-section').innerHTML = `
+        <div id="contactSuccess" class="success-message">
+            <h3>✓ Message Sent!</h3>
+            <p>Thank you for contacting us, ${name}. We'll get back to you soon at ${email}.</p>
+            <button onclick="location.reload()" class="btn-primary">Send Another Message</button>
+        </div>
+    `;
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}

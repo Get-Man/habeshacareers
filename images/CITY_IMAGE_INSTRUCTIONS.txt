@@ -1,0 +1,30 @@
+SMART CITY BACKGROUND IMAGE INSTRUCTIONS
+=========================================
+
+To add the Addis Ababa city background image:
+
+1. Find or download a high-quality image of Addis Ababa city skyline
+   - Recommended size: 1920x1080 or larger
+   - Format: JPG or PNG
+   - Look for images showing modern buildings, cityscape, or aerial view
+
+2. Save the image as: addis-ababa-city.jpg
+   
+3. Place it in the images folder (same folder as this file)
+
+4. The image will automatically appear as the background of the "Our Trusted Partners" section
+
+ALTERNATIVE:
+If you want to use a different filename, update line 2085 in css/style.css:
+Change: background: url('../images/addis-ababa-city.jpg')
+To: background: url('../images/YOUR-IMAGE-NAME.jpg')
+
+The image will have a white semi-transparent overlay (85% opacity) so the partner logos remain readable.
+
+You can adjust the overlay opacity in css/style.css by changing:
+background: rgba(255, 255, 255, 0.85);
+                              ^^^^
+                              Change this value (0.0 to 1.0)
+                              0.85 = 85% white overlay
+                              0.5 = 50% white overlay
+                              0.0 = no overlay (full image visibility)

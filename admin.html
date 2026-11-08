@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Habesha Careers</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-wrap{max-width:1200px;margin:0 auto;padding:1rem}.admin-grid{display:grid;gap:1rem}
+        .admin-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem}
+        .admin-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:1rem}
+        .admin-card h4{margin:.25rem 0;font-size:.9rem;color:#555}.admin-card .n{font-size:1.6rem;font-weight:700}
+        .admin-section{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:1rem}
+        .admin-table{width:100%;border-collapse:collapse;font-size:.92rem}.admin-table th,.admin-table td{border-bottom:1px solid #eee;padding:.5rem;text-align:left;vertical-align:top}
+        .admin-actions button,.admin-actions .btn{margin:.1rem}.admin-toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.75rem}
+        .pill{display:inline-block;padding:.15rem .45rem;border-radius:999px;background:#eef2ff;font-size:.75rem}
+        .status-pending{background:#fef3c7}.status-connected,.status-active{background:#dcfce7}.status-error,.status-rejected,.status-blocked{background:#fee2e2}
+        .muted{color:#666;font-size:.9rem}
+        .key-box{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+        .key-box input{flex:1;min-width:220px;padding:.5rem}
+    </style>
+</head>
+<body>
+<header>
+    <nav class="navbar"><div class="container">
+        <div class="logo"><img src="images/logo.png" alt="Logo" class="logo-img"><h1>Habesha Careers</h1></div>
+        <ul class="nav-menu">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="jobs.html">Jobs</a></li>
+            <li><a href="post-job.html">Post Job</a></li>
+            <li><a href="admin.html" class="active">Admin</a></li>
+        </ul>
+        <div class="hamburger"><span></span><span></span><span></span></div>
+    </div></nav>
+</header>
+<main>
+<section class="jobs-page"><div class="container admin-wrap">
+    <h2>Admin Dashboard</h2>
+    <p class="muted">Manage aggregated jobs, sources, synchronization, and employer submissions. This dashboard uses a server-side <code>ADMIN_API_KEY</code>. Configure <code>DATABASE_URL</code>, <code>ADMIN_API_KEY</code>, and <code>CRON_SECRET</code> in Vercel environment variables.</p>
+    <div class="key-box">
+        <input id="adminKey" type="password" placeholder="ADMIN_API_KEY (stored in this tab only)">
+        <button class="btn-primary" onclick="AdminApp.saveKey()">Save Key</button>
+        <button class="btn-secondary" onclick="AdminApp.refreshAll()">Refresh</button>
+    </div>
+    <div id="adminMsg" class="muted"></div>
+
+    <div class="admin-grid">
+        <div class="admin-cards" id="statsCards"></div>
+
+        <div class="admin-section">
+            <div class="admin-toolbar"><h3 style="margin:0">Job Sources</h3><button class="btn-secondary" onclick="AdminApp.syncAll()">Sync Enabled Sources</button></div>
+            <p class="muted">Sources are seeded as pending/disabled. Enable only sources with verified legal/technical access. A connector is currently implemented for <code>reliefweb-ethiopia</code> (RSS). Others require permitted connector implementation or manual/import workflows.</p>
+            <div style="overflow:auto"><table class="admin-table" id="sourcesTable"><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Enabled</th><th>Last Sync</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <div class="admin-section">
+            <h3>Synchronization Runs</h3>
+            <div style="overflow:auto"><table class="admin-table" id="runsTable"><thead><tr><th>Started</th><th>Source</th><th>Trigger</th><th>Status</th><th>Counts</th><th>Message</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <div class="admin-section">
+            <div class="admin-toolbar"><h3 style="margin:0">Employer Submissions</h3></div>
+            <div style="overflow:auto"><table class="admin-table" id="subsTable"><thead><tr><th>ID</th><th>Company</th><th>Title</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <div class="admin-section">
+            <div class="admin-toolbar"><h3 style="margin:0">Job Listings</h3>
+                <select id="jobStatusFilter" onchange="AdminApp.loadJobs()"><option value="">All</option><option value="active">Active</option><option value="pending">Pending</option><option value="expired">Expired</option><option value="rejected">Rejected</option><option value="archived">Archived</option></select>
+            </div>
+            <div style="overflow:auto"><table class="admin-table" id="jobsTable"><thead><tr><th>ID</th><th>Title</th><th>Company</th><th>Origin</th><th>Source</th><th>Status</th><th>Deadline</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </div>
+    </div>
+</div></section>
+</main>
+<footer><div class="container"><div class="footer-bottom"><p>&copy; 2025 Habesha Careers. Admin tools require secure server configuration.</p></div></div></footer>
+<script src="js/main.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

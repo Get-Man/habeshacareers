@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Habesha Careers</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/complete-profile.css">
+    <link rel="stylesheet" href="css/cv-generator.css">
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <img src="images/logo.png" alt="Logo" class="logo-img">
+                    <h1>Habesha Careers</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="jobs.html">Jobs</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="profile.html" class="active">Profile</a></li>
+                </ul>
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="profile-page">
+            <div class="container">
+                <div class="modern-profile-header">
+                    <div class="profile-banner">
+                        <!-- Column 1: Avatar -->
+                        <div class="profile-column profile-avatar-column">
+                            <div class="profile-avatar-wrapper">
+                                <div class="avatar-circle" id="profileAvatar">
+                                    <img id="profileImage" src="" alt="Profile" style="display: none;">
+                                    <span id="userInitials">JS</span>
+                                </div>
+                                <button class="edit-avatar-btn"
+                                    onclick="document.getElementById('profileImageInput').click()"
+                                    title="Change profile picture">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                        <path
+                                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                                    </svg>
+                                </button>
+                                <input type="file" id="profileImageInput" accept="image/*" style="display: none;"
+                                    onchange="handleProfileImageUpload(event)">
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Information -->
+                        <div class="profile-column profile-info-column">
+                            <div class="profile-details-grid">
+                                <div class="profile-detail-item">
+                                    <div class="detail-icon">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                        </svg>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Name</span>
+                                        <span class="detail-value" id="displayFullName">Not Set</span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-detail-item">
+                                    <div class="detail-icon">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                        </svg>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Gender</span>
+                                        <span class="detail-value" id="displayGender">Not Set</span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-detail-item">
+                                    <div class="detail-icon">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" />
+                                        </svg>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Age</span>
+                                        <span class="detail-value" id="displayAge">Not Set</span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-detail-item">
+                                    <div class="detail-icon">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Profession</span>
+                                        <span class="detail-value" id="displayProfession">Not Set</span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-detail-item">
+                                    <div class="detail-icon">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                                        </svg>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Experience</span>
+                                        <span class="detail-value" id="displayExperience">Not Set</span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-detail-item">
+                                    <div class="detail-icon">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Email</span>
+                                        <span class="detail-value" id="displayEmail">Not Set</span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-detail-item">
+                                    <div class="detail-icon">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Phone</span>
+                                        <span class="detail-value" id="displayPhone">Not Set</span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-detail-item">
+                                    <div class="detail-icon">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                        </svg>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">City</span>
+                                        <span class="detail-value" id="displayCity">Not Set</span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-detail-item">
+                                    <div class="detail-icon">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                                        </svg>
+                                    </div>
+                                    <div class="detail-content">
+                                        <span class="detail-label">Country</span>
+                                        <span class="detail-value" id="displayCountry">Not Set</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Completion & Logout -->
+                        <div class="profile-column profile-actions-column">
+                            <div class="profile-completion-modern">
+                                <div class="completion-header">
+                                    <span class="completion-label-modern">Profile Completion</span>
+                                    <span class="completion-percent-modern" id="completionPercent">0</span>%
+                                </div>
+                                <div class="completion-bar-container">
+                                    <div class="completion-bar-fill" id="completionBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <button onclick="logout()" class="btn-logout">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                    <path
+                                        d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+                                </svg>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-tabs">
+                    <button class="tab-btn active" onclick="switchTab('myProfile')">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path
+                                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                        My Profile
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('savedJobs')">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                        </svg>
+                        Saved Jobs
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('myApplications')">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path
+                                d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z" />
+                        </svg>
+                        My Applications
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('myCV')">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path
+                                d="M8 16h8v2H8zm0-4h8v2H8zm6-10H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z" />
+                        </svg>
+                        My CV
+                    </button>
+
+                </div>
+
+                <div class="profile-content">
+                    <!-- My Profile Tab -->
+                    <div id="myProfile" class="tab-content active">
+                        <!-- Progress Bar -->
+                        <div class="profile-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <p class="progress-text"><span id="progressPercent">0</span>% Complete</p>
+                        </div>
+
+                        <!-- Two Column Layout -->
+                        <div class="profile-layout">
+                            <!-- Left Sidebar - Navigation -->
+                            <aside class="profile-sidebar">
+                                <h3>Profile Sections</h3>
+                                <nav class="section-nav">
+                                    <a href="#personal" class="nav-item active" data-section="1">
+                                        <span class="nav-number">1</span>
+                                        <span class="nav-text">Personal Information</span>
+                                    </a>
+                                    <a href="#education" class="nav-item" data-section="2">
+                                        <span class="nav-number">2</span>
+                                        <span class="nav-text">Education</span>
+                                    </a>
+                                    <a href="#experience" class="nav-item" data-section="3">
+                                        <span class="nav-number">3</span>
+                                        <span class="nav-text">Work Experience</span>
+                                    </a>
+                                    <a href="#skills" class="nav-item" data-section="4">
+                                        <span class="nav-number">4</span>
+                                        <span class="nav-text">Skills</span>
+                                    </a>
+                                    <a href="#languages" class="nav-item" data-section="5">
+                                        <span class="nav-number">5</span>
+                                        <span class="nav-text">Languages</span>
+                                    </a>
+                                    <a href="#portfolio" class="nav-item" data-section="6">
+                                        <span class="nav-number">6</span>
+                                        <span class="nav-text">Portfolio & Projects</span>
+                                    </a>
+                                    <a href="#references" class="nav-item" data-section="7">
+                                        <span class="nav-number">7</span>
+                                        <span class="nav-text">References</span>
+                                    </a>
+                                    <a href="#certifications" class="nav-item" data-section="8">
+                                        <span class="nav-number">8</span>
+                                        <span class="nav-text">Certifications</span>
+                                    </a>
+                                    <a href="#activities" class="nav-item" data-section="9">
+                                        <span class="nav-number">9</span>
+                                        <span class="nav-text">Activities</span>
+                                    </a>
+                                    <a href="#additional" class="nav-item" data-section="10">
+                                        <span class="nav-number">10</span>
+                                        <span class="nav-text">Additional Info</span>
+                                    </a>
+                                    <a href="#documents" class="nav-item" data-section="11">
+                                        <span class="nav-number">11</span>
+                                        <span class="nav-text">Documents</span>
+                                    </a>
+                                    <a href="#jobPreferences" class="nav-item" data-section="12">
+                                        <span class="nav-number">12</span>
+                                        <span class="nav-text">Job Preferences</span>
+                                    </a>
+                                </nav>
+                            </aside>
+
+                            <!-- Right Content Area -->
+                            <div class="profile-content">
+                                <form id="completeProfileForm">
+
+                                    <!-- Section 1: Personal Information -->
+                                    <section id="personal" class="profile-section active">
+                                        <div class="section-header">
+                                            <h2>Personal Information</h2>
+                                            <p>Tell us about yourself</p>
+                                        </div>
+
+                                        <div class="form-grid-2">
+                                            <div class="form-group">
+                                                <label>Full Name *</label>
+                                                <input type="text" id="fullName" name="fullName" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Email *</label>
+                                                <input type="email" id="email" name="email" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-grid-2">
+                                            <div class="form-group">
+                                                <label>Phone Number *</label>
+                                                <div class="phone-input-group">
+                                                    <select id="phoneCountryCode" name="phoneCountryCode"
+                                                        class="country-code-select" onchange="syncCountryFromPhone()"
+                                                        required></select>
+                                                    <!-- Options will be populated by JavaScript -->
+                                                    </select>
+                                                    <input type="tel" id="phoneNumber" name="phone"
+                                                        placeholder="912345678" required>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Alternative Phone</label>
+                                                <div class="phone-input-group">
+                                                    <select id="altPhoneCountryCode" name="altPhoneCountryCode"
+                                                        class="country-code-select">
+                                                        <!-- Options will be populated by JavaScript -->
+                                                    </select>
+                                                    <input type="tel" id="altPhoneNumber" name="altPhone"
+                                                        placeholder="912345678">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-grid-3">
+                                            <div class="form-group">
+                                                <label>Date of Birth *</label>
+                                                <input type="date" id="dob" name="dob" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Sex *</label>
+                                                <select id="sex" name="sex" required>
+                                                    <option value="">Select</option>
+                                                    <option value="Male">Male</option>
+                                                    <option value="Female">Female</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Marital Status</label>
+                                                <select id="maritalStatus" name="maritalStatus">
+                                                    <option value="">Select</option>
+                                                    <option value="single">Single</option>
+                                                    <option value="married">Married</option>
+                                                    <option value="divorced">Divorced</option>
+                                                    <option value="widowed">Widowed</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-grid-2">
+                                            <div class="form-group">
+                                                <label>Nationality *</label>
+                                                <select id="nationality" name="nationality" required>
+                                                    <option value="">Select Nationality</option>
+                                                    <!-- Options will be populated by JavaScript -->
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Country of Residence *</label>
+                                                <select id="countryOfResidence" name="country" required>
+                                                    <option value="">Select Country</option>
+                                                    <!-- Options will be populated by JavaScript -->
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-grid-3">
+                                            <div class="form-group">
+                                                <label>Region / State *</label>
+                                                <input type="text" id="region" name="region" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>City / Town *</label>
+                                                <input type="text" id="city" name="city" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Postal Code</label>
+                                                <input type="text" id="postalCode" name="postalCode">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Current Address *</label>
+                                            <input type="text" id="address" name="address" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Professional Title *</label>
+                                            <input type="text" id="professionalTitle" name="professionalTitle"
+                                                placeholder="e.g., Software Developer" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Short Bio / Summary *</label>
+                                            <textarea id="bio" name="bio" rows="4"
+                                                placeholder="Tell us about yourself, your experience, and career goals..."
+                                                required></textarea>
+                                        </div>
+
+                                        <div class="form-grid-2">
+                                            <div class="form-group">
+                                                <label>LinkedIn Profile</label>
+                                                <input type="url" id="linkedin" name="linkedin"
+                                                    placeholder="https://linkedin.com/in/yourprofile">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Website / Portfolio</label>
+                                                <input type="url" id="website" name="website"
+                                                    placeholder="https://yourwebsite.com">
+                                            </div>
+                                        </div>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 2: Education -->
+                                    <section id="education" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>Education</h2>
+                                            <p>Add your educational background</p>
+                                        </div>
+
+                                        <div id="educationList"></div>
+                                        <button type="button" class="btn-add" onclick="addEducation()">+ Add
+                                            Education</button>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 3: Work Experience -->
+                                    <section id="experience" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>Work Experience</h2>
+                                            <p>Tell us about your professional experience</p>
+                                        </div>
+
+                                        <div id="experienceList"></div>
+                                        <button type="button" class="btn-add" onclick="addExperience()">+ Add
+                                            Experience</button>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 4: Skills -->
+                                    <section id="skills" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>Skills</h2>
+                                            <p>Add your professional skills</p>
+                                        </div>
+
+                                        <div id="skillsList"></div>
+
+                                        <div class="skills-search-section">
+                                            <h4 style="margin-bottom: 0.5rem; color: #666;">Add Skills</h4>
+                                            <div class="skill-search-group">
+                                                <input type="text" id="skillSearch" placeholder="Search skills..."
+                                                    oninput="filterSkills()" onfocus="showSkillsDropdown()">
+                                                <div id="skillsDropdown" class="skills-dropdown" style="display: none;">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 5: Languages -->
+                                    <section id="languages" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>Languages</h2>
+                                            <p>Add languages you speak</p>
+                                        </div>
+
+                                        <div id="languagesList"></div>
+                                        <button type="button" class="btn-add" onclick="addLanguage()">+ Add
+                                            Language</button>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 6: Portfolio & Projects -->
+                                    <section id="portfolio" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>Portfolio & Projects</h2>
+                                            <p>Showcase your work and projects</p>
+                                        </div>
+
+                                        <div id="projectsList"></div>
+                                        <button type="button" class="btn-add" onclick="addProject()">+ Add
+                                            Project</button>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 7: References -->
+                                    <section id="references" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>References</h2>
+                                            <p>Add professional references</p>
+                                        </div>
+
+                                        <div id="referencesList"></div>
+                                        <button type="button" class="btn-add" onclick="addReference()">+ Add
+                                            Reference</button>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 8: Certifications -->
+                                    <section id="certifications" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>Certifications</h2>
+                                            <p>Add your professional certifications</p>
+                                        </div>
+
+                                        <div id="certificationsList"></div>
+                                        <button type="button" class="btn-add" onclick="addCertification()">+ Add
+                                            Certification</button>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 9: Activities -->
+                                    <section id="activities" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>Extracurricular Activities</h2>
+                                            <p>Volunteer work, hobbies, and other activities</p>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Activities & Interests</label>
+                                            <textarea name="activities" rows="4"
+                                                placeholder="Describe your extracurricular activities, volunteer work, hobbies, etc."></textarea>
+                                        </div>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 10: Additional Information -->
+                                    <section id="additional" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>Additional Information</h2>
+                                            <p>Any other relevant information</p>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Additional Information</label>
+                                            <textarea name="additionalInfo" rows="4"
+                                                placeholder="Any other information you'd like to share..."></textarea>
+                                        </div>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 11: Documents -->
+                                    <section id="documents" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>Documents</h2>
+                                            <p>Upload your CV and other documents</p>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Upload CV/Resume</label>
+                                            <input type="file" name="cv" accept=".pdf,.doc,.docx">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Upload Cover Letter</label>
+                                            <input type="file" name="coverLetter" accept=".pdf,.doc,.docx">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Other Documents</label>
+                                            <input type="file" name="otherDocs" accept=".pdf,.doc,.docx" multiple>
+                                        </div>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                            <button type="button" class="btn-next" onclick="nextSection()">Next Section
+                                                →</button>
+                                        </div>
+                                    </section>
+
+                                    <!-- Section 12: Job Preferences -->
+                                    <section id="jobPreferences" class="profile-section">
+                                        <div class="section-header">
+                                            <h2>Job Preferences</h2>
+                                            <p>Set your job alerts and preferences</p>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Job Categories</label>
+                                            <select id="alertCategories" name="alertCategories" multiple size="5"
+                                                class="form-control">
+                                                <option value="Healthcare and Medical">Healthcare and Medical</option>
+                                                <option value="Information Technology">Information Technology</option>
+                                                <option value="Education and Training">Education and Training</option>
+                                                <option value="Engineering and Technical">Engineering and Technical
+                                                </option>
+                                                <option value="Finance and Accounting">Finance and Accounting</option>
+                                                <option value="Business and Management">Business and Management</option>
+                                            </select>
+                                            <small class="form-text text-muted">Hold Ctrl (Windows) or Command (Mac) to
+                                                select multiple options.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Preferred Locations</label>
+                                            <input type="text" id="alertLocations" name="alertLocations"
+                                                placeholder="e.g., Addis Ababa, Bahir Dar">
+                                        </div>
+                                        <div class="form-group checkbox-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="emailAlerts" name="emailAlerts" checked>
+                                                Send me email notifications for matching jobs
+                                            </label>
+                                        </div>
+
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-prev" onclick="prevSection()">←
+                                                Previous</button>
+                                        </div>
+                                    </section>
+
+                                    <div class="form-footer">
+                                        <button type="button" class="btn-secondary" onclick="saveDraft()">Save
+                                            Draft</button>
+                                        <button type="submit" class="btn-primary">Submit Profile</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Saved Jobs Tab -->
+                <div id="savedJobs" class="tab-content">
+                    <h3>Saved Jobs</h3>
+                    <div id="savedJobsList"></div>
+                </div>
+
+                <!-- My Applications Tab -->
+                <div id="myApplications" class="tab-content">
+                    <h3>My Applications</h3>
+                    <div id="applicationsList"></div>
+                </div>
+
+                <!-- My CV Tab -->
+                <div id="myCV" class="tab-content">
+                    <h3>My CV</h3>
+
+                    <!-- CV Options -->
+                    <div class="cv-options-container">
+                        <!-- Option 1: Generate CV -->
+                        <div class="cv-option-card">
+                            <div class="cv-option-icon">
+                                <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+                                    <path
+                                        d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                                </svg>
+                            </div>
+                            <h4>Generate CV from Profile</h4>
+                            <p>Create a professional Academic/Technical CV using your profile information</p>
+                            <button onclick="generateCV()" class="btn-primary">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                    <path
+                                        d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z" />
+                                </svg>
+                                Generate & Download CV
+                            </button>
+                            <button onclick="previewCV()" class="btn-secondary" style="margin-top: 0.5rem;">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                                    <path
+                                        d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                                </svg>
+                                Preview CV
+                            </button>
+                        </div>
+
+                        <!-- Option 2: Upload CV -->
+                        <div class="cv-option-card">
+                            <div class="cv-option-icon">
+                                <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+                                    <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
+                                </svg>
+                            </div>
+                            <h4>Upload Your CV</h4>
+                            <p>Upload from your computer or Google Drive</p>
+
+                            <!-- Upload Options -->
+                            <div class="upload-options">
+                                <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx" style="display: none;"
+                                    onchange="handleCVUpload(event)">
+                                <button onclick="document.getElementById('cvFileInput').click()"
+                                    class="btn-upload-option">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                        <path
+                                            d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z" />
+                                    </svg>
+                                    From Computer
+                                </button>
+                                <button onclick="uploadFromGoogleDrive()" class="btn-upload-option">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                        <path
+                                            d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" />
+                                    </svg>
+                                    From Google Drive
+                                </button>
+                            </div>
+                            
+                            <div id="uploadedCVList" style="margin-top: 1rem;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job Alerts Tab -->
+                <div id="jobAlerts" class="tab-content">
+                    <h3>Job Alerts</h3>
+                    <p>Get notified when new jobs matching your preferences are posted.</p>
+                    <form id="alertsForm" class="profile-form">
+                        <div class="form-group">
+                            <label>Job Categories</label>
+                            <select id="alertCategories" multiple size="5">
+                                <option value="Healthcare and Medical">Healthcare and Medical</option>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Education and Training">Education and Training</option>
+                                <option value="Engineering and Technical">Engineering and Technical</option>
+                                <option value="Finance and Accounting">Finance and Accounting</option>
+                                <option value="Business and Management">Business and Management</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Preferred Locations</label>
+                            <input type="text" id="alertLocations" placeholder="e.g., Addis Ababa, Bahir Dar">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="emailAlerts" checked> Send me email notifications
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-primary">Save Alert Preferences</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About Habesha Careers</h4>
+                    <p>Empowering careers across Ethiopia and the Horn of Africa</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="jobs.html">Browse Jobs</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>Email: info@habeshacareers.com</p>
+                    <p>Phone: +251 910 804 879</p>
+                    <p>Phone: +251 943 849 645</p>
+                    <p>Addis Ababa, Ethiopia</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Habesha Careers. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+                <script src="js/data.js"></script>
+                <script src="js/skills-data.js"></script>
+                <script src="js/countries-data.js"></script>
+                <script src="js/fields-of-study-data.js"></script>
+                <script src="js/auth.js"></script>
+                <script src="js/cv-generator.js"></script>
+                <script src="js/languages-data.js"></script>
+                <script src="js/institutions-data.js"></script>
+                <script src="js/complete-profile.js"></script>
+                <script src="js/main.js"></script>
+</body>
+
+</html>

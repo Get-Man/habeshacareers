@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Habesha Careers</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <img src="images/logo.png" alt="Logo" class="logo-img">
+                    <h1>Habesha Careers</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="jobs.html">Jobs</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="login-page">
+            <div class="container">
+                <h2 class="page-title">Welcome to Habesha Careers</h2>
+                <p class="page-subtitle">Choose your account type to continue</p>
+                
+                <div class="auth-cards-container">
+                    <!-- JOB SEEKER CARD -->
+                    <div class="auth-card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                            <h3>Job Seeker</h3>
+                            <p>Find your dream job</p>
+                        </div>
+
+                        <!-- LOGIN SECTION -->
+                        <div class="card-tabs">
+                            <button class="card-tab-btn active" onclick="switchCardTab('jobseeker', 'login')">Login</button>
+                            <button class="card-tab-btn" onclick="switchCardTab('jobseeker', 'register')">Register</button>
+                        </div>
+
+                        <div id="jobseekerLogin" class="card-content active">
+                            <h4>Login to Your Account</h4>
+                            <form id="jobseekerLoginForm" class="login-form">
+                                <div class="form-group">
+                                    <label for="jsEmail">Email *</label>
+                                    <input type="email" id="jsEmail" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="jsPassword">Password *</label>
+                                    <input type="password" id="jsPassword" required>
+                                </div>
+
+                                <button type="submit" class="btn-primary">Login</button>
+                            </form>
+
+                            <div class="divider">
+                                <span>OR</span>
+                            </div>
+
+                            <div class="social-login">
+                                <button class="social-btn google-btn" onclick="alert('Google login coming soon!')">
+                                    <span class="social-icon">🔍</span> Continue with Google
+                                </button>
+                                <button class="social-btn linkedin-btn" onclick="alert('LinkedIn login coming soon!')">
+                                    <span class="social-icon">💼</span> Continue with LinkedIn
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="jobseekerRegister" class="card-content">
+                            <h4>Create Job Seeker Account</h4>
+                            <form id="jobseekerRegForm" class="register-form">
+                                <div class="form-group">
+                                    <label for="jsName">Full Name *</label>
+                                    <input type="text" id="jsName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="jsRegEmail">Email *</label>
+                                    <input type="email" id="jsRegEmail" required placeholder="example@gmail.com">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="jsLocation">Location *</label>
+                                    <select id="jsLocation" required>
+                                        <option value="">Select City</option>
+                                        
+                                        <optgroup label="Addis Ababa">
+                                            <option value="Addis Ababa">Addis Ababa</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Afar Region">
+                                            <option value="Semera">Semera</option>
+                                            <option value="Asayita">Asayita</option>
+                                            <option value="Dubti">Dubti</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Amhara Region">
+                                            <option value="Bahir Dar">Bahir Dar</option>
+                                            <option value="Gondar">Gondar</option>
+                                            <option value="Dessie">Dessie</option>
+                                            <option value="Debre Birhan">Debre Birhan</option>
+                                            <option value="Debre Markos">Debre Markos</option>
+                                            <option value="Debre Tabor">Debre Tabor</option>
+                                            <option value="Weldiya">Weldiya</option>
+                                            <option value="Sekota">Sekota</option>
+                                            <option value="Kemise">Kemise</option>
+                                            <option value="Shewa Robit">Shewa Robit</option>
+                                            <option value="Ankober">Ankober</option>
+                                            <option value="Injibara">Injibara</option>
+                                            <option value="Finote Selam">Finote Selam</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Benishangul-Gumuz">
+                                            <option value="Asosa">Asosa</option>
+                                            <option value="Kamashi">Kamashi</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Dire Dawa">
+                                            <option value="Dire Dawa">Dire Dawa</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Gambela Region">
+                                            <option value="Gambela">Gambela</option>
+                                            <option value="Akobo">Akobo</option>
+                                            <option value="Jikawo">Jikawo</option>
+                                            <option value="Lare">Lare</option>
+                                            <option value="Gog">Gog</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Harari Region">
+                                            <option value="Harar">Harar</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Oromia Region">
+                                            <option value="Adama">Adama</option>
+                                            <option value="Bishoftu">Bishoftu</option>
+                                            <option value="Jimma">Jimma</option>
+                                            <option value="Nekemte">Nekemte</option>
+                                            <option value="Chiro">Chiro</option>
+                                            <option value="Asella">Asella</option>
+                                            <option value="Robe">Robe</option>
+                                            <option value="Goba">Goba</option>
+                                            <option value="Shashamane">Shashamane</option>
+                                            <option value="Bule Hora">Bule Hora</option>
+                                            <option value="Yabelo">Yabelo</option>
+                                            <option value="Moyale">Moyale</option>
+                                            <option value="Negele Borana">Negele Borana</option>
+                                            <option value="Metu">Metu</option>
+                                            <option value="Bedele">Bedele</option>
+                                            <option value="Gimbi">Gimbi</option>
+                                            <option value="Dembidolo">Dembidolo</option>
+                                            <option value="Shambu">Shambu</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Sidama Region">
+                                            <option value="Hawassa">Hawassa</option>
+                                            <option value="Aleta Wondo">Aleta Wondo</option>
+                                            <option value="Dilla">Dilla</option>
+                                            <option value="Yirgalem">Yirgalem</option>
+                                            <option value="Chuko">Chuko</option>
+                                            <option value="Loka Abaya">Loka Abaya</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Somali Region">
+                                            <option value="Jijiga">Jijiga</option>
+                                            <option value="Gode">Gode</option>
+                                            <option value="Kebri Dehar">Kebri Dehar</option>
+                                            <option value="Fiq">Fiq</option>
+                                            <option value="Degehabur">Degehabur</option>
+                                            <option value="Shinile">Shinile</option>
+                                            <option value="Dollo Ado">Dollo Ado</option>
+                                            <option value="Warder">Warder</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Central Ethiopia Regional State">
+                                            <option value="Butajira">Butajira</option>
+                                            <option value="Welkite">Welkite</option>
+                                            <option value="Hosaena">Hosaena</option>
+                                            <option value="Halaba Kulito">Halaba Kulito</option>
+                                            <option value="Durame">Durame</option>
+                                            <option value="Worabe">Worabe</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="South Ethiopia Regional State">
+                                            <option value="Wolaita Sodo">Wolaita Sodo</option>
+                                            <option value="Arba Minch">Arba Minch</option>
+                                            <option value="Sawla">Sawla</option>
+                                            <option value="Jinka">Jinka</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="South West Ethiopia Peoples' Region">
+                                            <option value="Bonga">Bonga</option>
+                                            <option value="Mizan Teferi">Mizan Teferi</option>
+                                            <option value="Tepi">Tepi</option>
+                                            <option value="Tarcha">Tarcha</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Tigray Region">
+                                            <option value="Mekelle">Mekelle</option>
+                                            <option value="Adigrat">Adigrat</option>
+                                            <option value="Axum">Axum</option>
+                                            <option value="Shire">Shire</option>
+                                            <option value="Wukro">Wukro</option>
+                                            <option value="Alamata">Alamata</option>
+                                            <option value="Maychew">Maychew</option>
+                                            <option value="Korem">Korem</option>
+                                            <option value="Abi Adi">Abi Adi</option>
+                                            <option value="Humera">Humera</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="jsPhone">Phone Number *</label>
+                                    <input type="tel" id="jsPhone" required placeholder="+251...">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="jsRegPassword">Password *</label>
+                                    <input type="password" id="jsRegPassword" required minlength="6">
+                                    <small>Minimum 6 characters</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="jsConfirmPassword">Confirm Password *</label>
+                                    <input type="password" id="jsConfirmPassword" required>
+                                </div>
+
+                                <button type="submit" class="btn-primary">Register</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- EMPLOYER CARD -->
+                    <div class="auth-card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+                                    <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>
+                                </svg>
+                            </div>
+                            <h3>Employer</h3>
+                            <p>Post jobs and find talent</p>
+                        </div>
+
+                        <div class="card-tabs">
+                            <button class="card-tab-btn active" onclick="switchCardTab('employer', 'login')">Login</button>
+                            <button class="card-tab-btn" onclick="switchCardTab('employer', 'register')">Register</button>
+                        </div>
+
+                        <div id="employerLogin" class="card-content active">
+                            <h4>Login to Your Account</h4>
+                            <form id="employerLoginForm" class="login-form">
+                                <div class="form-group">
+                                    <label for="empEmail">Email *</label>
+                                    <input type="email" id="empEmail" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="empPassword">Password *</label>
+                                    <input type="password" id="empPassword" required>
+                                </div>
+
+                                <button type="submit" class="btn-primary">Login</button>
+                            </form>
+
+                            <div class="divider">
+                                <span>OR</span>
+                            </div>
+
+                            <div class="social-login">
+                                <button class="social-btn google-btn" onclick="alert('Google login coming soon!')">
+                                    <span class="social-icon">🔍</span> Continue with Google
+                                </button>
+                                <button class="social-btn linkedin-btn" onclick="alert('LinkedIn login coming soon!')">
+                                    <span class="social-icon">💼</span> Continue with LinkedIn
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="employerRegister" class="card-content">
+                            <h4>Create Employer Account</h4>
+                            <form id="employerRegForm" class="register-form">
+                                <div class="form-group">
+                                    <label for="empCompany">Company Name *</label>
+                                    <input type="text" id="empCompany" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="empContactName">Contact Person *</label>
+                                    <input type="text" id="empContactName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="empRegEmail">Email *</label>
+                                    <input type="email" id="empRegEmail" required placeholder="example@gmail.com">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="empLocation">Location *</label>
+                                    <select id="empLocation" required>
+                                        <option value="">Select City</option>
+                                        
+                                        <optgroup label="Addis Ababa">
+                                            <option value="Addis Ababa">Addis Ababa</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Afar Region">
+                                            <option value="Semera">Semera</option>
+                                            <option value="Asayita">Asayita</option>
+                                            <option value="Dubti">Dubti</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Amhara Region">
+                                            <option value="Bahir Dar">Bahir Dar</option>
+                                            <option value="Gondar">Gondar</option>
+                                            <option value="Dessie">Dessie</option>
+                                            <option value="Debre Birhan">Debre Birhan</option>
+                                            <option value="Debre Markos">Debre Markos</option>
+                                            <option value="Debre Tabor">Debre Tabor</option>
+                                            <option value="Weldiya">Weldiya</option>
+                                            <option value="Sekota">Sekota</option>
+                                            <option value="Kemise">Kemise</option>
+                                            <option value="Shewa Robit">Shewa Robit</option>
+                                            <option value="Ankober">Ankober</option>
+                                            <option value="Injibara">Injibara</option>
+                                            <option value="Finote Selam">Finote Selam</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Benishangul-Gumuz">
+                                            <option value="Asosa">Asosa</option>
+                                            <option value="Kamashi">Kamashi</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Dire Dawa">
+                                            <option value="Dire Dawa">Dire Dawa</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Gambela Region">
+                                            <option value="Gambela">Gambela</option>
+                                            <option value="Akobo">Akobo</option>
+                                            <option value="Jikawo">Jikawo</option>
+                                            <option value="Lare">Lare</option>
+                                            <option value="Gog">Gog</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Harari Region">
+                                            <option value="Harar">Harar</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Oromia Region">
+                                            <option value="Adama">Adama</option>
+                                            <option value="Bishoftu">Bishoftu</option>
+                                            <option value="Jimma">Jimma</option>
+                                            <option value="Nekemte">Nekemte</option>
+                                            <option value="Chiro">Chiro</option>
+                                            <option value="Asella">Asella</option>
+                                            <option value="Robe">Robe</option>
+                                            <option value="Goba">Goba</option>
+                                            <option value="Shashamane">Shashamane</option>
+                                            <option value="Bule Hora">Bule Hora</option>
+                                            <option value="Yabelo">Yabelo</option>
+                                            <option value="Moyale">Moyale</option>
+                                            <option value="Negele Borana">Negele Borana</option>
+                                            <option value="Metu">Metu</option>
+                                            <option value="Bedele">Bedele</option>
+                                            <option value="Gimbi">Gimbi</option>
+                                            <option value="Dembidolo">Dembidolo</option>
+                                            <option value="Shambu">Shambu</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Sidama Region">
+                                            <option value="Hawassa">Hawassa</option>
+                                            <option value="Aleta Wondo">Aleta Wondo</option>
+                                            <option value="Dilla">Dilla</option>
+                                            <option value="Yirgalem">Yirgalem</option>
+                                            <option value="Chuko">Chuko</option>
+                                            <option value="Loka Abaya">Loka Abaya</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Somali Region">
+                                            <option value="Jijiga">Jijiga</option>
+                                            <option value="Gode">Gode</option>
+                                            <option value="Kebri Dehar">Kebri Dehar</option>
+                                            <option value="Fiq">Fiq</option>
+                                            <option value="Degehabur">Degehabur</option>
+                                            <option value="Shinile">Shinile</option>
+                                            <option value="Dollo Ado">Dollo Ado</option>
+                                            <option value="Warder">Warder</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Central Ethiopia Regional State">
+                                            <option value="Butajira">Butajira</option>
+                                            <option value="Welkite">Welkite</option>
+                                            <option value="Hosaena">Hosaena</option>
+                                            <option value="Halaba Kulito">Halaba Kulito</option>
+                                            <option value="Durame">Durame</option>
+                                            <option value="Worabe">Worabe</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="South Ethiopia Regional State">
+                                            <option value="Wolaita Sodo">Wolaita Sodo</option>
+                                            <option value="Arba Minch">Arba Minch</option>
+                                            <option value="Sawla">Sawla</option>
+                                            <option value="Jinka">Jinka</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="South West Ethiopia Peoples' Region">
+                                            <option value="Bonga">Bonga</option>
+                                            <option value="Mizan Teferi">Mizan Teferi</option>
+                                            <option value="Tepi">Tepi</option>
+                                            <option value="Tarcha">Tarcha</option>
+                                        </optgroup>
+                                        
+                                        <optgroup label="Tigray Region">
+                                            <option value="Mekelle">Mekelle</option>
+                                            <option value="Adigrat">Adigrat</option>
+                                            <option value="Axum">Axum</option>
+                                            <option value="Shire">Shire</option>
+                                            <option value="Wukro">Wukro</option>
+                                            <option value="Alamata">Alamata</option>
+                                            <option value="Maychew">Maychew</option>
+                                            <option value="Korem">Korem</option>
+                                            <option value="Abi Adi">Abi Adi</option>
+                                            <option value="Humera">Humera</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="empPhone">Phone Number *</label>
+                                    <input type="tel" id="empPhone" required placeholder="+251...">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="empRegPassword">Password *</label>
+                                    <input type="password" id="empRegPassword" required minlength="6">
+                                    <small>Minimum 6 characters</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="empConfirmPassword">Confirm Password *</label>
+                                    <input type="password" id="empConfirmPassword" required>
+                                </div>
+
+                                <button type="submit" class="btn-primary">Register</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Habesha Careers</h4>
+                    <p>Empowering careers across Ethiopia and the Horn of Africa</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="jobs.html">Browse Jobs</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>Email: info@habeshacareers.com</p>
+                    <p>Addis Ababa, Ethiopia</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Habesha Careers. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>
