@@ -4538,3 +4538,8 @@ select#country option {
 .share-icons-exact .share-icon { width:40px; height:40px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; }
 .share-icons-exact .share-icon svg { width:20px; height:20px; display:block; }
 .share-icon.x:hover { background:#111827; color:#fff; }
+
+/* Apply actions (no long URLs) */
+.job-apply-actions { display:flex; align-items:center; gap:.85rem; flex-wrap:wrap; }
+.job-apply-note { color:#4b5563; font-size:.95rem; }
+.job-apply-section .btn-apply-source { min-width:140px; }
