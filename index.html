@@ -111,27 +111,27 @@
     <!-- Impact Statistics Section -->
     <section class="impact-stats">
         <div class="container">
-            <h3>Our Impact</h3>
+            <h3>Live Platform Snapshot</h3>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">💼</div>
-                    <div class="stat-number" data-target="15000">0</div>
-                    <div class="stat-label">Jobs Posted</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-number" data-target="50000">0</div>
-                    <div class="stat-label">Active Job Seekers</div>
+                    <div class="stat-number" id="statJobs" data-target="0">0</div>
+                    <div class="stat-label" id="statJobsLabel">Active Vacancies</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">🏢</div>
-                    <div class="stat-number" data-target="2500">0</div>
-                    <div class="stat-label">Partner Companies</div>
+                    <div class="stat-number" id="statOrgs" data-target="0">0</div>
+                    <div class="stat-label" id="statOrgsLabel">Partner Organizations</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-number" data-target="35000">0</div>
-                    <div class="stat-label">Successful Placements</div>
+                    <div class="stat-icon">📂</div>
+                    <div class="stat-number" id="statCategories" data-target="0">0</div>
+                    <div class="stat-label" id="statCategoriesLabel">Categories Covered</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔗</div>
+                    <div class="stat-number" id="statSources" data-target="0">0</div>
+                    <div class="stat-label" id="statSourcesLabel">Sources / Employers</div>
                 </div>
             </div>
         </div>
@@ -140,25 +140,10 @@
     <section class="partners-section">
         <div class="container">
             <h3>Our Trusted Partners</h3>
+            <p style="text-align:center;color:#555;margin:-.5rem 0 1rem">Organizations with vacancies currently posted on Habesha Careers</p>
             <div class="partners-slider">
-                <div class="partners-track">
-                    <div class="partner-logo">Company A</div>
-                    <div class="partner-logo">Company B</div>
-                    <div class="partner-logo">Bank C</div>
-                    <div class="partner-logo">Hospital D</div>
-                    <div class="partner-logo">University E</div>
-                    <div class="partner-logo">Construction F</div>
-                    <div class="partner-logo">Business G</div>
-                    <div class="partner-logo">Tech H</div>
-                    <!-- Duplicate for seamless loop -->
-                    <div class="partner-logo">Company A</div>
-                    <div class="partner-logo">Company B</div>
-                    <div class="partner-logo">Bank C</div>
-                    <div class="partner-logo">Hospital D</div>
-                    <div class="partner-logo">University E</div>
-                    <div class="partner-logo">Construction F</div>
-                    <div class="partner-logo">Business G</div>
-                    <div class="partner-logo">Tech H</div>
+                <div class="partners-track" id="partnersTrack">
+                    <div class="partner-logo partner-logo-empty">Loading partner organizations…</div>
                 </div>
             </div>
         </div>

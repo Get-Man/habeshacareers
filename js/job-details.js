@@ -6,8 +6,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    return (window.HabeshaUI && window.HabeshaUI.escHtml) ? window.HabeshaUI.escHtml(s) : String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+function _logo(job){ return (window.HabeshaUI && window.HabeshaUI.jobLogoSrc) ? window.HabeshaUI.jobLogoSrc(job) : (job && (job.logo || 'images/companies/default-company.png')); }
+function _fallbackLogo(job){ return (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri) ? window.HabeshaUI.orgLogoDataUri(job && job.company) : 'images/companies/default-company.png'; }
+function _fmtDate(v){ if(!v) return 'Not specified'; const s=String(v); return s.length >= 10 ? s.slice(0,10) : s; }
 
 async function loadJobDetails(jobId) {
     const container = document.getElementById('jobDetailsContent');
@@ -24,39 +27,75 @@ async function loadJobDetails(jobId) {
 
     const daysLeft = typeof getDaysUntilDeadline === 'function' ? getDaysUntilDeadline(job.deadline) : null;
     const urgentWarning = (daysLeft != null && daysLeft <= 7 && daysLeft >= 0) ? `
-        <div class="deadline-warning"><strong>⚠️ Urgent:</strong> Only ${daysLeft} days left to apply!</div>
+        <div class="deadline-warning"><strong>⚠️ Urgent:</strong> Only ${daysLeft} day(s) left to apply.</div>
     ` : '';
-    const sourceInfo = (job.sourceName || job.origin === 'direct' || job.origin === 'aggregated') ? `
-        <div class="job-source-info" style="margin:1rem 0;padding:.75rem 1rem;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;">
-            <strong>Listing type:</strong> ${esc(job.origin === 'direct' ? 'Direct employer vacancy' : (job.origin === 'aggregated' ? 'Aggregated vacancy' : 'Local listing'))}
-            ${job.sourceName ? `<br><strong>Source:</strong> ${esc(job.sourceName)}` : ''}
-            ${job.lastVerifiedAt ? `<br><strong>Last verified:</strong> ${esc(String(job.lastVerifiedAt).slice(0,10))}` : ''}
-            ${job.originalUrl ? `<br><strong>Original vacancy:</strong> <a href="${esc(job.originalUrl)}" target="_blank" rel="noopener noreferrer">View/apply on source website</a>` : ''}
-        </div>` : '';
-
     const shareUrl = encodeURIComponent(window.location.href);
     const shareTitle = encodeURIComponent((job.title || '') + ' at ' + (job.company || ''));
     const shareText = encodeURIComponent('Check out this job opportunity: ' + (job.title || ''));
     window.__currentJob = job;
-    const safeOriginal = job.originalUrl ? String(job.originalUrl) : '';
-    const daysText = (daysLeft == null) ? 'N/A' : `${daysLeft} days left`;
-    const deadlineText = job.deadline ? `${esc(job.deadline)} (${daysText})` : 'Not specified';
-    const applyPrimary = safeOriginal
-        ? `<a href="${esc(safeOriginal)}" target="_blank" rel="noopener noreferrer" class="btn-primary">Apply on Source Website</a>`
-        : (job.contactEmail ? `<button onclick="openApplicationModal(${Number(job.id)||0})" class="btn-primary">Apply Now</button>` : `<a href="jobs.html" class="btn-primary">View More Jobs</a>`);
-    const howToApply = safeOriginal
-        ? `<p>Apply through the official/original vacancy page: <a href="${esc(safeOriginal)}" target="_blank" rel="noopener noreferrer"><strong>Open application page</strong></a></p>${job.applicationInstructions ? `<p>${esc(job.applicationInstructions)}</p>` : ''}<p><small>Habesha Careers aggregates public vacancies and links you to the original source. Always verify details on the source website.</small></p>`
-        : (job.contactEmail ? `<p>Send your CV and cover letter to: <strong>${esc(job.contactEmail)}</strong></p><p>Please mention the job title in your email subject line.</p>` : `<p>See the original vacancy details for application instructions.</p>`);
+
+    const orgLink = job.originalUrl ? String(job.originalUrl) : '';
+    const contactMail = job.contactEmail ? String(job.contactEmail) : '';
+    const orgExactLink = orgLink
+      ? `<a class="job-detail-apply-link" href="${esc(orgLink)}" target="_blank" rel="noopener noreferrer">${esc(orgLink)}</a>`
+      : (contactMail ? `<a class="job-detail-apply-link" href="mailto:${encodeURIComponent(contactMail)}?subject=${encodeURIComponent('Application for ' + (job.title||'position'))}">${esc(contactMail)}</a>` : `<span>Not specified. See application instructions/source details.</span>`);
+
+    const skills = Array.isArray(job.requiredSkills) ? job.requiredSkills.filter(Boolean) : (job.requiredSkills ? [job.requiredSkills] : []);
+    const fields = [
+      ['Organization', job.company],
+      ['Job Title', job.title],
+      ['Category', job.category],
+      ['Location', job.location],
+      ['Region / City', job.regionCity],
+      ['Job Type', job.type],
+      ['Number of Vacancies / Positions', job.vacancies == null ? null : String(job.vacancies)],
+      ['Posted Date', _fmtDate(job.postedDate)],
+      ['Application Deadline', job.deadline ? `${_fmtDate(job.deadline)}${daysLeft == null ? '' : ` (${daysLeft} day(s) left)`}` : 'Not specified'],
+      ['Salary', job.salary],
+      ['Education Requirements', job.educationRequirements],
+      ['Experience Requirements', job.experienceRequirements],
+      ['Required Skills', skills.length ? skills.join(', ') : null],
+      ['Listing Type / Origin', job.origin === 'direct' ? 'Direct employer vacancy' : (job.origin === 'aggregated' ? 'Aggregated vacancy' : (job.origin || 'Not specified'))],
+      ['Status', job.status],
+      ['Featured', job.featured ? 'Yes' : (job.featured === false ? 'No' : null)],
+      ['Source', job.sourceName || job.sourceSlug],
+      ['Last Verified', _fmtDate(job.lastVerifiedAt)],
+      ['Contact Email', job.contactEmail],
+      ['Job ID', job.id == null ? null : String(job.id)],
+    ];
+
+    const fieldHtml = fields.map(([label, value]) => {
+      if (value == null || String(value).trim() === '') return '';
+      const safe = esc(value);
+      if (label === 'Contact Email' && contactMail) return `<div class="job-detail-field"><strong>${esc(label)}</strong><span><a href="mailto:${encodeURIComponent(contactMail)}">${safe}</a></span></div>`;
+      return `<div class="job-detail-field"><strong>${esc(label)}</strong><span>${safe}</span></div>`;
+    }).join('');
+
+    const applySection = `
+      <div class="job-detail-section">
+        <h3>Organization Exact Link (Apply)</h3>
+        <p>Use the organization’s exact application/vacancy link below. Habesha Careers does not replace the original application process.</p>
+        ${orgExactLink}
+        ${job.applicationInstructions ? `<div class="job-detail-section"><h3>Application Instructions</h3><p>${esc(job.applicationInstructions)}</p></div>` : ''}
+      </div>`;
+
+    const desc = job.description || 'See original vacancy for full description.';
+    const req = job.requirements;
 
     container.innerHTML = `
         <div class="job-detail-card">
             <div class="habesha-career-badge"><span class="badge-text">Habesha Career</span></div>
             <div class="job-header-section">
-                <div class="job-title-section">
-                    <h2>${esc(job.title)}</h2>
-                    <div class="company-save-row">
-                        <div class="company-tag">${esc(job.company)}</div>
-                        <button class="save-job-btn-inline" onclick="toggleSaveJob(${Number(job.id)||0})" title="Save this job"><span>Save Job</span></button>
+                <div class="job-title-section" style="flex:1;min-width:260px">
+                    <div class="job-detail-org">
+                        <img src="${esc(_logo(job))}" alt="${esc(job.company || 'Organization')}" class="job-detail-org-logo" onerror="this.onerror=null;this.src='${_fallbackLogo(job)}'">
+                        <div>
+                            <h2 style="margin:0 0 .35rem">${esc(job.title)}</h2>
+                            <div class="company-save-row" style="justify-content:flex-start;flex-wrap:wrap">
+                                <div class="company-tag" style="margin-left:0;padding-left:1.2rem">${esc(job.company || 'Organization not specified')}</div>
+                                <button class="save-job-btn-inline" onclick="toggleSaveJob('${esc(String(job.id))}')" title="Save this job"><span>Save Job</span></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="share-section">
@@ -70,34 +109,42 @@ async function loadJobDetails(jobId) {
                 </div>
             </div>
             <div class="header-separator"></div>
-            ${sourceInfo}
-            <div class="job-detail-meta">
-                <div><strong>📍 Location:</strong><br>${esc(job.location || job.regionCity || 'Not specified')}</div>
-                <div><strong>💼 Job Type:</strong><br>${esc(job.type || 'Not specified')}</div>
-                <div><strong>📂 Category:</strong><br>${esc(job.category || 'Other')}</div>
-                <div><strong>👥 Positions:</strong><br>${esc(job.vacancies || 1)}</div>
-                <div><strong>📅 Posted:</strong><br>${esc(job.postedDate || 'Not specified')}</div>
-                <div><strong>⏰ Deadline:</strong><br>${deadlineText}</div>
-            </div>
             ${urgentWarning}
-            <h3>Job Description</h3>
-            <p>${esc(job.description || 'See original vacancy for full description.')}</p>
-            ${job.requirements ? `<h3>Requirements</h3><pre style="white-space: pre-wrap; font-family: inherit;">${esc(job.requirements)}</pre>` : ''}
-            ${job.educationRequirements ? `<h3>Education</h3><p>${esc(job.educationRequirements)}</p>` : ''}
-            ${job.experienceRequirements ? `<h3>Experience</h3><p>${esc(job.experienceRequirements)}</p>` : ''}
-            <h3>How to Apply</h3>
-            ${howToApply}
-            <div style="margin-top: 2rem;display:flex;gap:.5rem;flex-wrap:wrap;">
-                ${applyPrimary}
+
+            <div class="job-detail-section">
+                <h3>Job Details</h3>
+                <div class="job-detail-fields">${fieldHtml || '<div class="job-detail-field"><strong>Details</strong><span>No additional structured details available. See description and source link.</span></div>'}</div>
+            </div>
+
+            ${applySection}
+
+            <div class="job-detail-section">
+                <h3>Job Description</h3>
+                <p style="white-space:pre-wrap">${esc(desc)}</p>
+            </div>
+
+            ${req ? `<div class="job-detail-section"><h3>Requirements</h3><pre class="job-detail-pre">${esc(req)}</pre></div>` : ''}
+            ${job.educationRequirements ? `<div class="job-detail-section"><h3>Education Requirements</h3><p>${esc(job.educationRequirements)}</p></div>` : ''}
+            ${job.experienceRequirements ? `<div class="job-detail-section"><h3>Experience Requirements</h3><p>${esc(job.experienceRequirements)}</p></div>` : ''}
+            ${skills.length ? `<div class="job-detail-section"><h3>Required Skills</h3><p>${esc(skills.join(', '))}</p></div>` : ''}
+
+            <div class="job-detail-section">
+                <h3>Source / Verification</h3>
+                <p><strong>Listing type:</strong> ${esc(job.origin === 'direct' ? 'Direct employer vacancy' : (job.origin === 'aggregated' ? 'Aggregated vacancy' : (job.origin || 'Not specified')))}</p>
+                ${job.sourceName ? `<p><strong>Source name:</strong> ${esc(job.sourceName)}</p>` : ''}
+                ${job.sourceSlug ? `<p><strong>Source slug:</strong> ${esc(job.sourceSlug)}</p>` : ''}
+                ${job.lastVerifiedAt ? `<p><strong>Last verified:</strong> ${esc(_fmtDate(job.lastVerifiedAt))}</p>` : ''}
+                ${orgLink ? `<p><strong>Original vacancy URL:</strong> <a href="${esc(orgLink)}" target="_blank" rel="noopener noreferrer">${esc(orgLink)}</a></p>` : ''}
+                <p><small>Always verify details on the organization’s official application page before applying.</small></p>
+            </div>
+
+            <div style="margin-top: 2rem;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
+                ${orgLink ? `<a href="${esc(orgLink)}" target="_blank" rel="noopener noreferrer" class="job-detail-apply-link" style="font-size:1rem">Open organization exact link</a>` : ''}
                 <a href="jobs.html" class="btn-secondary">Back to Jobs</a>
             </div>
         </div>
-        ${!safeOriginal && job.contactEmail ? `
-        <div id="applicationModal" class="modal"><div class="modal-content"><span class="modal-close" onclick="closeApplicationModal()">&times;</span><h3>Choose Application Method</h3><div class="application-options"><div class="application-option" onclick="applyWithHabesha(${Number(job.id)||0})"><div class="option-icon">🇪🇹</div><h4>Apply with Habesha Career</h4><p>Use your profile or upload CV</p></div><div class="application-option" onclick="applyWithCompany()"><div class="option-icon">🏢</div><h4>Apply via Email</h4><p>Send email directly to employer</p></div></div></div></div>
-        <div id="habeshaApplicationModal" class="modal"><div class="modal-content"><span class="modal-close" onclick="closeHabeshaModal()">&times;</span><h3>Apply with Habesha Career</h3><div class="application-methods"><button class="method-btn" onclick="applyWithProfile()">Apply with Profile</button><button class="method-btn" onclick="document.getElementById('cvUpload').click()">Upload CV</button><input type="file" id="cvUpload" accept=".pdf,.doc,.docx" style="display:none" onchange="handleCVUpload(event, ${Number(job.id)||0})"></div></div></div>` : ''}
     `;
 
-    // restore save state
     setTimeout(() => {
         const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
         const btn = document.querySelector('.save-job-btn-inline');

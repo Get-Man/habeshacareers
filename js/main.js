@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('categoryGrid')) {
         loadCategoriesWithVacancies();
     }
+    if (document.getElementById('partnersTrack')) {
+        loadTrustedPartners();
+    }
+    if (document.querySelector('.impact-stats')) {
+        loadImpactStats();
+    }
 });
 
 // Load categories with total vacancy counts
@@ -47,8 +53,12 @@ function loadCategoriesWithVacancies() {
     }).join('');
 }
 
+function _esc(s){ return (window.HabeshaUI && window.HabeshaUI.escHtml) ? window.HabeshaUI.escHtml(s) : String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _logo(job){ return (window.HabeshaUI && window.HabeshaUI.jobLogoSrc) ? window.HabeshaUI.jobLogoSrc(job) : (job.logo || 'images/companies/default-company.png'); }
+function _fallbackLogo(job){ return (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri) ? window.HabeshaUI.orgLogoDataUri(job && job.company) : 'images/companies/default-company.png'; }
+
 function _jobCardBadge(job) {
-    if (job && job.origin === 'aggregated') return `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#eef2ff;font-size:.72rem;vertical-align:middle">Aggregated${job.sourceName ? ': '+String(job.sourceName).replace(/[&<>]/g,'') : ''}</span>`;
+    if (job && job.origin === 'aggregated') return `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#eef2ff;font-size:.72rem;vertical-align:middle">Aggregated${job.sourceName ? ': '+_esc(job.sourceName) : ''}</span>`;
     if (job && job.origin === 'direct') return `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#ecfdf5;font-size:.72rem;vertical-align:middle">Direct</span>`;
     return '';
 }
@@ -56,7 +66,7 @@ function _jobCardBadge(job) {
 // Load recent jobs (last 6)
 function loadRecentJobs() {
     const jobs = getAllJobs();
-    const recentJobs = [...jobs].sort((a,b)=>String(b.postedDate||'').localeCompare(String(a.postedDate||''))).slice(0,6);
+    const recentJobs = [...jobs].sort((a,b)=>String(b.postedDate||b.created_at||'').localeCompare(String(a.postedDate||a.created_at||''))).slice(0,6);
     const container = document.getElementById('recentJobsList');
     if (!container) return;
 
@@ -68,28 +78,68 @@ function loadRecentJobs() {
     }
 
     container.innerHTML = recentJobs.map(job => {
-        const logoPath = job.logo || 'images/companies/default-company.png';
+        const logoPath = _logo(job);
+        const fallback = _fallbackLogo(job);
         return `
         <div class="job-card">
             <div class="job-card-header">
-                <img src="${logoPath}" alt="${job.company || ''}" class="company-logo" onerror="this.style.display='none'">
+                <img src="${_esc(logoPath)}" alt="${_esc(job.company || '')}" class="company-logo" onerror="this.onerror=null;this.src='${fallback}'">
                 <div class="job-card-title">
-                    <h4>${job.title || ''}${_jobCardBadge(job)}</h4>
-                    <p class="company">${job.company || ''}</p>
+                    <h4>${_esc(job.title)}${_jobCardBadge(job)}</h4>
+                    <p class="company">${_esc(job.company || '')}</p>
                 </div>
             </div>
             <div class="job-meta">
-                <span>📍 ${job.location || 'Not specified'}</span>
-                <span>💼 ${job.type || ''}</span>
-                <span>📂 ${job.category || ''}</span>
-                ${job.originalUrl ? `<span>🔗 ${job.sourceName || 'Original source'}</span>` : ''}
+                <span>📍 ${_esc(job.location || job.regionCity || 'Not specified')}</span>
+                <span>💼 ${_esc(job.type || 'Not specified')}</span>
+                <span>📂 ${_esc(job.category || 'Other')}</span>
+                ${job.originalUrl ? `<span>🔗 ${_esc(job.sourceName || 'Original source')}</span>` : ''}
             </div>
-            <p>Deadline: ${job.deadline || 'Not specified'}</p>
-            <a href="job-details.html?id=${job.id}" class="btn-view">View Details</a>
+            <p>Deadline: ${_esc(job.deadline || 'Not specified')}</p>
+            <a href="job-details.html?id=${encodeURIComponent(job.id)}" class="btn-view">View Details</a>
         </div>
     `}).join('');
 }
-window.addEventListener('habesha:jobs-updated', () => { try { loadRecentJobs(); if (typeof loadCategoriesWithVacancies==='function') loadCategoriesWithVacancies(); } catch(e){} });
+
+function loadTrustedPartners() {
+    const track = document.getElementById('partnersTrack');
+    if (!track) return;
+    const jobs = getAllJobs();
+    const seen = new Map();
+    for (const job of jobs) {
+        const key = String(job.company || '').trim().toLowerCase();
+        if (!key) continue;
+        if (!seen.has(key)) seen.set(key, { name: job.company, logo: _logo(job), fallback: _fallbackLogo(job) });
+    }
+    const partners = Array.from(seen.values());
+    if (!partners.length) {
+        track.innerHTML = `<div class="partner-logo partner-logo-empty">Partner logos will appear here as jobs are posted</div>`;
+        return;
+    }
+    const item = (p) => `<div class="partner-logo partner-logo-card" title="${_esc(p.name)}"><img src="${_esc(p.logo)}" alt="${_esc(p.name)}" class="partner-logo-img" onerror="this.onerror=null;this.src='${p.fallback}'"><span class="partner-logo-name">${_esc(p.name)}</span></div>`;
+    const items = partners.map(item).join('');
+    track.innerHTML = partners.length > 3 ? (items + items) : items; // duplicate for seamless loop when enough
+}
+
+function loadImpactStats() {
+    const jobs = getAllJobs();
+    const activeJobs = jobs.length;
+    const orgs = new Set(jobs.map(j => String(j.company||'').trim().toLowerCase()).filter(Boolean)).size;
+    const categories = new Set(jobs.map(j => String(j.category||'').trim()).filter(Boolean)).size;
+    const sources = new Set(jobs.map(j => String(j.sourceName || j.sourceSlug || (j.origin==='direct'?'Direct':'') || '').trim()).filter(Boolean)).size;
+    const setStat = (id, value, label) => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = String(value); el.setAttribute('data-target', String(value)); }
+        const lbl = document.getElementById(id + 'Label');
+        if (lbl && label) lbl.textContent = label;
+    };
+    setStat('statJobs', activeJobs, 'Active Vacancies');
+    setStat('statOrgs', orgs, 'Partner Organizations');
+    setStat('statCategories', categories, 'Categories Covered');
+    setStat('statSources', sources || orgs, 'Sources / Employers');
+}
+
+window.addEventListener('habesha:jobs-updated', () => { try { loadRecentJobs(); loadTrustedPartners(); loadImpactStats(); if (typeof loadCategoriesWithVacancies==='function') loadCategoriesWithVacancies(); } catch(e){} });
 
 // Search jobs from home page
 function searchJobs() {
@@ -158,43 +208,7 @@ function filterByCategory(category) {
 }
 
 
-// Animated Counter for Impact Stats
-function animateCounter(element, target, duration = 2000) {
-    let start = 0;
-    const increment = target / (duration / 16);
-    
-    const timer = setInterval(() => {
-        start += increment;
-        if (start >= target) {
-            element.textContent = target.toLocaleString();
-            clearInterval(timer);
-        } else {
-            element.textContent = Math.floor(start).toLocaleString();
-        }
-    }, 16);
-}
-
-// Intersection Observer for stats animation
-const statsObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const statNumbers = entry.target.querySelectorAll('.stat-number');
-            statNumbers.forEach(stat => {
-                const target = parseInt(stat.getAttribute('data-target'));
-                animateCounter(stat, target);
-            });
-            statsObserver.unobserve(entry.target);
-        }
-    });
-}, { threshold: 0.5 });
-
-// Observe impact stats section
-document.addEventListener('DOMContentLoaded', function() {
-    const impactStats = document.querySelector('.impact-stats');
-    if (impactStats) {
-        statsObserver.observe(impactStats);
-    }
-});
+// Impact stats are now rendered from live job data in loadImpactStats().
 
 
 // Update navbar based on login status

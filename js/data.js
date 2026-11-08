@@ -2,6 +2,39 @@
 // Primary source: /api/jobs (Neon/Postgres, aggregated + approved direct jobs).
 // Fallback: browser-local direct submissions only (no demo/sample vacancy data).
 
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function orgInitials(name) {
+  const parts = String(name || 'Organization').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return 'O';
+  const letters = parts.slice(0, 2).map(p => p[0].toUpperCase()).join('');
+  return letters || 'O';
+}
+
+function orgLogoColor(name) {
+  const palette = ['#0f766e','#1d4ed8','#7c3aed','#b45309','#be123c','#15803d','#0369a1','#4338ca','#a16207','#0f766e'];
+  let h = 0; const s = String(name || '');
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i);
+  return palette[Math.abs(h) % palette.length];
+}
+
+function orgLogoDataUri(name) {
+  const initials = orgInitials(name);
+  const bg = orgLogoColor(name);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" rx="18" fill="${bg}"/><text x="60" y="68" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="42" font-weight="700" fill="#ffffff">${escHtml(initials)}</text></svg>`;
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
+
+function jobLogoSrc(job) {
+  const logo = job && (job.logo || job.logoUrl || job.companyLogo);
+  if (logo && /^https?:|^data:|^\//i.test(String(logo))) return String(logo);
+  return orgLogoDataUri(job && job.company);
+}
+
+window.HabeshaUI = Object.assign(window.HabeshaUI || {}, { escHtml, orgInitials, orgLogoDataUri, jobLogoSrc });
+
 const DEMO_SEED_TITLES = new Set([
   "Senior Software Developer","Registered Nurse","Project Manager",
   "Civil Engineer","High School Teacher - Mathematics","Financial Analyst"

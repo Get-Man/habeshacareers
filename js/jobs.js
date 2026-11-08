@@ -1,9 +1,11 @@
 let currentJobs = [];
 let currentPage = 1;
 const jobsPerPage = 6;
+function _esc(s){ return (window.HabeshaUI && window.HabeshaUI.escHtml) ? window.HabeshaUI.escHtml(s) : String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _logo(job){ return (window.HabeshaUI && window.HabeshaUI.jobLogoSrc) ? window.HabeshaUI.jobLogoSrc(job) : (job.logo || 'images/companies/default-company.png'); }
+function _fallbackLogo(job){ return (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri) ? window.HabeshaUI.orgLogoDataUri(job && job.company) : 'images/companies/default-company.png'; }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Load jobs
     loadJobs();
 
     // Check for filters from home page
@@ -24,6 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
         applyFilters();
     }
 });
+
+window.addEventListener('habesha:jobs-updated', () => { try { applyFilters(); } catch(e){} });
 
 function loadJobs() {
     currentJobs = getAllJobs();
@@ -54,34 +58,33 @@ function displayJobs(jobs) {
     container.innerHTML = paginatedJobs.map(job => {
         const daysLeft = getDaysUntilDeadline(job.deadline);
         const urgentClass = (daysLeft != null && daysLeft <= 7) ? 'style="color: red;"' : '';
-        const logoPath = job.logo || 'images/companies/default-company.png';
-        const badge = job.origin === 'aggregated' ? `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#eef2ff;font-size:.72rem">Aggregated${job.sourceName?': '+String(job.sourceName).replace(/[&<>]/g,''):''}</span>` : (job.origin==='direct'?`<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#ecfdf5;font-size:.72rem">Direct</span>`:'');
+        const logoPath = _logo(job);
+        const fallback = _fallbackLogo(job);
+        const badge = job.origin === 'aggregated' ? `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#eef2ff;font-size:.72rem">Aggregated${job.sourceName?': '+_esc(job.sourceName):''}</span>` : (job.origin==='direct'?`<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#ecfdf5;font-size:.72rem">Direct</span>`:'');
 
         return `
             <div class="job-card">
                 <div class="job-card-header">
-                    <img src="${logoPath}" alt="${job.company || ''}" class="company-logo" onerror="this.style.display='none'">
+                    <img src="${_esc(logoPath)}" alt="${_esc(job.company || '')}" class="company-logo" onerror="this.onerror=null;this.src='${fallback}'">
                     <div class="job-card-title">
-                        <h4>${job.title || ''}${badge}</h4>
-                        <p class="company">${job.company || ''}</p>
+                        <h4>${_esc(job.title)}${badge}</h4>
+                        <p class="company">${_esc(job.company || 'Organization not specified')}</p>
                     </div>
                 </div>
                 <div class="job-meta">
-                    <span>📍 ${job.location || 'Not specified'}</span>
-                    <span>💼 ${job.type || ''}</span>
-                    <span>📂 ${job.category || ''}</span>
-                    <span>👥 ${job.vacancies || 1} ${job.vacancies === 1 ? 'position' : 'positions'}</span>
-                    <span ${urgentClass}>⏰ ${daysLeft == null ? 'N/A' : daysLeft + ' days left'}</span>
-                    ${job.originalUrl ? `<span>🔗 ${job.sourceName || 'Source'}</span>` : ''}
+                    <span>📍 ${_esc(job.location || job.regionCity || 'Not specified')}</span>
+                    <span>💼 ${_esc(job.type || 'Not specified')}</span>
+                    <span>📂 ${_esc(job.category || 'Other')}</span>
+                    <span>👥 ${_esc(job.vacancies || 1)} ${(job.vacancies || 1) === 1 ? 'position' : 'positions'}</span>
+                    <span ${urgentClass}>⏰ ${daysLeft == null ? 'Deadline N/A' : daysLeft + ' days left'}</span>
+                    ${job.sourceName ? `<span>🔗 ${_esc(job.sourceName)}</span>` : (job.originalUrl ? `<span>🔗 Original source</span>` : '')}
                 </div>
-                <p>Posted: ${job.postedDate || 'Not specified'}</p>
-                <a href="job-details.html?id=${job.id}" class="btn-view">View Details</a>
+                <p><strong>Posted:</strong> ${_esc(job.postedDate || 'Not specified')} &nbsp; <strong>Deadline:</strong> ${_esc(job.deadline || 'Not specified')}</p>
+                <a href="job-details.html?id=${encodeURIComponent(job.id)}" class="btn-view">View Details</a>
             </div>
         `;
     }).join('');
-    window.addEventListener('habesha:jobs-updated', () => { try { applyFilters(); } catch(e){} }, { once: true });
 
-    // Display pagination
     renderPagination(totalPages);
 }
 
