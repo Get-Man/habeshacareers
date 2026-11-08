@@ -61,7 +61,9 @@ function loadRecentJobs() {
     if (!container) return;
 
     if (recentJobs.length === 0) {
-        container.innerHTML = '<p>No jobs available at the moment.</p>';
+        const err = window.JobsApi && window.JobsApi.lastError;
+        const msg = (err && err.error === 'db_unavailable') ? 'Live job database is not configured yet. Configure Neon <code>DATABASE_URL</code> and run source sync from <a href="admin.html">Admin</a> to show real aggregated vacancies.' : 'No active vacancies found right now. Check back soon or visit <a href="jobs.html">Browse Jobs</a>.';
+        container.innerHTML = `<p>${msg}</p>`;
         return;
     }
 

@@ -38,7 +38,9 @@ function displayJobs(jobs) {
     countElement.textContent = `${jobs.length} job(s) found`;
 
     if (jobs.length === 0) {
-        container.innerHTML = '<p>No jobs match your criteria.</p>';
+        const err = window.JobsApi && window.JobsApi.lastError;
+        const msg = (err && err.error === 'db_unavailable') ? 'Live job database is not configured yet. Configure Neon <code>DATABASE_URL</code> and sync real sources from <a href="admin.html">Admin</a>.' : 'No jobs match your criteria.';
+        container.innerHTML = `<p>${msg}</p>`;
         document.getElementById('pagination').innerHTML = '';
         return;
     }

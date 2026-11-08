@@ -164,7 +164,7 @@ insert into job_sources (slug, name, base_url, listing_url, source_type, enabled
   ('srazone', 'SRA Zone', 'https://srazone.et/', 'https://srazone.et/', 'html', false, 'pending', 'Verify permitted access.'),
   ('ethiopian-reporter', 'Ethiopian Reporter Jobs', 'https://www.ethiopianreporter.com/', 'https://www.ethiopianreporter.com/', 'html', false, 'pending', 'Verify jobs section URL and permitted access.'),
   ('reliefweb-ethiopia', 'ReliefWeb (Ethiopia)', 'https://reliefweb.int/', 'https://reliefweb.int/jobs?search=country.name%3A%22Ethiopia%22', 'rss', false, 'pending', 'ReliefWeb provides RSS/API discovery; verify terms/rate limits before enabling.'),
-  ('unjobs-ethiopia', 'UN Jobs (Ethiopia)', 'https://unjobs.org/', 'https://unjobs.org/duty_stations/ethiopia', 'html', false, 'pending', 'Aggregator site; verify permitted access/attribution.'),
+  ('unjobs-ethiopia', 'UN Jobs (Ethiopia)', 'https://unjobs.org/', 'https://unjobs.org/duty_stations/ethiopia', 'html', false, 'pending', 'Aggregator site; verify permitted access/attribution. Best-effort connector available (disabled by default).'),
   ('un-ethiopia', 'UN in Ethiopia Jobs', 'https://ethiopia.un.org/', 'https://ethiopia.un.org/en/jobs', 'html', false, 'pending', 'Verify jobs listing structure/API.'),
   ('devnetjobs', 'DevNetJobs', 'https://www.devnetjobs.org/', 'https://www.devnetjobs.org/', 'html', false, 'pending', 'Verify Ethiopia-filtered feed and permitted access.'),
   ('indeed-ethiopia', 'Indeed Ethiopia', 'https://et.indeed.com/', 'https://et.indeed.com/', 'html', false, 'unsupported', 'Commercial job board; automated access commonly restricted. Prefer authorized API/partnership or manual import.')

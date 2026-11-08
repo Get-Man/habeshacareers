@@ -1,118 +1,49 @@
 // Habesha Careers - data layer
-// Integrates with /api/jobs when backend+DB are configured; falls back to local sample/localStorage data.
-// Existing synchronous helpers are preserved for compatibility.
+// Primary source: /api/jobs (Neon/Postgres, aggregated + approved direct jobs).
+// Fallback: browser-local direct submissions only (no demo/sample vacancy data).
 
-const jobsData = [
-    {
-        id: 1,
-        title: "Senior Software Developer",
-        company: "Tech Solutions Ethiopia",
-        logo: "images/companies/tech-solutions.png",
-        category: "Information Technology",
-        location: "Addis Ababa",
-        type: "Full-time / Permanent",
-        vacancies: 3,
-        postedDate: "2025-11-15",
-        deadline: "2025-12-15",
-        description: "We are seeking an experienced software developer to join our growing team. The ideal candidate will have strong programming skills and experience with modern web technologies.",
-        requirements: "- Bachelor's degree in Computer Science or related field\n- 5+ years of experience in software development\n- Proficiency in JavaScript, Python, or Java\n- Experience with databases and APIs\n- Strong problem-solving skills",
-        contactEmail: "hr@techsolutions.et",
-        origin: "local"
-    },
-    {
-        id: 2,
-        title: "Registered Nurse",
-        company: "St. Paul's Hospital",
-        logo: "images/companies/st-pauls.png",
-        category: "Healthcare and Medical",
-        location: "Addis Ababa",
-        type: "Full-time / Permanent",
-        vacancies: 5,
-        postedDate: "2025-11-16",
-        deadline: "2025-12-10",
-        description: "St. Paul's Hospital is looking for a compassionate and skilled registered nurse to provide quality patient care.",
-        requirements: "- Bachelor's degree in Nursing\n- Valid nursing license\n- 2+ years of clinical experience\n- Excellent communication skills\n- Ability to work in a fast-paced environment",
-        contactEmail: "recruitment@stpauls.et",
-        origin: "local"
-    },
-    {
-        id: 3,
-        title: "Project Manager",
-        company: "International Development Organization",
-        logo: "images/companies/intl-dev.png",
-        category: "Business and Management",
-        location: "Addis Ababa",
-        type: "Contract / Fixed-term",
-        vacancies: 2,
-        postedDate: "2025-11-17",
-        deadline: "2025-12-20",
-        description: "We are seeking a project manager to oversee community development initiatives across Ethiopia.",
-        requirements: "- Master's degree in Business Management or related field\n- 5+ years of project management experience\n- Experience working with international organizations\n- Strong leadership and communication skills\n- Fluency in English and Amharic",
-        contactEmail: "jobs@intldev.org",
-        origin: "local"
-    },
-    {
-        id: 4,
-        title: "Civil Engineer",
-        company: "Ethiopian Construction Corp",
-        logo: "images/companies/construction-corp.png",
-        category: "Engineering and Technical",
-        location: "Dire Dawa",
-        type: "Full-time / Permanent",
-        vacancies: 4,
-        postedDate: "2025-11-14",
-        deadline: "2025-12-05",
-        description: "Looking for a civil engineer to work on infrastructure projects in the Dire Dawa region.",
-        requirements: "- Bachelor's degree in Civil Engineering\n- 3+ years of experience\n- Knowledge of construction standards\n- AutoCAD proficiency\n- Valid engineering license",
-        contactEmail: "hr@ethioconstruction.et",
-        origin: "local"
-    },
-    {
-        id: 5,
-        title: "High School Teacher - Mathematics",
-        company: "Bole International School",
-        logo: "images/companies/bole-school.png",
-        category: "Education and Training",
-        location: "Addis Ababa",
-        type: "Full-time / Permanent",
-        vacancies: 2,
-        postedDate: "2025-11-18",
-        deadline: "2025-12-25",
-        description: "We are looking for an enthusiastic mathematics teacher to join our academic team.",
-        requirements: "- Bachelor's degree in Mathematics or Education\n- Teaching certification\n- 2+ years of teaching experience\n- Strong classroom management skills\n- Passion for education",
-        contactEmail: "hr@boleschool.et",
-        origin: "local"
-    },
-    {
-        id: 6,
-        title: "Financial Analyst",
-        company: "Commercial Bank of Ethiopia",
-        logo: "images/companies/cbe.png",
-        category: "Finance and Accounting",
-        location: "Addis Ababa",
-        type: "Full-time / Permanent",
-        vacancies: 1,
-        postedDate: "2025-11-13",
-        deadline: "2025-12-08",
-        description: "Seeking a financial analyst to support our corporate banking division.",
-        requirements: "- Bachelor's degree in Finance or Accounting\n- 3+ years of financial analysis experience\n- Strong Excel and analytical skills\n- Knowledge of banking regulations\n- CFA certification preferred",
-        contactEmail: "careers@cbe.et",
-        origin: "local"
-    }
-];
+const DEMO_SEED_TITLES = new Set([
+  "Senior Software Developer","Registered Nurse","Project Manager",
+  "Civil Engineer","High School Teacher - Mathematics","Financial Analyst"
+]);
 
-if (!localStorage.getItem('habeshaJobs')) {
-    localStorage.setItem('habeshaJobs', JSON.stringify(jobsData));
+function isDemoJob(job) {
+  if (!job) return false;
+  if (job.origin === 'demo' || job.isDemo) return true;
+  if (DEMO_SEED_TITLES.has(job.title) && (job.origin === 'local' || !job.origin) && /techsolutions\.et|stpauls\.et|intldev\.org|ethioconstruction\.et|boleschool\.et|cbe\.et/.test(String(job.contactEmail||''))) return true;
+  return false;
 }
+
+function getLocalDirectJobs() {
+  try {
+    const raw = localStorage.getItem('habeshaJobs');
+    const jobs = raw ? JSON.parse(raw) : [];
+    const filtered = Array.isArray(jobs) ? jobs.filter(j => !isDemoJob(j)) : [];
+    if (raw && filtered.length !== (Array.isArray(jobs) ? jobs.length : 0)) {
+      localStorage.setItem('habeshaJobs', JSON.stringify(filtered));
+    }
+    return filtered;
+  } catch { return []; }
+}
+
+// Remove legacy demo seed key if it only contained demo data.
+try {
+  const raw = localStorage.getItem('habeshaJobs');
+  if (raw) {
+    const jobs = JSON.parse(raw);
+    if (Array.isArray(jobs) && jobs.length && jobs.every(isDemoJob)) localStorage.removeItem('habeshaJobs');
+  }
+} catch {}
 
 const JobsApi = {
     cache: null,
     lastFetch: 0,
     available: null,
+    lastError: null,
     async fetch(path, opts = {}) {
         const res = await fetch(path, { headers: { 'Accept': 'application/json', ...(opts.headers || {}) }, ...opts });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw Object.assign(new Error(data.error || 'request_failed'), { status: res.status, data });
+        if (!res.ok) throw Object.assign(new Error(data.error || data.message || 'request_failed'), { status: res.status, data });
         return data;
     },
     async refresh(params = {}) {
@@ -123,12 +54,14 @@ const JobsApi = {
                 this.cache = data.jobs;
                 this.lastFetch = Date.now();
                 this.available = true;
+                this.lastError = null;
                 localStorage.setItem('habeshaJobsCache', JSON.stringify({ at: this.lastFetch, jobs: data.jobs }));
                 return data;
             }
         } catch (e) {
-            if (e && e.status === 503) this.available = false;
-            console.warn('Jobs API unavailable, using local data.', e.message || e);
+            this.available = false;
+            this.lastError = e && e.data ? e.data : { message: e.message || String(e) };
+            console.warn('Jobs API unavailable; showing local direct submissions only.', e.message || e);
         }
         return null;
     },
@@ -158,28 +91,27 @@ window.JobsApi = JobsApi;
 function getAllJobs() {
     const cached = JobsApi.getCached();
     if (cached && cached.length) return cached;
-    const jobs = localStorage.getItem('habeshaJobs');
-    return jobs ? JSON.parse(jobs) : jobsData;
+    if (JobsApi.available === true) return []; // API reachable but no jobs
+    return getLocalDirectJobs();
 }
 
 function getJobById(id) {
-    const jobs = getAllJobs();
+    const jobs = [...(JobsApi.getCached() || []), ...getLocalDirectJobs()];
     return jobs.find(job => String(job.id) === String(id));
 }
 
 function addJob(jobData) {
-    const jobs = JSON.parse(localStorage.getItem('habeshaJobs') || '[]');
-    const base = jobs.length ? jobs : jobsData;
+    const jobs = getLocalDirectJobs();
+    const maxId = jobs.reduce((m,j)=>Math.max(m, Number(j.id)||0), 0);
     const newJob = {
-        id: base.length > 0 ? Math.max(...base.map(j => Number(j.id) || 0)) + 1 : 1,
+        id: maxId + 1,
         ...jobData,
         vacancies: parseInt(jobData.vacancies) || 1,
         postedDate: new Date().toISOString().split('T')[0],
         origin: 'direct-local'
     };
-    base.push(newJob);
-    localStorage.setItem('habeshaJobs', JSON.stringify(base));
-    // Best-effort API submission (direct employer flow handled separately)
+    jobs.push(newJob);
+    localStorage.setItem('habeshaJobs', JSON.stringify(jobs));
     return newJob;
 }
 
@@ -194,9 +126,10 @@ function getDaysUntilDeadline(deadline) {
     return diffDays;
 }
 
-// Kick off background refresh; pages can await JobsApi.refresh() for freshest data.
 if (typeof window !== 'undefined') {
     JobsApi.refresh({ limit: 100 }).then(() => {
         window.dispatchEvent(new CustomEvent('habesha:jobs-updated'));
-    }).catch(() => {});
+    }).catch(() => {
+        window.dispatchEvent(new CustomEvent('habesha:jobs-updated'));
+    });
 }
