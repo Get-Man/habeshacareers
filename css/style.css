@@ -4528,3 +4528,13 @@ select#country option {
   .partner-logo-card { min-width: 180px; max-width: 260px; }
   .job-detail-org-logo { width:56px; height:56px; }
 }
+
+/* Detail/apply/share refinements */
+.btn-apply-source { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; padding:.85rem 1.2rem; border-radius:10px; background:linear-gradient(135deg,#0f766e,#0ea5a4); color:#fff !important; font-weight:700; text-decoration:none !important; box-shadow:0 8px 20px rgba(15,118,110,.18); border:0; }
+.btn-apply-source:hover { filter:brightness(1.03); transform:translateY(-1px); }
+.job-apply-section { background:#f8fffe; border:1px solid #d7f0ed; border-radius:12px; padding:1rem 1.1rem; }
+.job-detail-apply-link-wrap { margin-top:.6rem; font-size:.95rem; color:#374151; }
+.job-detail-fulltext { white-space:normal; line-height:1.75; color:#1f2937; background:#fff; border:1px solid #eef2f7; border-radius:10px; padding:1rem 1.1rem; word-break:break-word; }
+.share-icons-exact .share-icon { width:40px; height:40px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; }
+.share-icons-exact .share-icon svg { width:20px; height:20px; display:block; }
+.share-icon.x:hover { background:#111827; color:#fff; }

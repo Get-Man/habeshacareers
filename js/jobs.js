@@ -60,7 +60,7 @@ function displayJobs(jobs) {
         const urgentClass = (daysLeft != null && daysLeft <= 7) ? 'style="color: red;"' : '';
         const logoPath = _logo(job);
         const fallback = _fallbackLogo(job);
-        const badge = job.origin === 'aggregated' ? `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#eef2ff;font-size:.72rem">Aggregated${job.sourceName?': '+_esc(job.sourceName):''}</span>` : (job.origin==='direct'?`<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#ecfdf5;font-size:.72rem">Direct</span>`:'');
+        const badge = job.sourceName ? `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .45rem;border-radius:999px;background:#f3f4f6;color:#374151;font-size:.72rem;border:1px solid #e5e7eb">${_esc(job.sourceName)}</span>` : '';
 
         return `
             <div class="job-card">

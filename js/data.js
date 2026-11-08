@@ -27,11 +27,24 @@ function orgLogoDataUri(name) {
   return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
 }
 
+function domainFromUrl(url) {
+  try { if (!url) return ''; return new URL(String(url)).hostname.replace(/^www\./i,''); } catch { return ''; }
+}
+
+function faviconLogo(url) {
+  const d = domainFromUrl(url);
+  return d ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=128` : '';
+}
+
 function jobLogoSrc(job) {
   const logo = job && (job.logo || job.logoUrl || job.companyLogo);
   if (logo && /^https?:|^data:|^\//i.test(String(logo))) return String(logo);
+  const fav = faviconLogo(job && (job.originalUrl || job.applicationUrl || job.url));
+  if (fav) return fav;
   return orgLogoDataUri(job && job.company);
 }
+
+window.HabeshaUI = Object.assign(window.HabeshaUI || {}, { escHtml, orgInitials, orgLogoDataUri, jobLogoSrc, faviconLogo });
 
 window.HabeshaUI = Object.assign(window.HabeshaUI || {}, { escHtml, orgInitials, orgLogoDataUri, jobLogoSrc });
 

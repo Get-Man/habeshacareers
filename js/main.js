@@ -58,8 +58,7 @@ function _logo(job){ return (window.HabeshaUI && window.HabeshaUI.jobLogoSrc) ? 
 function _fallbackLogo(job){ return (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri) ? window.HabeshaUI.orgLogoDataUri(job && job.company) : 'images/companies/default-company.png'; }
 
 function _jobCardBadge(job) {
-    if (job && job.origin === 'aggregated') return `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#eef2ff;font-size:.72rem;vertical-align:middle">Aggregated${job.sourceName ? ': '+_esc(job.sourceName) : ''}</span>`;
-    if (job && job.origin === 'direct') return `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .4rem;border-radius:999px;background:#ecfdf5;font-size:.72rem;vertical-align:middle">Direct</span>`;
+    if (job && job.sourceName) return `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .45rem;border-radius:999px;background:#f3f4f6;color:#374151;font-size:.72rem;vertical-align:middle;border:1px solid #e5e7eb">${_esc(job.sourceName)}</span>`;
     return '';
 }
 

@@ -36,12 +36,15 @@ async function loadJobDetails(jobId) {
 
     const orgLink = job.originalUrl ? String(job.originalUrl) : '';
     const contactMail = job.contactEmail ? String(job.contactEmail) : '';
-    const orgExactLink = orgLink
-      ? `<a class="job-detail-apply-link" href="${esc(orgLink)}" target="_blank" rel="noopener noreferrer">${esc(orgLink)}</a>`
-      : (contactMail ? `<a class="job-detail-apply-link" href="mailto:${encodeURIComponent(contactMail)}?subject=${encodeURIComponent('Application for ' + (job.title||'position'))}">${esc(contactMail)}</a>` : `<span>Not specified. See application instructions/source details.</span>`);
+    const applyHref = orgLink || (contactMail ? `mailto:${contactMail}?subject=${encodeURIComponent('Application for ' + (job.title||'position'))}` : '');
+    const applyTarget = orgLink ? ' target="_blank" rel="noopener noreferrer"' : '';
+    const applyCta = applyHref
+      ? `<a class="btn-apply-source" href="${esc(applyHref)}"${applyTarget}>${orgLink ? 'Apply on Source (Organization Website)' : 'Contact Organization'}</a>
+         ${orgLink ? `<div class="job-detail-apply-link-wrap"><strong>Exact source link:</strong> <a class="job-detail-apply-link" href="${esc(orgLink)}" target="_blank" rel="noopener noreferrer">${esc(orgLink)}</a></div>` : ''}`
+      : `<div class="job-detail-apply-link-wrap">No external application link provided. See application instructions below.</div>`;
 
     const skills = Array.isArray(job.requiredSkills) ? job.requiredSkills.filter(Boolean) : (job.requiredSkills ? [job.requiredSkills] : []);
-    const fields = [
+    const allDetails = [
       ['Organization', job.company],
       ['Job Title', job.title],
       ['Category', job.category],
@@ -55,36 +58,36 @@ async function loadJobDetails(jobId) {
       ['Education Requirements', job.educationRequirements],
       ['Experience Requirements', job.experienceRequirements],
       ['Required Skills', skills.length ? skills.join(', ') : null],
-      ['Listing Type / Origin', job.origin === 'direct' ? 'Direct employer vacancy' : (job.origin === 'aggregated' ? 'Aggregated vacancy' : (job.origin || 'Not specified'))],
-      ['Status', job.status],
-      ['Featured', job.featured ? 'Yes' : (job.featured === false ? 'No' : null)],
-      ['Source', job.sourceName || job.sourceSlug],
+      ['Source Name', job.sourceName],
       ['Last Verified', _fmtDate(job.lastVerifiedAt)],
       ['Contact Email', job.contactEmail],
+      ['Official Application URL', orgLink],
       ['Job ID', job.id == null ? null : String(job.id)],
+      ['Status', job.status],
     ];
 
-    const fieldHtml = fields.map(([label, value]) => {
+    const fieldHtml = allDetails.map(([label, value]) => {
       if (value == null || String(value).trim() === '') return '';
       const safe = esc(value);
       if (label === 'Contact Email' && contactMail) return `<div class="job-detail-field"><strong>${esc(label)}</strong><span><a href="mailto:${encodeURIComponent(contactMail)}">${safe}</a></span></div>`;
+      if (label === 'Official Application URL' && orgLink) return `<div class="job-detail-field"><strong>${esc(label)}</strong><span><a href="${esc(orgLink)}" target="_blank" rel="noopener noreferrer">${safe}</a></span></div>`;
       return `<div class="job-detail-field"><strong>${esc(label)}</strong><span>${safe}</span></div>`;
     }).join('');
 
-    const applySection = `
-      <div class="job-detail-section">
-        <h3>Organization Exact Link (Apply)</h3>
-        <p>Use the organization’s exact application/vacancy link below. Habesha Careers does not replace the original application process.</p>
-        ${orgExactLink}
-        ${job.applicationInstructions ? `<div class="job-detail-section"><h3>Application Instructions</h3><p>${esc(job.applicationInstructions)}</p></div>` : ''}
-      </div>`;
+    const desc = String(job.description || '').trim() || 'Full description is available on the official source page linked above.';
+    const req = String(job.requirements || '').trim();
+    const extraRaw = (job.raw_payload && typeof job.raw_payload === 'object') ? null : null;
 
-    const desc = job.description || 'See original vacancy for full description.';
-    const req = job.requirements;
+    const shareSvg = {
+      telegram: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M21.9 4.6c.3-1.2-.9-2.1-2-1.6L2.8 9.8c-1.3.5-1.2 2.4.1 2.8l4.4 1.4 1.7 5.3c.4 1.2 2 1.5 2.8.5l2.5-3.1 4.5 3.3c1 .8 2.5.2 2.8-1.1l.3-1.4zM9.3 13.3l8.9-5.5c.2-.1.4.1.2.3l-7.3 6.8c-.2.2-.4.5-.4.8l-.3 2.2c0 .2-.3.2-.4 0l-1.3-4.1c-.1-.3 0-.4.6-.5z"/></svg>',
+      linkedin: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M6.94 8.5H3.56V20h3.38V8.5zM5.25 3A2.06 2.06 0 0 0 3.2 5.06c0 1.13.92 2.06 2.05 2.06A2.06 2.06 0 0 0 7.3 5.06 2.06 2.06 0 0 0 5.25 3zM20.8 13.41c0-3.27-1.75-4.79-4.08-4.79-1.88 0-2.72 1.03-3.19 1.76V8.5h-3.38c.04 1.25 0 11.5 0 11.5h3.38v-6.42c0-.34.02-.69.13-.93.28-.69.91-1.41 1.97-1.41 1.39 0 1.95 1.06 1.95 2.62V20H20.8v-6.59z"/></svg>',
+      facebook: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>',
+      x: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M18.9 3H22l-6.77 7.74L23.2 21h-6.24l-4.89-6.39L6.48 21H3.37l7.24-8.28L2.8 3h6.4l4.42 5.85L18.9 3zm-1.1 16.17h1.72L8.27 4.73H6.43l11.37 14.44z"/></svg>',
+      email: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5L4 8V6l8 5 8-5v2z"/></svg>'
+    };
 
     container.innerHTML = `
         <div class="job-detail-card">
-            <div class="habesha-career-badge"><span class="badge-text">Habesha Career</span></div>
             <div class="job-header-section">
                 <div class="job-title-section" style="flex:1;min-width:260px">
                     <div class="job-detail-org">
@@ -100,46 +103,50 @@ async function loadJobDetails(jobId) {
                 </div>
                 <div class="share-section">
                     <span class="share-label">Share:</span>
-                    <div class="share-icons">
-                        <a href="https://t.me/share/url?url=${shareUrl}&text=${shareText}" target="_blank" rel="noopener noreferrer" class="share-icon telegram" title="Share on Telegram">TG</a>
-                        <a href="https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}" target="_blank" rel="noopener noreferrer" class="share-icon linkedin" title="Share on LinkedIn">in</a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}" target="_blank" rel="noopener noreferrer" class="share-icon facebook" title="Share on Facebook">f</a>
-                        <a href="mailto:?subject=${shareTitle}&body=${shareText}%20${shareUrl}" class="share-icon email" title="Share via Email">@</a>
+                    <div class="share-icons share-icons-exact">
+                        <a href="https://t.me/share/url?url=${shareUrl}&text=${shareText}" target="_blank" rel="noopener noreferrer" class="share-icon telegram" title="Share on Telegram" aria-label="Telegram">${shareSvg.telegram}</a>
+                        <a href="https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}" target="_blank" rel="noopener noreferrer" class="share-icon linkedin" title="Share on LinkedIn" aria-label="LinkedIn">${shareSvg.linkedin}</a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}" target="_blank" rel="noopener noreferrer" class="share-icon facebook" title="Share on Facebook" aria-label="Facebook">${shareSvg.facebook}</a>
+                        <a href="https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}" target="_blank" rel="noopener noreferrer" class="share-icon x" title="Share on X" aria-label="X">${shareSvg.x}</a>
+                        <a href="mailto:?subject=${shareTitle}&body=${shareText}%20${shareUrl}" class="share-icon email" title="Share via Email" aria-label="Email">${shareSvg.email}</a>
                     </div>
                 </div>
             </div>
             <div class="header-separator"></div>
             ${urgentWarning}
 
-            <div class="job-detail-section">
-                <h3>Job Details</h3>
-                <div class="job-detail-fields">${fieldHtml || '<div class="job-detail-field"><strong>Details</strong><span>No additional structured details available. See description and source link.</span></div>'}</div>
+            <div class="job-detail-section job-apply-section">
+                <h3>Apply</h3>
+                <p>Apply through the organization’s official/source page. The application action below opens the source website.</p>
+                ${applyCta}
+                ${job.applicationInstructions ? `<div style="margin-top:1rem"><h4 style="margin:.5rem 0 .25rem">Application Instructions</h4><div class="job-detail-pre">${esc(job.applicationInstructions)}</div></div>` : ''}
             </div>
 
-            ${applySection}
-
             <div class="job-detail-section">
-                <h3>Job Description</h3>
-                <p style="white-space:pre-wrap">${esc(desc)}</p>
+                <h3>All Job Details</h3>
+                <div class="job-detail-fields">${fieldHtml || '<div class="job-detail-field"><strong>Details</strong><span>See the full description and source link below.</span></div>'}</div>
             </div>
 
-            ${req ? `<div class="job-detail-section"><h3>Requirements</h3><pre class="job-detail-pre">${esc(req)}</pre></div>` : ''}
-            ${job.educationRequirements ? `<div class="job-detail-section"><h3>Education Requirements</h3><p>${esc(job.educationRequirements)}</p></div>` : ''}
-            ${job.experienceRequirements ? `<div class="job-detail-section"><h3>Experience Requirements</h3><p>${esc(job.experienceRequirements)}</p></div>` : ''}
+            <div class="job-detail-section">
+                <h3>Full Job Description</h3>
+                <div class="job-detail-fulltext">${esc(desc).replace(/\n/g,'<br>')}</div>
+            </div>
+
+            ${req ? `<div class="job-detail-section"><h3>Requirements / Qualifications</h3><div class="job-detail-fulltext">${esc(req).replace(/\n/g,'<br>')}</div></div>` : ''}
+            ${job.educationRequirements ? `<div class="job-detail-section"><h3>Education Requirements</h3><div class="job-detail-fulltext">${esc(job.educationRequirements)}</div></div>` : ''}
+            ${job.experienceRequirements ? `<div class="job-detail-section"><h3>Experience Requirements</h3><div class="job-detail-fulltext">${esc(job.experienceRequirements)}</div></div>` : ''}
             ${skills.length ? `<div class="job-detail-section"><h3>Required Skills</h3><p>${esc(skills.join(', '))}</p></div>` : ''}
 
             <div class="job-detail-section">
-                <h3>Source / Verification</h3>
-                <p><strong>Listing type:</strong> ${esc(job.origin === 'direct' ? 'Direct employer vacancy' : (job.origin === 'aggregated' ? 'Aggregated vacancy' : (job.origin || 'Not specified')))}</p>
-                ${job.sourceName ? `<p><strong>Source name:</strong> ${esc(job.sourceName)}</p>` : ''}
-                ${job.sourceSlug ? `<p><strong>Source slug:</strong> ${esc(job.sourceSlug)}</p>` : ''}
+                <h3>Source</h3>
+                ${job.sourceName ? `<p><strong>Source:</strong> ${esc(job.sourceName)}</p>` : ''}
                 ${job.lastVerifiedAt ? `<p><strong>Last verified:</strong> ${esc(_fmtDate(job.lastVerifiedAt))}</p>` : ''}
-                ${orgLink ? `<p><strong>Original vacancy URL:</strong> <a href="${esc(orgLink)}" target="_blank" rel="noopener noreferrer">${esc(orgLink)}</a></p>` : ''}
-                <p><small>Always verify details on the organization’s official application page before applying.</small></p>
+                ${orgLink ? `<p><strong>Official vacancy/application URL:</strong> <a href="${esc(orgLink)}" target="_blank" rel="noopener noreferrer">${esc(orgLink)}</a></p>` : ''}
+                <p><small>Always verify details on the organization’s official page before applying.</small></p>
             </div>
 
             <div style="margin-top: 2rem;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
-                ${orgLink ? `<a href="${esc(orgLink)}" target="_blank" rel="noopener noreferrer" class="job-detail-apply-link" style="font-size:1rem">Open organization exact link</a>` : ''}
+                ${applyHref ? `<a class="btn-apply-source" href="${esc(applyHref)}"${applyTarget}>${orgLink ? 'Apply on Source Website' : 'Contact Organization'}</a>` : ''}
                 <a href="jobs.html" class="btn-secondary">Back to Jobs</a>
             </div>
         </div>
