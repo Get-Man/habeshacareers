@@ -1,5 +1,5 @@
 import { json, requireAdmin, parseJsonBody } from "../_lib/http.js";
-import { hasDatabase } from "../../lib/db.mjs";
+import { hasDatabase, query } from "../../lib/db.mjs";
 import { listSources, setSourceEnabled } from "../../lib/jobs/repository.mjs";
 
 export default async function handler(req, res) {
@@ -10,6 +10,20 @@ export default async function handler(req, res) {
     if (req.method === "POST") {
       const body = await parseJsonBody(req);
       if (body.action === "setEnabled") return json(res, 200, { ok: true, source: (await setSourceEnabled(body.slug, body.enabled))[0] });
+      if (body.action === "patch" && body.slug) {
+        const allowed = ["enabled","integration_status","status_note","listing_url","fetch_config","notes"];
+        const sets = []; const vals = []; let i = 1;
+        for (const k of allowed) {
+          if (!(k in body)) continue;
+          const v = (k === "fetch_config") ? JSON.stringify(body[k] || {}) : body[k];
+          sets.push(`${k}=$${i++}${k==="fetch_config"?"::jsonb":""}`);
+          vals.push(v);
+        }
+        if (!sets.length) return json(res, 400, { ok: false, error: "no_fields" });
+        vals.push(body.slug);
+        const rows = await query(`update job_sources set ${sets.join(", ")}, updated_at=now() where slug=$${i} returning *`, vals);
+        return json(res, 200, { ok: true, source: rows[0] || null });
+      }
     }
     return json(res, 405, { ok: false, error: "Method not allowed" });
   } catch (e) {
