@@ -36,17 +36,44 @@ function faviconLogo(url) {
   return d ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=128` : '';
 }
 
-function jobLogoSrc(job) {
-  const logo = job && (job.logo || job.logoUrl || job.companyLogo);
-  if (logo && /^https?:|^data:|^\//i.test(String(logo))) return String(logo);
-  const fav = faviconLogo(job && (job.originalUrl || job.applicationUrl || job.url));
-  if (fav) return fav;
-  return orgLogoDataUri(job && job.company);
+function logoCandidates(job) {
+  const out = [];
+  const seen = new Set();
+  const add = (u) => { if (!u) return; const s = String(u); if (seen.has(s)) return; if (!/^https?:|^data:|^\//i.test(s)) return; seen.add(s); out.push(s); };
+  add(job && (job.logo || job.logoUrl || job.companyLogo || job.organizationLogo));
+  const raw = (job && job.raw_payload && typeof job.raw_payload === 'object') ? job.raw_payload : null;
+  if (raw) add(raw.logo || raw.company_logo || raw.organization_logo || raw.image);
+  const url = job && (job.originalUrl || job.applicationUrl || job.url);
+  const d = domainFromUrl(url);
+  if (d) {
+    add(`https://icons.duckduckgo.com/ip3/${encodeURIComponent(d)}.ico`);
+    add(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=128`);
+  }
+  add(orgLogoDataUri(job && job.company));
+  return out;
 }
 
-window.HabeshaUI = Object.assign(window.HabeshaUI || {}, { escHtml, orgInitials, orgLogoDataUri, jobLogoSrc, faviconLogo });
+function jobLogoSrc(job) {
+  return logoCandidates(job)[0] || orgLogoDataUri(job && job.company);
+}
 
-window.HabeshaUI = Object.assign(window.HabeshaUI || {}, { escHtml, orgInitials, orgLogoDataUri, jobLogoSrc });
+function logoImgAttrs(job) {
+  const list = logoCandidates(job);
+  const first = escHtml(list[0] || orgLogoDataUri(job && job.company));
+  const json = escHtml(JSON.stringify(list));
+  return `src="${first}" data-logos="${json}" data-logo-idx="0" onerror="window.HabeshaUI&&window.HabeshaUI.nextLogo?window.HabeshaUI.nextLogo(this):(this.onerror=null)"`;
+}
+
+function nextLogo(img) {
+  try {
+    const list = JSON.parse(img.getAttribute('data-logos') || '[]');
+    let i = (+img.getAttribute('data-logo-idx') || 0) + 1;
+    while (i < list.length) { img.setAttribute('data-logo-idx', i); img.src = list[i]; return; i++; }
+  } catch {}
+  img.onerror = null;
+}
+
+window.HabeshaUI = Object.assign(window.HabeshaUI || {}, { escHtml, orgInitials, orgLogoDataUri, jobLogoSrc, faviconLogo, logoCandidates, domainFromUrl, logoImgAttrs, nextLogo });
 
 const DEMO_SEED_TITLES = new Set([
   "Senior Software Developer","Registered Nurse","Project Manager",

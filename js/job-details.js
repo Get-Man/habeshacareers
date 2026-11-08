@@ -14,14 +14,19 @@ function _fmtDate(v){ if(!v) return 'Not specified'; const s=String(v); return s
 
 async function loadJobDetails(jobId) {
     const container = document.getElementById('jobDetailsContent');
+    if (!container) return;
     container.innerHTML = '<p>Loading job details…</p>';
     let job = null;
+    let loadError = null;
     try {
         if (window.JobsApi && typeof window.JobsApi.getById === 'function') job = await window.JobsApi.getById(jobId);
-    } catch (e) { console.warn(e); }
-    if (!job) job = getJobById(jobId);
+    } catch (e) { loadError = e; console.warn(e); }
+    if (!job && typeof getJobById === 'function') {
+        try { job = getJobById(jobId); } catch (e) { if (!loadError) loadError = e; }
+    }
     if (!job) {
-        container.innerHTML = '<p>Job not found. <a href="jobs.html">Back to jobs</a></p>';
+        const hint = (loadError && /401|403|auth|protected|html|json/i.test(String(loadError.message||loadError))) ? ' If the site is protected, sign in or open the public production URL.' : '';
+        container.innerHTML = `<div class="job-detail-card"><p><strong>Job details could not be loaded.</strong>${esc(hint)}</p><p><a href="jobs.html">Back to jobs</a></p></div>`;
         return;
     }
 
@@ -86,12 +91,14 @@ async function loadJobDetails(jobId) {
       email: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5L4 8V6l8 5 8-5v2z"/></svg>'
     };
 
+    const logoList = (window.HabeshaUI && window.HabeshaUI.logoCandidates) ? window.HabeshaUI.logoCandidates(job) : [_logo(job), _fallbackLogo(job)];
+    const logoJson = esc(JSON.stringify(logoList));
     container.innerHTML = `
         <div class="job-detail-card">
             <div class="job-header-section">
                 <div class="job-title-section" style="flex:1;min-width:260px">
                     <div class="job-detail-org">
-                        <img src="${esc(_logo(job))}" alt="${esc(job.company || 'Organization')}" class="job-detail-org-logo" onerror="this.onerror=null;this.src='${_fallbackLogo(job)}'">
+                        <img src="${esc(logoList[0] || _fallbackLogo(job))}" data-logos="${logoJson}" data-logo-idx="0" alt="${esc(job.company || 'Organization')}" class="job-detail-org-logo" onerror="(function(img){try{var l=JSON.parse(img.getAttribute('data-logos')||'[]');var i=(+img.getAttribute('data-logo-idx')||0)+1; if(i<l.length){img.setAttribute('data-logo-idx',i);img.src=l[i];}else{img.onerror=null;}}catch(e){img.onerror=null;}})(this)">
                         <div>
                             <h2 style="margin:0 0 .35rem">${esc(job.title)}</h2>
                             <div class="company-save-row" style="justify-content:flex-start;flex-wrap:wrap">
