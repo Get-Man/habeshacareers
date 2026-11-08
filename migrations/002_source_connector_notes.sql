@@ -1,0 +1,6 @@
+-- Update source notes for implemented best-effort connectors (safe to rerun)
+update job_sources set status_note = 'Aggregator site; verify permitted access/attribution. Best-effort connector available (disabled by default).', updated_at=now() where slug='unjobs-ethiopia';
+update job_sources set status_note = 'Public UN jobs page; verify terms/robots/rate limits before enabling. Best-effort connector available (disabled by default).', updated_at=now() where slug='un-ethiopia';
+update job_sources set status_note = 'ReliefWeb provides public RSS; verify terms/rate limits before enabling. RSS connector available (disabled by default).', updated_at=now() where slug='reliefweb-ethiopia';
+update job_sources set status_note = 'JS-rendered/heavily dynamic in simple checks; no verified automated connector. Verify ToS/robots and use authorized feed/manual import if permitted.', integration_status='pending', updated_at=now() where slug='ethiojobs';
+update job_sources set status_note = 'No verified automated connector in this build. Verify jobs URL, ToS/robots, and permitted access before implementation.', updated_at=now() where slug in ('hahu-jobs','prjobs','dereja','ezega-jobs','jobwebethiopia','ngojobs','workethiopia','srazone','ethiopian-reporter','devnetjobs');
