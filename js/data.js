@@ -31,24 +31,53 @@ function domainFromUrl(url) {
   try { if (!url) return ''; return new URL(String(url)).hostname.replace(/^www\./i,''); } catch { return ''; }
 }
 
+const AGGREGATOR_HOST_RE = /(^|\.)geezjobs\.com$|(^|\.)ethiojobs\.net$|(^|\.)hahu\.jobs$|(^|\.)dereja\.com$|(^|\.)ezega\.com$|(^|\.)jobwebethiopia\.com$|(^|\.)ngojobs\.et$|(^|\.)workethiopia\.net$|(^|\.)srazone\.et$|(^|\.)ethiopianreporterjobs\.com$|(^|\.)reliefweb\.int$|(^|\.)unjobs\.org$|(^|\.)linkedin\.com$|(^|\.)facebook\.com$|(^|\.)twitter\.com$|(^|\.)x\.com$/i;
+const ORG_DOMAIN_HINTS = [
+  [/\bunicef\b/i,'unicef.org'],[/\bundp\b|united nations development programme/i,'undp.org'],[/\bwho\b|world health organization/i,'who.int'],
+  [/\bwfp\b|world food programme/i,'wfp.org'],[/\bunhcr\b|un refugee agency|refugees\b/i,'unhcr.org'],[/\biom\b|international organization for migration/i,'iom.int'],
+  [/\bunfpa\b/i,'unfpa.org'],[/\bun women\b|united nations entity for gender/i,'unwomen.org'],[/\bfao\b|food and agriculture organization/i,'fao.org'],
+  [/\bilo\b|international labour/i,'ilo.org'],[/\bunesco\b/i,'unesco.org'],[/\bunocha\b|\bocha\b/i,'unocha.org'],[/\bunops\b/i,'unops.org'],
+  [/\bworld bank\b|\bifc\b/i,'worldbank.org'],[/\busaid\b/i,'usaid.gov'],[/\bethiopian airlines\b/i,'ethiopianairlines.com'],
+  [/\bethio telecom\b|ethiotelecom/i,'ethiotelecom.et'],[/\bcommercial bank of ethiopia\b|\bcbe\b/i,'combanketh.et'],
+  [/\bsave the children\b/i,'savethechildren.net'],[/\bcare\b/i,'care.org'],[/\bmercy corps\b/i,'mercycorps.org'],[/\boxfam\b/i,'oxfam.org'],
+  [/\bplan international\b/i,'plan-international.org'],[/\bworld vision\b/i,'worldvision.org'],[/\bgiz\b/i,'giz.de'],[/\birc\b|international rescue committee/i,'rescue.org'],
+  [/\bamref\b/i,'amref.org'],[/\bpath\b/i,'path.org'],[/\bjhpiego\b/i,'jhpiego.org'],[/\bfhi 360\b|\bfhi360\b/i,'fhi360.org']
+];
+function orgDomainHint(company){ const n = String(company||''); for (const [re,d] of ORG_DOMAIN_HINTS) if (re.test(n)) return d; return ''; }
+function addFaviconCandidates(add, domain){ if (!domain) return; add(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`); add(`https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`); add(`https://${domain}/favicon.ico`); }
+
 function faviconLogo(url) {
   const d = domainFromUrl(url);
   return d ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=128` : '';
 }
 
+function hostOf(url){ return domainFromUrl(url); }
+function isWeakLogo(url) {
+  const s = String(url || '').toLowerCase();
+  if (!s) return true;
+  if (/default[-_]?logo|placeholder|no[-_]?logo|avatar|sprite|blank/.test(s)) return true;
+  const h = hostOf(url);
+  return !!(h && AGGREGATOR_HOST_RE.test(h));
+}
 function logoCandidates(job) {
   const out = [];
   const seen = new Set();
   const add = (u) => { if (!u) return; const s = String(u); if (seen.has(s)) return; if (!/^https?:|^data:|^\//i.test(s)) return; seen.add(s); out.push(s); };
-  add(job && (job.logo || job.logoUrl || job.companyLogo || job.organizationLogo));
+  const stored = job && (job.logo || job.logoUrl || job.companyLogo || job.organizationLogo);
   const raw = (job && job.raw_payload && typeof job.raw_payload === 'object') ? job.raw_payload : null;
-  if (raw) add(raw.logo || raw.company_logo || raw.organization_logo || raw.image);
+  const rawLogo = raw ? (raw.logo || raw.company_logo || raw.organization_logo || raw.image) : null;
+  const orgDomain = orgDomainHint(job && job.company);
+  const strongStored = stored && !isWeakLogo(stored);
+  const strongRaw = rawLogo && !isWeakLogo(rawLogo);
+  if (strongStored) add(stored);
+  if (strongRaw) add(rawLogo);
+  addFaviconCandidates(add, orgDomain);
+  if (!strongStored) add(stored);
+  if (!strongRaw) add(rawLogo);
   const url = job && (job.originalUrl || job.applicationUrl || job.url);
   const d = domainFromUrl(url);
-  if (d) {
-    add(`https://icons.duckduckgo.com/ip3/${encodeURIComponent(d)}.ico`);
-    add(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=128`);
-  }
+  if (d && !AGGREGATOR_HOST_RE.test(d)) addFaviconCandidates(add, d);
+  if (d && AGGREGATOR_HOST_RE.test(d)) addFaviconCandidates(add, d); // last-resort only after org hints
   add(orgLogoDataUri(job && job.company));
   return out;
 }

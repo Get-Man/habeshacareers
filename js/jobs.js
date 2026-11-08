@@ -65,7 +65,7 @@ function displayJobs(jobs) {
         return `
             <div class="job-card">
                 <div class="job-card-header">
-                    <img src="${_esc(logoPath)}" alt="${_esc(job.company || '')}" class="company-logo" onerror="this.onerror=null;this.src='${fallback}'">
+                    <img src="${_esc(((window.HabeshaUI&&window.HabeshaUI.logoCandidates)?window.HabeshaUI.logoCandidates(job)[0]:logoPath)||fallback)}" data-logos="${_esc(JSON.stringify((window.HabeshaUI&&window.HabeshaUI.logoCandidates)?window.HabeshaUI.logoCandidates(job):[logoPath,fallback]))}" data-logo-idx="0" alt="${_esc(job.company || '')}" class="company-logo" onerror="window.HabeshaUI&&window.HabeshaUI.nextLogo?window.HabeshaUI.nextLogo(this):(this.onerror=null,this.src='${fallback}')">
                     <div class="job-card-title">
                         <h4>${_esc(job.title)}${badge}</h4>
                         <p class="company">${_esc(job.company || 'Organization not specified')}</p>
