@@ -5,8 +5,9 @@ const run = (cmd, args) => {
   if (r.status !== 0) process.exit(r.status ?? 1);
 };
 
-if (process.env.DATABASE_URL) {
+const hasDb = !!(process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED);
+if (hasDb) {
   run("node", ["scripts/migrate.mjs"]);
 } else {
-  console.log("[build] DATABASE_URL not set; skipping migrations (static site will still deploy). Set DATABASE_URL in Vercel and redeploy.");
+  console.log("[build] No database URL env var found; skipping migrations. Set DATABASE_URL or connect Neon/Vercel integration and redeploy.");
 }
