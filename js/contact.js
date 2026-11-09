@@ -20,14 +20,14 @@ function handleContactSubmit(e) {
         return;
     }
 
-    // In a real application, you would send this data to a server
-    console.log('Contact form submitted:', { name, email, subject, message });
+    // In a real application, send this data to a server.
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
     // Show success message
     document.querySelector('.contact-form-section').innerHTML = `
         <div id="contactSuccess" class="success-message">
             <h3>✓ Message Sent!</h3>
-            <p>Thank you for contacting us, ${name}. We'll get back to you soon at ${email}.</p>
+            <p>Thank you for contacting us, ${esc(name)}. We'll get back to you soon at ${esc(email)}.</p>
             <button onclick="location.reload()" class="btn-primary">Send Another Message</button>
         </div>
     `;

@@ -54,8 +54,9 @@ function loadCategoriesWithVacancies() {
 }
 
 function _esc(s){ return (window.HabeshaUI && window.HabeshaUI.escHtml) ? window.HabeshaUI.escHtml(s) : String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function _logo(job){ return (window.HabeshaUI && window.HabeshaUI.jobLogoSrc) ? window.HabeshaUI.jobLogoSrc(job) : (job.logo || 'images/companies/default-company.png'); }
-function _fallbackLogo(job){ return (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri) ? window.HabeshaUI.orgLogoDataUri(job && job.company) : 'images/companies/default-company.png'; }
+function _logo(job){ return (window.HabeshaUI && window.HabeshaUI.jobLogoSrc) ? window.HabeshaUI.jobLogoSrc(job) : (job && job.logo) || (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri ? window.HabeshaUI.orgLogoDataUri(job && job.company) : ''); }
+function _fallbackLogo(job){ return (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri) ? window.HabeshaUI.orgLogoDataUri(job && job.company) : ''; }
+function _logoImgHtml(job, className, alt){ const list = (window.HabeshaUI && window.HabeshaUI.logoCandidates) ? window.HabeshaUI.logoCandidates(job) : [_logo(job), _fallbackLogo(job)].filter(Boolean); const first = list[0] || _fallbackLogo(job) || ''; const json = _esc(JSON.stringify(list)); return `<img src="${_esc(first)}" data-logos="${json}" data-logo-idx="0" alt="${_esc(alt || (job && job.company) || '')}" class="${_esc(className||'company-logo')}" onerror="window.HabeshaUI&&window.HabeshaUI.nextLogo?window.HabeshaUI.nextLogo(this):(this.onerror=null)">`; }
 
 function _jobCardBadge(job) {
     if (job && job.sourceName) return `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .45rem;border-radius:999px;background:#f3f4f6;color:#374151;font-size:.72rem;vertical-align:middle;border:1px solid #e5e7eb">${_esc(job.sourceName)}</span>`;
@@ -76,13 +77,10 @@ function loadRecentJobs() {
         return;
     }
 
-    container.innerHTML = recentJobs.map(job => {
-        const logoPath = _logo(job);
-        const fallback = _fallbackLogo(job);
-        return `
+    container.innerHTML = recentJobs.map(job => `
         <div class="job-card">
             <div class="job-card-header">
-                <img src="${_esc(logoPath)}" alt="${_esc(job.company || '')}" class="company-logo" onerror="this.onerror=null;this.src='${fallback}'">
+                ${_logoImgHtml(job, 'company-logo', job.company || '')}
                 <div class="job-card-title">
                     <h4>${_esc(job.title)}${_jobCardBadge(job)}</h4>
                     <p class="company">${_esc(job.company || '')}</p>
@@ -97,7 +95,7 @@ function loadRecentJobs() {
             <p>Deadline: ${_esc(job.deadline || 'Not specified')}</p>
             <a href="job-details.html?id=${encodeURIComponent(job.id)}" class="btn-view">View Details</a>
         </div>
-    `}).join('');
+    `).join('');
 }
 
 function loadTrustedPartners() {
@@ -108,14 +106,14 @@ function loadTrustedPartners() {
     for (const job of jobs) {
         const key = String(job.company || '').trim().toLowerCase();
         if (!key) continue;
-        if (!seen.has(key)) seen.set(key, { name: job.company, logo: _logo(job), fallback: _fallbackLogo(job) });
+        if (!seen.has(key)) seen.set(key, { name: job.company, job });
     }
     const partners = Array.from(seen.values());
     if (!partners.length) {
         track.innerHTML = `<div class="partner-logo partner-logo-empty">Partner logos will appear here as jobs are posted</div>`;
         return;
     }
-    const item = (p) => `<div class="partner-logo partner-logo-card" title="${_esc(p.name)}"><img src="${_esc(p.logo)}" alt="${_esc(p.name)}" class="partner-logo-img" onerror="this.onerror=null;this.src='${p.fallback}'"><span class="partner-logo-name">${_esc(p.name)}</span></div>`;
+    const item = (p) => `<div class="partner-logo partner-logo-card" title="${_esc(p.name)}">${_logoImgHtml(p.job, 'partner-logo-img', p.name)}<span class="partner-logo-name">${_esc(p.name)}</span></div>`;
     const items = partners.map(item).join('');
     track.innerHTML = partners.length > 3 ? (items + items) : items; // duplicate for seamless loop when enough
 }

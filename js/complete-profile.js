@@ -4,12 +4,8 @@ const totalSections = 12;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('Complete Profile JS loaded');
-    console.log('Countries data available:', typeof countriesData !== 'undefined');
-    console.log('Number of countries:', countriesData ? countriesData.length : 0);
-    
     if (typeof countriesData === 'undefined') {
-        console.error('countriesData is not loaded! Check if countries-data.js is loaded before complete-profile.js');
+        console.error('countriesData is not loaded. Ensure countries-data.js is loaded before complete-profile.js');
         return;
     }
 
@@ -26,10 +22,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Update progress
     updateProgress();
-
-    console.log('Complete Profile initialized');
-    console.log('Nationality dropdown options:', document.getElementById('nationality')?.options.length);
-    console.log('Phone country code options:', document.getElementById('phoneCountryCode')?.options.length);
 });
 
 // Populate nationality and country of residence dropdowns
@@ -711,11 +703,11 @@ if (typeof skillsData !== 'undefined') {
 
 // Load Saved Jobs
 function loadSavedJobs() {
-    const savedJobIds = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    const savedJobIds = JSON.parse(localStorage.getItem('savedJobs') || '[]').map(String);
     const container = document.getElementById('savedJobsList');
-    
     if (!container) return;
-    
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
     if (savedJobIds.length === 0) {
         container.innerHTML = `
             <div class="empty-state-card">
@@ -729,24 +721,28 @@ function loadSavedJobs() {
         `;
         return;
     }
-    
-    // Get all jobs from data.js
-    const allJobs = typeof jobsData !== 'undefined' ? jobsData : [];
-    const savedJobs = allJobs.filter(job => savedJobIds.includes(job.id));
-    
+
+    const allJobs = typeof getAllJobs === 'function' ? getAllJobs() : (typeof jobsData !== 'undefined' ? jobsData : []);
+    const savedJobs = allJobs.filter(job => savedJobIds.includes(String(job.id)));
+
+    if (!savedJobs.length) {
+        container.innerHTML = `<div class="empty-state-card"><h4>Saved jobs not found</h4><p>Your saved jobs may no longer be available. Browse current vacancies.</p><a href="jobs.html" class="btn-primary">Browse Jobs</a></div>`;
+        return;
+    }
+
     container.innerHTML = savedJobs.map(job => `
         <div class="saved-job-item">
             <div class="job-info">
-                <h4>${job.title}</h4>
-                <p>${job.company}</p>
+                <h4>${esc(job.title)}</h4>
+                <p>${esc(job.company)}</p>
                 <div class="job-meta">
-                    <span>📍 ${job.location}</span>
-                    <span>💼 ${job.type}</span>
+                    <span>📍 ${esc(job.location || 'Not specified')}</span>
+                    <span>💼 ${esc(job.type || 'Not specified')}</span>
                 </div>
             </div>
             <div class="job-actions">
-                <a href="job-details.html?id=${job.id}" class="btn-primary">View</a>
-                <button onclick="unsaveJob(${job.id})" class="btn-secondary">Remove</button>
+                <a href="job-details.html?id=${encodeURIComponent(job.id)}" class="btn-primary">View</a>
+                <button onclick="unsaveJob('${esc(String(job.id))}')" class="btn-secondary">Remove</button>
             </div>
         </div>
     `).join('');
@@ -754,8 +750,8 @@ function loadSavedJobs() {
 
 // Unsave a job
 function unsaveJob(jobId) {
-    let savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
-    savedJobs = savedJobs.filter(id => id !== jobId);
+    let savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]').map(String);
+    savedJobs = savedJobs.filter(id => id !== String(jobId));
     localStorage.setItem('savedJobs', JSON.stringify(savedJobs));
     loadSavedJobs();
 }
