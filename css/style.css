@@ -4576,3 +4576,20 @@ select#country option {
 .job-apply-actions { display:flex; align-items:center; gap:.85rem; flex-wrap:wrap; }
 .job-apply-note { color:#4b5563; font-size:.95rem; }
 .job-apply-section .btn-apply-source { min-width:140px; }
+
+
+/* Job post typography (consistent spacing, bold headings, bullets) */
+.job-detail-section { margin-top: 1.5rem; }
+.job-detail-section h3 { margin: 0 0 .75rem; color: var(--dark, #1f2937); font-size: 1.12rem; font-weight: 700; line-height: 1.35; }
+.job-post-body { line-height: 1.85; color: #1f2937; font-size: 1rem; }
+.job-post-body p { margin: 0 0 .85rem; }
+.job-post-body p:last-child { margin-bottom: 0; }
+.job-post-body .job-post-heading { margin: 1rem 0 .35rem; }
+.job-post-body .job-post-heading:first-child { margin-top: 0; }
+.job-post-body .job-post-heading strong { font-weight: 700; color: #111827; }
+.job-post-list { margin: .35rem 0 1rem 1.35rem; padding: 0; }
+.job-post-list li { margin: 0 0 .45rem; line-height: 1.75; }
+.job-post-list li:last-child { margin-bottom: 0; }
+.job-post-note { line-height: 1.8; margin: 0; color: #374151; }
+.job-detail-fulltext.job-post-body { padding: 1rem 1.1rem; }
+.job-detail-field strong { font-weight: 700; }

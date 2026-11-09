@@ -8,6 +8,55 @@ document.addEventListener('DOMContentLoaded', function() {
 function esc(s) {
     return (window.HabeshaUI && window.HabeshaUI.escHtml) ? window.HabeshaUI.escHtml(s) : String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
+// Format scraped/plain job post text with consistent spacing, bold headings, and bullet lists.
+function formatPostText(text) {
+    const raw = String(text == null ? '' : text).replace(/\r\n?/g, '\n').trim();
+    if (!raw) return '';
+    const escLine = (s) => esc(s).trim();
+    const isBullet = (l) => /^\s*(?:[•●▪◦\-*–—]|\(?\d{1,3}[.)]\)?|\d{1,3}\/)\s+/.test(l);
+    const bulletText = (l) => l.replace(/^\s*(?:[•●▪◦\-*–—]|\(?\d{1,3}[.)]\)?|\d{1,3}\/)\s+/, '').trim();
+    const isNumbered = (l) => /^\s*\(?\d{1,3}[.)]\)?\s+/.test(l);
+    const isHeading = (l) => {
+        const t = l.trim();
+        if (!t || t.length > 90) return false;
+        if (/^(https?:\/\/|www\.|mailto:)/i.test(t)) return false;
+        if (isBullet(t)) return false;
+        if (/[:：]\s*$/.test(t) && t.length <= 80) return true;
+        const words = t.split(/\s+/);
+        if (words.length <= 8 && /^[A-Z0-9][A-Z0-9\s/&(),.+-]{2,}$/.test(t) && /[A-Z]/.test(t)) return true;
+        return false;
+    };
+    const lines = raw.split('\n');
+    const blocks = [];
+    let para = [];
+    let list = null; // {type:'ul'|'ol', items:[]}
+    const flushPara = () => { if (!para.length) return; const t = para.join(' ').replace(/\s+/g,' ').trim(); if (t) blocks.push(`<p>${esc(t)}</p>`); para = []; };
+    const flushList = () => { if (!list || !list.items.length) { list = null; return; } const tag = list.type; blocks.push(`<${tag} class="job-post-list">${list.items.map(it => `<li>${esc(it)}</li>`).join('')}</${tag}>`); list = null; };
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const t = line.trim();
+        if (!t) { flushPara(); flushList(); continue; }
+        if (isBullet(t)) {
+            flushPara();
+            const type = isNumbered(t) ? 'ol' : 'ul';
+            if (!list || list.type !== type) { flushList(); list = { type, items: [] }; }
+            list.items.push(bulletText(t));
+            continue;
+        }
+        if (isHeading(t)) {
+            flushPara(); flushList();
+            const label = t.replace(/[:：]\s*$/, '').trim();
+            blocks.push(`<p class="job-post-heading"><strong>${esc(label)}</strong></p>`);
+            continue;
+        }
+        flushList();
+        // If previous line was blank-ish or this looks like a new paragraph after sentence end, allow break; simple: keep accumulating, but split on blank lines (handled).
+        para.push(t);
+    }
+    flushPara(); flushList();
+    return blocks.join('\n') || `<p>${esc(raw)}</p>`;
+}
 function _logo(job){ return (window.HabeshaUI && window.HabeshaUI.jobLogoSrc) ? window.HabeshaUI.jobLogoSrc(job) : (job && job.logo) || (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri ? window.HabeshaUI.orgLogoDataUri(job && job.company) : ''); }
 function _fallbackLogo(job){ return (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri) ? window.HabeshaUI.orgLogoDataUri(job && job.company) : ''; }
 function _fmtDate(v){ if(!v) return 'Not specified'; const s=String(v); return s.length >= 10 ? s.slice(0,10) : s; }
@@ -127,17 +176,17 @@ async function loadJobDetails(jobId) {
 
             <div class="job-detail-section">
                 <h3>Full Job Description</h3>
-                <div class="job-detail-fulltext">${esc(desc).replace(/\n/g,'<br>')}</div>
+                <div class="job-detail-fulltext job-post-body">${formatPostText(desc)}</div>
             </div>
 
             <div class="job-detail-section">
                 <h3>Requirements / Qualifications</h3>
-                ${!reqMissing ? `<div class="job-detail-fulltext">${esc(req).replace(/\n/g,'<br>')}</div>` : `<p>Not specified on the source page.${orgLink ? ' Use the <strong>Apply</strong> button above to view the official vacancy.' : ''}</p>`}
+                ${!reqMissing ? `<div class="job-detail-fulltext job-post-body">${formatPostText(req)}</div>` : `<p class="job-post-note">Not specified on the source page.${orgLink ? ' Use the <strong>Apply</strong> button below to view the official vacancy.' : ''}</p>`}
             </div>
-            ${job.educationRequirements ? `<div class="job-detail-section"><h3>Education Requirements</h3><div class="job-detail-fulltext">${esc(job.educationRequirements)}</div></div>` : ''}
-            ${job.experienceRequirements ? `<div class="job-detail-section"><h3>Experience Requirements</h3><div class="job-detail-fulltext">${esc(job.experienceRequirements)}</div></div>` : ''}
-            ${skills.length ? `<div class="job-detail-section"><h3>Required Skills</h3><p>${esc(skills.join(', '))}</p></div>` : ''}
-            ${job.applicationInstructions ? `<div class="job-detail-section"><h3>Application Instructions</h3><div class="job-detail-pre">${esc(job.applicationInstructions)}</div></div>` : ''}
+            ${job.educationRequirements ? `<div class="job-detail-section"><h3>Education Requirements</h3><div class="job-detail-fulltext job-post-body">${formatPostText(job.educationRequirements)}</div></div>` : ''}
+            ${job.experienceRequirements ? `<div class="job-detail-section"><h3>Experience Requirements</h3><div class="job-detail-fulltext job-post-body">${formatPostText(job.experienceRequirements)}</div></div>` : ''}
+            ${skills.length ? `<div class="job-detail-section"><h3>Required Skills</h3><div class="job-detail-fulltext job-post-body"><ul class="job-post-list">${skills.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div></div>` : ''}
+            ${job.applicationInstructions ? `<div class="job-detail-section"><h3>Application Instructions</h3><div class="job-detail-fulltext job-post-body">${formatPostText(job.applicationInstructions)}</div></div>` : ''}
 
             <div class="job-detail-section">
                 <h3>Source</h3>
