@@ -2,6 +2,9 @@ import { json, requireCron, requireAdmin } from "../_lib/http.js";
 import { hasDatabase } from "../../lib/db.mjs";
 import { syncEnabledSources } from "../../lib/jobs/sync.mjs";
 
+// Same rationale as /api/admin/sync: catalog batches need more than the 10s default.
+export const maxDuration = 60;
+
 export default async function handler(req, res) {
   // Vercel Cron sends Authorization: Bearer <CRON_SECRET> when configured; allow admin key for manual tests.
   if (!requireCron(req) && !requireAdmin(req)) return json(res, 401, { ok: false, error: "unauthorized" });

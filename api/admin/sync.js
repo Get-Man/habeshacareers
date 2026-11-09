@@ -2,6 +2,9 @@ import { json, requireAdmin, parseJsonBody } from "../_lib/http.js";
 import { hasDatabase } from "../../lib/db.mjs";
 import { syncSourceBySlug, syncEnabledSources } from "../../lib/jobs/sync.mjs";
 
+// Heavy catalog batches (listing page + many detail fetches) exceed the 10s serverless default.
+export const maxDuration = 60;
+
 export default async function handler(req, res) {
   if (!requireAdmin(req)) return json(res, 401, { ok: false, error: "unauthorized" });
   if (!hasDatabase()) return json(res, 503, { ok: false, error: "db_unavailable" });
