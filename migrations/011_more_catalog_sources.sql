@@ -29,9 +29,9 @@ insert into job_sources (slug, name, base_url, listing_url, source_type, enabled
    'Uses the site''s official public RSS feed (/jobfeed) only — structured vacancy metadata, deadline included. Batched slice per run; upserts idempotent. Admin can disable.',
    jsonb_build_object('feedUrl', 'https://careers.un.org/jobfeed', 'limit', 40, 'offset', 0, 'backfillDone', false)),
   ('unicef', 'UNICEF Careers', 'https://jobs.unicef.org', 'https://jobs.unicef.org/en-us/listing/', 'html', false, 'blocked',
-   'PageUp vacancy app returns a 202-empty bot-challenge to non-browser clients; no public RSS/sitemap/API. Never bypassed; awaiting an official UNICEF feed/API.', null),
+   'PageUp vacancy app returns a 202-empty bot-challenge to non-browser clients; no public RSS/sitemap/API. Never bypassed; awaiting an official UNICEF feed/API.', '{}'::jsonb),
   ('higherethiopia', 'Higher Ethiopia', 'https://www.higherethiopia.com', 'https://www.higherethiopia.com/jobs/', 'html', false, 'blocked',
-   'Domain does not resolve (site appears offline). Revisit if the site returns.', null)
+   'Domain does not resolve (site appears offline). Revisit if the site returns.', '{}'::jsonb)
 on conflict (slug) do update set
   name = excluded.name,
   base_url = coalesce(excluded.base_url, job_sources.base_url),
