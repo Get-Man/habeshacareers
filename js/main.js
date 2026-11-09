@@ -17,9 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Load categories with total vacancy counts
-function loadCategoriesWithVacancies() {
-    const jobs = getAllJobs();
+// Load categories with total vacancy counts (true catalog-wide counts from the API).
+async function loadCategoriesWithVacancies() {
     const categories = [
         { name: 'Healthcare and Medical', icon: '🏥', fullName: 'Healthcare and Medical' },
         { name: 'Information Technology', icon: '💻', fullName: 'Information Technology and Computer Science' },
@@ -37,12 +36,23 @@ function loadCategoriesWithVacancies() {
         { name: 'Media and Communication', icon: '📡', fullName: 'Media and Communication' }
     ];
 
+    // Server-side counts (full catalog, same active basis as the jobs page).
+    let server = null;
+    try {
+        const data = await window.JobsApi.fetch('/api/jobs?meta=stats&limit=1');
+        if (data && data.ok && data.stats && Array.isArray(data.stats.byCategory)) {
+            server = new Map(data.stats.byCategory.map(c => [String(c.category), Number(c.count) || 0]));
+        }
+    } catch (e) {}
+
     const container = document.getElementById('categoryGrid');
-    
+    if (!container) return;
+
     container.innerHTML = categories.map(cat => {
-        const categoryJobs = jobs.filter(job => job.category === cat.name);
-        const jobCount = categoryJobs.length;
-        
+        let jobCount = server && server.has(cat.name)
+            ? server.get(cat.name)
+            : getAllJobs().filter(job => job.category === cat.name).length; // cache fallback while API is down
+
         return `
             <div class="category-card" onclick="filterByCategory('${cat.name}')">
                 <span class="icon">${cat.icon}</span>
@@ -118,22 +128,28 @@ function loadTrustedPartners() {
     track.innerHTML = partners.length > 3 ? (items + items) : items; // duplicate for seamless loop when enough
 }
 
-function loadImpactStats() {
+async function loadImpactStats() {
+    // True catalog-wide numbers from the API; fall back to the cache while offline.
+    let stats = null;
+    try {
+        const data = await window.JobsApi.fetch('/api/jobs?meta=stats&limit=1');
+        if (data && data.ok && data.stats) stats = data.stats;
+    } catch (e) {}
     const jobs = getAllJobs();
-    const activeJobs = jobs.length;
-    const orgs = new Set(jobs.map(j => String(j.company||'').trim().toLowerCase()).filter(Boolean)).size;
-    const categories = new Set(jobs.map(j => String(j.category||'').trim()).filter(Boolean)).size;
-    const sources = new Set(jobs.map(j => String(j.sourceName || j.sourceSlug || (j.origin==='direct'?'Direct':'') || '').trim()).filter(Boolean)).size;
+    const total = stats && typeof stats.total === 'number' ? stats.total : jobs.length;
+    const orgs = stats && typeof stats.orgs === 'number' ? stats.orgs : new Set(jobs.map(j => String(j.company||'').trim().toLowerCase()).filter(Boolean)).size;
+    const categories = stats && typeof stats.categories === 'number' ? stats.categories : new Set(jobs.map(j => String(j.category||'').trim()).filter(Boolean)).size;
+    const sources = (stats && typeof stats.sources === 'number' ? stats.sources : (new Set(jobs.map(j => String(j.sourceName || j.sourceSlug || (j.origin==='direct'?'Direct':'') || '').trim()).filter(Boolean)).size)) || orgs;
     const setStat = (id, value, label) => {
         const el = document.getElementById(id);
         if (el) { el.textContent = String(value); el.setAttribute('data-target', String(value)); }
         const lbl = document.getElementById(id + 'Label');
         if (lbl && label) lbl.textContent = label;
     };
-    setStat('statJobs', activeJobs, 'Active Vacancies');
+    setStat('statJobs', total, 'Active Vacancies');
     setStat('statOrgs', orgs, 'Partner Organizations');
     setStat('statCategories', categories, 'Categories Covered');
-    setStat('statSources', sources || orgs, 'Sources / Employers');
+    setStat('statSources', sources, 'Sources / Employers');
 }
 
 window.addEventListener('habesha:jobs-updated', () => { try { loadRecentJobs(); loadTrustedPartners(); loadImpactStats(); if (typeof loadCategoriesWithVacancies==='function') loadCategoriesWithVacancies(); } catch(e){} });
