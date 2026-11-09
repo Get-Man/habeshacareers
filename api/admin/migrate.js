@@ -3,7 +3,7 @@ import { hasDatabase, query } from "../../lib/db.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
-const ALLOWED = new Set(["006_ethiojobs_connector.sql", "007_geezjobs_connector.sql"]);
+const ALLOWED = new Set(["006_ethiojobs_connector.sql", "007_geezjobs_connector.sql", "008_backfill_job_batches.sql"]);
 
 export default async function handler(req, res) {
   if (!requireAdmin(req)) return json(res, 401, { ok: false, error: "unauthorized" });
