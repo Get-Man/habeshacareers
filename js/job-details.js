@@ -19,8 +19,18 @@ function stripApplicationFormNoise(text) {
         /\n\s*Powered by Greenhouse\b[\s\S]*$/i,
         /\n\s*Create a Job Alert\b[\s\S]*$/i,
         /\n\s*First Name\s*\*[\s\S]*?(?:Submit application|Powered by)[\s\S]*$/i,
+        // Aggregator page chrome (e.g. WorkEthiopia) that may have been stored in older records
+        /\n\s*Apply on the employer['’]s application page\b[\s\S]*$/i,
+        /\n\s*View advert\s*&\s*apply\b[\s\S]*$/i,
+        /\n\s*Related open jobs\b[\s\S]*$/i,
+        /\n\s*workethiopia\.net\b[\s\S]*$/i,
+        /\n\s*Your friend in the job hunt\.?[\s\S]*$/i,
+        /\n\s*We use Google Analytics cookies[\s\S]*$/i,
+        /\n\s*Join us\b[\s\S]*?(?:እቀበላለሁ|No thanks)[\s\S]*$/i,
+        /\n\s*Find jobs Post a job Employers\b[\s\S]*$/i,
     ];
     for (const re of markers) t = t.replace(re, '\n');
+    t = t.replace(/^\s*(?:←\s*)?All open jobs\s*/i, '').replace(/^\s*Read full role\s*/i, '');
     return t.trim();
 }
 
