@@ -1,13 +1,26 @@
-let currentJobs = [];
-let currentPage = 1;
-const jobsPerPage = 6;
+// Habesha Careers - jobs list page.
+// The full catalog lives in the /api/jobs database (which grows with every sync),
+// so this page fetches ONE server-side-filtered, paginated chunk at a time
+// (page + all filter params sent to the API) instead of loading the whole
+// catalog into the browser. Same cards, same filters, same pagination UI.
+let serverJobs = [];
+const jobsPerPage = 20; // rows per API page
+const jobsState = { page: 1, total: 0 };
+
 function _esc(s){ return (window.HabeshaUI && window.HabeshaUI.escHtml) ? window.HabeshaUI.escHtml(s) : String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function _logo(job){ return (window.HabeshaUI && window.HabeshaUI.jobLogoSrc) ? window.HabeshaUI.jobLogoSrc(job) : (job && job.logo) || (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri ? window.HabeshaUI.orgLogoDataUri(job && job.company) : ''); }
 function _fallbackLogo(job){ return (window.HabeshaUI && window.HabeshaUI.orgLogoDataUri) ? window.HabeshaUI.orgLogoDataUri(job && job.company) : ''; }
+function getDaysUntilDeadline(deadline) {
+    if (!deadline) return null;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const deadlineDate = new Date(deadline);
+    if (Number.isNaN(deadlineDate.getTime())) return null;
+    const diffTime = deadlineDate - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadJobs();
-
     const filtersToggle = document.getElementById('filtersToggle');
     const jobsLayout = document.getElementById('jobsLayout');
     if (filtersToggle && jobsLayout) {
@@ -21,51 +34,91 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for filters from home page
     const savedSearch = localStorage.getItem('searchTerm');
     const savedCategory = localStorage.getItem('filterCategory');
-
     if (savedSearch) {
         document.getElementById('jobSearch').value = savedSearch;
         localStorage.removeItem('searchTerm');
     }
-
     if (savedCategory) {
         document.getElementById('categoryFilter').value = savedCategory;
         localStorage.removeItem('filterCategory');
     }
 
-    if (savedSearch || savedCategory) {
-        applyFilters();
-    }
+    applyFilters();
 });
 
-window.addEventListener('habesha:jobs-updated', () => { try { applyFilters(); } catch(e){} });
+function orderedSortFilter() {
+    // "Deadline Soon" ignores rows without a deadline on the server (nulls last).
+    const sort = document.getElementById('sortFilter').value;
+    return sort === 'deadline' ? 'deadline' : '';
+}
 
-function loadJobs() {
-    currentJobs = getAllJobs();
-    currentPage = 1;
-    displayJobs(currentJobs);
+function paramsFromFilters() {
+    const category = document.getElementById('categoryFilter').value;
+    const location = document.getElementById('locationFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    const search = document.getElementById('jobSearch').value.trim();
+    const params = new URLSearchParams({
+        page: String(jobsState.page),
+        limit: String(jobsPerPage),
+        brief: '1'
+    });
+    if (category) params.set('category', category);
+    if (location) params.set('location', location);
+    if (type) params.set('type', type);
+    const sort = orderedSortFilter();
+    if (sort) params.set('sort', sort);
+    if (search) params.set('q', search);
+    return params;
+}
+
+async function applyFilters() {
+    const container = document.getElementById('jobsList');
+    try {
+        const data = await window.JobsApi.fetch(`/api/jobs?${paramsFromFilters().toString()}`);
+        if (data && data.ok && Array.isArray(data.jobs)) {
+            serverJobs = data.jobs;
+            jobsState.total = (typeof data.total === 'number') ? data.total : serverJobs.length;
+            displayJobs(serverJobs);
+            return;
+        }
+        throw new Error((data && (data.error || data.message)) || 'request_failed');
+    } catch (e) {
+        if (e && e.data && e.data.error === 'db_unavailable') {
+            serverJobs = [];
+            jobsState.total = 0;
+            container.innerHTML = '<p>Live job database is not configured yet. Configure Neon <code>DATABASE_URL</code> and sync real sources from <a href="admin.html">Admin</a>.</p>';
+            document.getElementById('jobsCount').textContent = '';
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
+        const cached = getAllJobs();
+        if (cached.length) {
+            serverJobs = cached;
+            jobsState.total = cached.length;
+            displayJobs(cached);
+        } else {
+            serverJobs = [];
+            jobsState.total = 0;
+            container.innerHTML = '<p>Could not load jobs right now. Please try again.</p>';
+            document.getElementById('jobsCount').textContent = '';
+            document.getElementById('pagination').innerHTML = '';
+        }
+    }
 }
 
 function displayJobs(jobs) {
     const container = document.getElementById('jobsList');
     const countElement = document.getElementById('jobsCount');
 
-    countElement.textContent = `${jobs.length} job(s) found`;
+    countElement.textContent = `${jobsState.total} job(s) found`;
 
     if (jobs.length === 0) {
-        const err = window.JobsApi && window.JobsApi.lastError;
-        const msg = (err && err.error === 'db_unavailable') ? 'Live job database is not configured yet. Configure Neon <code>DATABASE_URL</code> and sync real sources from <a href="admin.html">Admin</a>.' : 'No jobs match your criteria.';
-        container.innerHTML = `<p>${msg}</p>`;
+        container.innerHTML = `<p>No jobs match your criteria.</p>`;
         document.getElementById('pagination').innerHTML = '';
         return;
     }
 
-    // Calculate pagination
-    const totalPages = Math.ceil(jobs.length / jobsPerPage);
-    const startIndex = (currentPage - 1) * jobsPerPage;
-    const endIndex = startIndex + jobsPerPage;
-    const paginatedJobs = jobs.slice(startIndex, endIndex);
-
-    container.innerHTML = paginatedJobs.map(job => {
+    container.innerHTML = jobs.map(job => {
         const daysLeft = getDaysUntilDeadline(job.deadline);
         const urgentClass = (daysLeft != null && daysLeft <= 7) ? 'style="color: red;"' : '';
         const logoPath = _logo(job);
@@ -95,12 +148,12 @@ function displayJobs(jobs) {
         `;
     }).join('');
 
-    renderPagination(totalPages);
+    renderPagination(Math.ceil(jobsState.total / jobsPerPage));
 }
 
 function renderPagination(totalPages) {
     const paginationContainer = document.getElementById('pagination');
-    
+
     if (totalPages <= 1) {
         paginationContainer.innerHTML = '';
         return;
@@ -110,14 +163,14 @@ function renderPagination(totalPages) {
 
     // Previous button
     paginationHTML += `
-        <button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+        <button onclick="goToPage(${jobsState.page - 1})" ${jobsState.page === 1 ? 'disabled' : ''}>
             ← Prev
         </button>
     `;
 
     // Page numbers with smart display
     const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let startPage = Math.max(1, jobsState.page - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
     // Adjust start if we're near the end
@@ -136,7 +189,7 @@ function renderPagination(totalPages) {
     // Page numbers
     for (let i = startPage; i <= endPage; i++) {
         paginationHTML += `
-            <button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">
+            <button onclick="goToPage(${i})" class="${i === jobsState.page ? 'active' : ''}">
                 ${i}
             </button>
         `;
@@ -152,82 +205,26 @@ function renderPagination(totalPages) {
 
     // Next button
     paginationHTML += `
-        <button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+        <button onclick="goToPage(${jobsState.page + 1})" ${jobsState.page === totalPages ? 'disabled' : ''}>
             Next →
         </button>
     `;
 
     // Page info
     paginationHTML += `
-        <span class="page-info">Page ${currentPage} of ${totalPages}</span>
+        <span class="page-info">Page ${jobsState.page} of ${totalPages}</span>
     `;
 
     paginationContainer.innerHTML = paginationHTML;
 }
 
 function goToPage(page) {
-    const totalPages = Math.ceil(currentJobs.length / jobsPerPage);
-    
+    const totalPages = Math.ceil(jobsState.total / jobsPerPage);
     if (page < 1 || page > totalPages) return;
-    
-    currentPage = page;
-    displayJobs(currentJobs);
-    
-    // Scroll to top of jobs list
-    document.getElementById('jobsList').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// Exact match function - case insensitive
-function exactMatch(text, search) {
-    text = text.toLowerCase();
-    search = search.toLowerCase();
-    
-    // Exact substring match
-    return text.includes(search);
-}
-
-function applyFilters() {
-    const category = document.getElementById('categoryFilter').value;
-    const location = document.getElementById('locationFilter').value;
-    const type = document.getElementById('typeFilter').value;
-    const sort = document.getElementById('sortFilter').value;
-    const search = document.getElementById('jobSearch').value.trim();
-
-    let filtered = getAllJobs();
-
-    // Apply filters
-    if (category) {
-        filtered = filtered.filter(job => job.category === category);
-    }
-
-    if (location) {
-        filtered = filtered.filter(job => job.location === location);
-    }
-
-    if (type) {
-        filtered = filtered.filter(job => job.type === type);
-    }
-
-    if (search) {
-        filtered = filtered.filter(job => 
-            exactMatch(job.title, search) ||
-            exactMatch(job.company, search) ||
-            exactMatch(job.description, search) ||
-            exactMatch(job.category, search) ||
-            exactMatch(job.location, search)
-        );
-    }
-
-    // Apply sorting
-    if (sort === 'newest') {
-        filtered.sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
-    } else if (sort === 'deadline') {
-        filtered.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-    }
-
-    currentJobs = filtered;
-    currentPage = 1; // Reset to first page when filtering
-    displayJobs(filtered);
+    jobsState.page = page;
+    applyFilters();
+    const el = document.getElementById('jobsList');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function clearFilters() {
@@ -236,9 +233,11 @@ function clearFilters() {
     document.getElementById('typeFilter').value = '';
     document.getElementById('sortFilter').value = 'newest';
     document.getElementById('jobSearch').value = '';
-    loadJobs();
+    jobsState.page = 1;
+    applyFilters();
 }
 
 function searchJobsPage() {
+    jobsState.page = 1;
     applyFilters();
 }

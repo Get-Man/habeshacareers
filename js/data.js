@@ -156,7 +156,10 @@ const JobsApi = {
                 this.lastFetch = Date.now();
                 this.available = true;
                 this.lastError = null;
-                localStorage.setItem('habeshaJobsCache', JSON.stringify({ at: this.lastFetch, jobs: data.jobs }));
+                // Keep only the leading slice in localStorage (quota-safe): this cache
+                // powers instant first paint and fallbacks; the jobs list page fetches
+                // fresh, complete data from /api/jobs with server-side pagination.
+                localStorage.setItem('habeshaJobsCache', JSON.stringify({ at: this.lastFetch, jobs: data.jobs.slice(0, 300) }));
                 return data;
             }
         } catch (e) {
