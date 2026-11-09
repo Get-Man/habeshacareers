@@ -22,8 +22,8 @@ const AdminApp = {
       const { stats } = await this.api('/api/admin/stats');
       const t = stats.totals || {};
       document.getElementById('statsCards').innerHTML = [
-        ['Total',t.total],['Active',t.active],['Expired',t.expired],['New Today',stats.newToday],['New Week',stats.newThisWeek],
-        ['Sources',stats.sources?.total],['Connected',stats.sources?.connected],['Failed',stats.sources?.failed],['Organizations',t.organizations]
+        ['Total Posts (fetched)', t.total], ['Active Vacancies', t.active], ['Expired', t.expired], ['New Today', stats.newToday], ['New Week', stats.newThisWeek],
+        ['Sources', stats.sources?.total], ['Connected', stats.sources?.connected], ['Failed/Blocked', stats.sources?.failed], ['Organizations', t.organizations]
       ].map(([h,n])=>`<div class="admin-card"><h4>${h}</h4><div class="n">${n??0}</div></div>`).join('');
     } catch(e){ this.msg('Stats: '+e.message,true); }
   },

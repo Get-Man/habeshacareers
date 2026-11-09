@@ -31,7 +31,7 @@ function domainFromUrl(url) {
   try { if (!url) return ''; return new URL(String(url)).hostname.replace(/^www\./i,''); } catch { return ''; }
 }
 
-const AGGREGATOR_HOST_RE = /(^|\.)geezjobs\.com$|(^|\.)ethiojobs\.net$|(^|\.)hahu\.jobs$|(^|\.)dereja\.com$|(^|\.)ezega\.com$|(^|\.)jobwebethiopia\.com$|(^|\.)ngojobs\.et$|(^|\.)workethiopia\.net$|(^|\.)srazone\.et$|(^|\.)ethiopianreporterjobs\.com$|(^|\.)reliefweb\.int$|(^|\.)unjobs\.org$|(^|\.)linkedin\.com$|(^|\.)facebook\.com$|(^|\.)twitter\.com$|(^|\.)x\.com$/i;
+const AGGREGATOR_HOST_RE = /(^|\.)geezjobs\.com$|(^|\.)ethiojobs\.net$|(^|\.)ethiojobs\.net\.et$|(^|\.)etcareers\.com$|(^|\.)alljobspo\.com$|(^|\.)hahu\.jobs$|(^|\.)dereja\.com$|(^|\.)ezega\.com$|(^|\.)jobwebethiopia\.com$|(^|\.)ngojobs\.et$|(^|\.)workethiopia\.net$|(^|\.)srazone\.et$|(^|\.)ethiopianreporterjobs\.com$|(^|\.)reliefweb\.int$|(^|\.)unjobs\.org$|(^|\.)linkedin\.com$|(^|\.)facebook\.com$|(^|\.)twitter\.com$|(^|\.)x\.com$/i;
 const ORG_DOMAIN_HINTS = [
   [/\bunicef\b/i,'unicef.org'],[/\bundp\b|united nations development programme/i,'undp.org'],[/\bwho\b|world health organization/i,'who.int'],
   [/\bwfp\b|world food programme/i,'wfp.org'],[/\bunhcr\b|un refugee agency|refugees\b/i,'unhcr.org'],[/\biom\b|international organization for migration/i,'iom.int'],
@@ -52,10 +52,17 @@ function faviconLogo(url) {
 }
 
 function hostOf(url){ return domainFromUrl(url); }
+function looksLikeVacancyPoster(url) {
+  // Vacancy advertisement creatives/posters/banners/flyers are not org logos.
+  const s = String(url || '').toLowerCase();
+  if (!s) return true;
+  return /(?:vacancy|job[-_ ]?poster|advert(?:isement)?|flyer|job[-_ ]?ad|hiring[-_ ]?banner|recruit(?:ment)?[-_ ]?(?:poster|banner|ad)|position[-_ ]?ad|now[-_ ]?hiring)/.test(s);
+}
 function isWeakLogo(url) {
   const s = String(url || '').toLowerCase();
   if (!s) return true;
   if (/default[-_]?logo|placeholder|no[-_]?logo|avatar|sprite|blank/.test(s)) return true;
+  if (looksLikeVacancyPoster(s)) return true;
   const h = hostOf(url);
   return !!(h && AGGREGATOR_HOST_RE.test(h));
 }
