@@ -9,9 +9,24 @@ function esc(s) {
     return (window.HabeshaUI && window.HabeshaUI.escHtml) ? window.HabeshaUI.escHtml(s) : String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function stripApplicationFormNoise(text) {
+    let t = String(text == null ? '' : text).replace(/\r\n?/g, '\n');
+    const markers = [
+        /\n\s*Apply for this job\b[\s\S]*$/i,
+        /\n\s*Autofill my application\b[\s\S]*$/i,
+        /\n\s*\*\s*indicates a required field\b[\s\S]*$/i,
+        /\n\s*Submit application\b[\s\S]*$/i,
+        /\n\s*Powered by Greenhouse\b[\s\S]*$/i,
+        /\n\s*Create a Job Alert\b[\s\S]*$/i,
+        /\n\s*First Name\s*\*[\s\S]*?(?:Submit application|Powered by)[\s\S]*$/i,
+    ];
+    for (const re of markers) t = t.replace(re, '\n');
+    return t.trim();
+}
+
 // Format scraped/plain job post text with consistent spacing, bold headings, and bullet lists.
 function formatPostText(text) {
-    const raw = String(text == null ? '' : text).replace(/\r\n?/g, '\n').trim();
+    const raw = stripApplicationFormNoise(String(text == null ? '' : text)).trim();
     if (!raw) return '';
     const escLine = (s) => esc(s).trim();
     const isBullet = (l) => /^\s*(?:[•●▪◦\-*–—]|\(?\d{1,3}[.)]\)?|\d{1,3}\/)\s+/.test(l);
