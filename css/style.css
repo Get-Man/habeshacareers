@@ -882,6 +882,7 @@ footer::before {
     display: grid;
     grid-template-columns: 250px 1fr;
     gap: 2rem;
+    align-items: start;
 }
 
 .filters {
@@ -889,6 +890,12 @@ footer::before {
     padding: 1.5rem;
     border-radius: 10px;
     height: fit-content;
+    position: sticky;
+    top: 90px;
+}
+
+.filters-toggle {
+    display: none;
 }
 
 .filters h3 {
@@ -1889,11 +1896,37 @@ footer::before {
 
     .jobs-layout {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
-    .filters {
+    .filters-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
         position: sticky;
-        top: 80px;
+        top: 74px;
+        z-index: 20;
+        width: fit-content;
+        margin-bottom: .25rem;
+        padding: .65rem .9rem;
+        border: 1px solid #d7dde2;
+        border-radius: 10px;
+        background: var(--light-gray);
+        color: var(--dark);
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(0,0,0,.06);
+    }
+    .filters-toggle::before { content: "☰"; font-size: 1rem; }
+
+    .filters {
+        display: none;
+        position: static;
+        top: auto;
+        margin-top: 0;
+    }
+    .jobs-layout.filters-open .filters {
+        display: block;
     }
 
     .form-row {

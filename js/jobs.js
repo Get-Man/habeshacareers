@@ -8,6 +8,16 @@ function _fallbackLogo(job){ return (window.HabeshaUI && window.HabeshaUI.orgLog
 document.addEventListener('DOMContentLoaded', function() {
     loadJobs();
 
+    const filtersToggle = document.getElementById('filtersToggle');
+    const jobsLayout = document.getElementById('jobsLayout');
+    if (filtersToggle && jobsLayout) {
+        filtersToggle.addEventListener('click', function() {
+            const open = jobsLayout.classList.toggle('filters-open');
+            filtersToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            filtersToggle.textContent = open ? 'Hide Categories & Filters' : 'Categories & Filters';
+        });
+    }
+
     // Check for filters from home page
     const savedSearch = localStorage.getItem('searchTerm');
     const savedCategory = localStorage.getItem('filterCategory');
