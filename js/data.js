@@ -69,15 +69,14 @@ function logoCandidates(job) {
   const orgDomain = orgDomainHint(job && job.company);
   const strongStored = stored && !isWeakLogo(stored);
   const strongRaw = rawLogo && !isWeakLogo(rawLogo);
+  // 1) Strong explicit logos, 2) org-domain hints (e.g. UNICEF), 3) direct non-aggregator host, 4) initials.
+  // Never show aggregator platform icons (Ethiojobs/GeezJobs/etc.) as organization logos.
   if (strongStored) add(stored);
   if (strongRaw) add(rawLogo);
   addFaviconCandidates(add, orgDomain);
-  if (!strongStored) add(stored);
-  if (!strongRaw) add(rawLogo);
   const url = job && (job.originalUrl || job.applicationUrl || job.url);
   const d = domainFromUrl(url);
   if (d && !AGGREGATOR_HOST_RE.test(d)) addFaviconCandidates(add, d);
-  if (d && AGGREGATOR_HOST_RE.test(d)) addFaviconCandidates(add, d); // last-resort only after org hints
   add(orgLogoDataUri(job && job.company));
   return out;
 }

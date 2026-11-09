@@ -120,13 +120,6 @@ async function loadJobDetails(jobId) {
             <div class="header-separator"></div>
             ${urgentWarning}
 
-            <div class="job-detail-section job-apply-section">
-                <h3>Apply</h3>
-                <p>Use the official organization application page to apply.</p>
-                ${applyCta}
-                ${job.applicationInstructions ? `<div style="margin-top:1rem"><h4 style="margin:.5rem 0 .25rem">Application Instructions</h4><div class="job-detail-pre">${esc(job.applicationInstructions)}</div></div>` : ''}
-            </div>
-
             <div class="job-detail-section">
                 <h3>Job Details</h3>
                 <div class="job-detail-fields">${fieldHtml || '<div class="job-detail-field"><strong>Details</strong><span>See the full description below.</span></div>'}</div>
@@ -144,6 +137,7 @@ async function loadJobDetails(jobId) {
             ${job.educationRequirements ? `<div class="job-detail-section"><h3>Education Requirements</h3><div class="job-detail-fulltext">${esc(job.educationRequirements)}</div></div>` : ''}
             ${job.experienceRequirements ? `<div class="job-detail-section"><h3>Experience Requirements</h3><div class="job-detail-fulltext">${esc(job.experienceRequirements)}</div></div>` : ''}
             ${skills.length ? `<div class="job-detail-section"><h3>Required Skills</h3><p>${esc(skills.join(', '))}</p></div>` : ''}
+            ${job.applicationInstructions ? `<div class="job-detail-section"><h3>Application Instructions</h3><div class="job-detail-pre">${esc(job.applicationInstructions)}</div></div>` : ''}
 
             <div class="job-detail-section">
                 <h3>Source</h3>
