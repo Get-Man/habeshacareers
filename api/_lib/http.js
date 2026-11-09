@@ -18,11 +18,15 @@ export function parseJsonBody(req) {
 }
 
 export function requireAdmin(req) {
-  const key = process.env.ADMIN_API_KEY;
-  if (!key) return false;
+  const clean = (v) => String(v || "").replace(/^\uFEFF/, "").trim();
+  const key = clean(process.env.ADMIN_API_KEY);
+  // Optional alternate automation/backfill token (e.g. created via CLI for scripts).
+  // No effect unless SYNC_TOKEN is set in the deployment env; falls back to ADMIN_API_KEY-only.
+  const token = clean(process.env.SYNC_TOKEN);
+  if (!key && !token) return false;
   const auth = req.headers.authorization || "";
-  const provided = auth.startsWith("Bearer ") ? auth.slice(7) : (req.headers["x-admin-key"] || req.query?.key);
-  return provided === key;
+  const provided = clean(auth.startsWith("Bearer ") ? auth.slice(7) : (req.headers["x-admin-key"] || req.query?.key));
+  return (!!key && provided === key) || (!!token && provided === token);
 }
 
 export function requireCron(req) {
