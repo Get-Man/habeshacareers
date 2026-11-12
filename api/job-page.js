@@ -178,10 +178,11 @@ function applyBlock(job) {
 
   const external = /^https?:/i.test(url);
   const attrs = external ? 'target="_blank" rel="noopener noreferrer nofollow"' : "";
-  const direct = external ? `<p class="jd-apply-note">Direct link: <a href="${esc(url)}" ${attrs}>${esc(url)}</a></p>` : "";
+  const showDirect = external && !/^\/api\/apply\?/i.test(url);
+  const direct = showDirect ? `<p class="jd-apply-note">Direct link: <a href="${esc(url)}" ${attrs}>${esc(url)}</a></p>` : "";
   return `
     ${badge}
-    <a class="jd-apply-btn" href="${esc(url)}" ${attrs}>Apply Now</a>
+    <a class="jd-apply-btn" href="${esc(url)}" ${attrs}>${apply.buttonLabel || "Apply Now"}</a>
     ${direct}
     ${note}
     ${verifiedNote}`;

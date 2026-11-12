@@ -23,24 +23,47 @@ export default async function handler(req, res) {
 
   try {
     const rows = await query(
-      `select id, apply_url, apply_url_type, apply_url_verified, status
+      `select id, apply_url, apply_url_type, apply_url_verified, status,
+              canonical_job_url, original_job_url, original_url
          from job_listings
         where id = $1
         limit 1`,
       [id]
     );
     const job = rows[0];
-    if (!job || !job.apply_url) return json(res, 404, { ok: false, error: "no_apply_link" });
+    if (!job) return json(res, 404, { ok: false, error: "not_found" });
 
-    // The destination must still be a valid application target.
-    const dest = classifyDestination(job.apply_url, { pageUrl: "" });
-    if (!dest.valid) return json(res, 404, { ok: false, error: "invalid_apply_link" });
+    const candidates = [
+      job.apply_url,
+      job.canonical_job_url,
+      job.original_job_url,
+      job.original_url,
+    ].filter(Boolean);
+
+    let target = null;
+    for (const candidate of candidates) {
+      const raw = String(candidate || "").trim();
+      if (!raw) continue;
+      if (/^mailto:/i.test(raw)) {
+        target = raw;
+        break;
+      }
+      const dest = classifyDestination(raw, { pageUrl: "" });
+      // Accept valid navigable destinations, including source pages, as a
+      // fallback so users can reach the original vacancy/application details.
+      if (dest.valid || /^https?:\/\//i.test(raw)) {
+        target = raw;
+        break;
+      }
+    }
+
+    if (!target) return json(res, 404, { ok: false, error: "no_apply_link" });
 
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Referrer-Policy", "no-referrer");
     res.setHeader("X-Robots-Tag", "noindex, nofollow");
     res.statusCode = 302;
-    res.setHeader("Location", job.apply_url);
+    res.setHeader("Location", target);
     return res.end();
   } catch (e) {
     console.error(e);
