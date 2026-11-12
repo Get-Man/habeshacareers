@@ -205,3 +205,69 @@ update job_listings l
 set organization_logo_url = null
 where l.organization_logo_url is not null
   and l.employer_id is null;
+
+-- 9) Retire the demo seed.
+--
+--    The application shipped a demo vacancy seed early on. It was removed
+--    from the front end, but the rows can still exist in the database and in
+--    a browser's local storage. Demo rows are never published: they are
+--    deleted here and the public view excludes any that arrive later.
+delete from job_listings
+where origin = 'demo'
+   or (contact_email ~* '(techsolutions\.et|stpauls\.et|intldev\.org|ethioconstruction\.et|boleschool\.et|cbe\.et)'
+       and title in ('Senior Software Developer','Registered Nurse','Project Manager',
+                     'Civil Engineer','High School Teacher - Mathematics','Financial Analyst'))
+   or logo ~* 'images/companies/(tech-solutions|st-pauls|intl-dev|construction-corp|bole-school|cbe|digital-media|hawassa-health)[.]png';
+
+-- The public view never exposes a demo row.
+create or replace view public_job_listings as
+select
+  l.id,
+  l.title,
+  l.company,
+  l.logo,
+  l.organization_logo_url,
+  l.organization_verified,
+  l.category,
+  l.location,
+  l.region_city,
+  l.job_type,
+  l.vacancies,
+  l.education_requirements,
+  l.experience_requirements,
+  l.required_skills,
+  l.salary,
+  l.posted_date,
+  l.deadline,
+  l.description,
+  l.description_html,
+  l.description_excerpt,
+  l.requirements,
+  l.requirements_html,
+  l.application_instructions,
+  l.application_email,
+  l.apply_url,
+  l.apply_url_type,
+  l.apply_url_confidence,
+  l.apply_url_verified,
+  l.job_reference,
+  l.job_status,
+  l.status,
+  l.featured,
+  l.origin,
+  l.last_verified_at,
+  l.created_at,
+  l.updated_at,
+  l.employer_id,
+  e.name as employer_name,
+  e.name_key as employer_name_key,
+  e.website_url as employer_website_url,
+  e.website_domain as employer_website_domain,
+  e.logo_public_url as employer_logo_url,
+  e.logo_verified as employer_logo_verified
+from job_listings l
+left join employer_directory e on e.id = l.employer_id
+where l.status = 'active'
+  and (l.deadline is null or l.deadline >= current_date)
+  and (l.job_status is null or l.job_status not in ('expired', 'unavailable'))
+  and (l.origin is null or l.origin <> 'demo');

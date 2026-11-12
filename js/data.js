@@ -121,15 +121,25 @@ function nextLogo(img) {
 
 window.HabeshaUI = Object.assign(window.HabeshaUI || {}, { escHtml, orgInitials, orgLogoDataUri, jobLogoSrc, faviconLogo, logoCandidates, domainFromUrl, logoImgAttrs, nextLogo });
 
+/**
+ * Identify a vacancy that came from the retired demo seed.
+ *
+ * The demo seed was removed from the application long ago, but browsers that
+ * visited the site before then can still have it cached in localStorage.
+ * Those entries are dropped on sight so a demo vacancy can never be shown or
+ * counted as a real one.
+ */
 const DEMO_SEED_TITLES = new Set([
-  "Senior Software Developer","Registered Nurse","Project Manager",
-  "Civil Engineer","High School Teacher - Mathematics","Financial Analyst"
+  "Senior Software Developer", "Registered Nurse", "Project Manager",
+  "Civil Engineer", "High School Teacher - Mathematics", "Financial Analyst"
 ]);
+const DEMO_SEED_DOMAINS = /techsolutions\.et|stpauls\.et|intldev\.org|ethioconstruction\.et|boleschool\.et|cbe\.et/i;
 
 function isDemoJob(job) {
   if (!job) return false;
   if (job.origin === 'demo' || job.isDemo) return true;
-  if (DEMO_SEED_TITLES.has(job.title) && (job.origin === 'local' || !job.origin) && /techsolutions\.et|stpauls\.et|intldev\.org|ethioconstruction\.et|boleschool\.et|cbe\.et/.test(String(job.contactEmail||''))) return true;
+  if (job.origin === 'local' && DEMO_SEED_DOMAINS.test(String(job.contactEmail || ''))) return true;
+  if (DEMO_SEED_TITLES.has(job.title) && DEMO_SEED_DOMAINS.test(String(job.contactEmail || ''))) return true;
   return false;
 }
 

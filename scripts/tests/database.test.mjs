@@ -233,6 +233,46 @@ test("sync locks are exclusive and expire", { skip }, async () => {
   await db.close();
 });
 
+test("the demo seed is retired and never published", { skip }, async () => {
+  const db = await freshDb();
+  await db.exec(`
+    insert into job_listings
+      (title, company, logo, description, description_excerpt, application_instructions,
+       status, job_status, origin, contact_email)
+    values
+      ('Senior Software Developer','Tech Solutions Ethiopia','images/companies/tech-solutions.png',
+       'demo one','demo one','Apply by mail.','active','open','local','hr@techsolutions.et'),
+      ('Financial Analyst','Commercial Bank of Ethiopia','images/companies/cbe.png',
+       'demo two','demo two','Apply by mail.','active','open','demo',NULL),
+      ('Real vacancy','Amhara Bank',NULL,'A real vacancy.','A real vacancy.','Apply by mail.',
+       'active','open','aggregated',NULL);
+  `);
+
+  // Apply the demo retirement the way the migration does.
+  const file = "017_scrub_source_attribution.sql";
+  await db.exec(fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8"));
+
+  const rows = await db.query("select id, title, origin from job_listings order by id");
+  assert.equal(rows.rows.length, 1, "both demo rows are removed");
+  assert.equal(rows.rows[0].title, "Real vacancy");
+
+  const view = await db.query("select title from public_job_listings order by id");
+  assert.deepEqual(view.rows.map((r) => r.title), ["Real vacancy"]);
+  await db.close();
+});
+
+test("the public view never exposes a demo row", { skip }, async () => {
+  const db = await freshDb();
+  // A demo row that arrives after the cleanup must still be hidden.
+  await db.exec(`
+    insert into job_listings (title, company, status, job_status, origin)
+    values ('Demo','Demo Org','active','open','demo');
+  `);
+  const view = await db.query("select title from public_job_listings");
+  assert.equal(view.rows.length, 0, "a demo row is not published");
+  await db.close();
+});
+
 test("source attribution is scrubbed from legacy vacancy text", { skip }, async () => {
   const db = await freshDb();
   await db.exec(`
