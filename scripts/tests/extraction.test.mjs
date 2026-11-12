@@ -31,6 +31,7 @@ import {
 import { identifyEmployer, cleanOrgName, isGenericOrganization, UNVERIFIED_ORGANIZATION } from "../../lib/jobs/extract/employer.mjs";
 import { computeJobStatus, daysUntil, detectUnavailablePage, isJsonLdEligible } from "../../lib/jobs/extract/validate.mjs";
 import { canonicalUrl, isLikelyJobUrl, isListingUrl, jobPublicPath, normalizeUrl } from "../../lib/jobs/extract/urls.mjs";
+import { scrubSourceTitle } from "../../lib/jobs/extract/job.mjs";
 import { extractJsonLd, extractMeta, findJobPosting, sanitizeHtml, stripDangerousBlocks } from "../../lib/jobs/extract/html.mjs";
 import { collectFlightText, decodeFlightPayload, findJobRecords } from "../../lib/jobs/extract/flight.mjs";
 import { isKnownSourceDomain } from "../../lib/jobs/extract/hosts.mjs";
@@ -406,6 +407,47 @@ test("job and listing urls are distinguished", () => {
 test("the public job path is stable and readable", () => {
   assert.equal(jobPublicPath(42, "Senior Engineer"), "/job/42/senior-engineer");
   assert.equal(jobPublicPath(7, "Ünïcode Tïtle"), "/job/7/unicode-title");
+});
+
+// ---------------------------------------------------------------------------
+// Source attribution in vacancy titles
+// ---------------------------------------------------------------------------
+
+test("a source's own name is removed from the vacancy title", () => {
+  assert.equal(scrubSourceTitle("Secretary via GeezJobs"), "Secretary");
+  assert.equal(scrubSourceTitle("Women And Girls Adviser SEO via GeezJobs"), "Women And Girls Adviser SEO");
+  assert.equal(scrubSourceTitle("Senior-Institutional Banking Officer via GeezJobs"), "Senior-Institutional Banking Officer");
+  assert.equal(scrubSourceTitle("DEPUTY CEO – INVESTMENT via GeezJobs"), "DEPUTY CEO – INVESTMENT");
+  assert.equal(scrubSourceTitle("Accountant | GeezJobs"), "Accountant");
+  assert.equal(scrubSourceTitle("Sales Person - Ethiojobs"), "Sales Person");
+  assert.equal(scrubSourceTitle("Manager at Work Ethiopia"), "Manager");
+});
+
+test("an employer's own headline is not mistaken for source attribution", () => {
+  assert.equal(
+    scrubSourceTitle("Siinqee Bank S.C. Job Vacancy 2026: Apply for 55 Jobs in Ethiopia"),
+    "Siinqee Bank S.C. Job Vacancy 2026: Apply for 55 Jobs in Ethiopia"
+  );
+  assert.equal(
+    scrubSourceTitle("Real Estate Jobs in Ethiopia 2026 – 4 Positions (160 Vacancies)"),
+    "Real Estate Jobs in Ethiopia 2026 – 4 Positions (160 Vacancies)"
+  );
+  assert.equal(scrubSourceTitle("Senior Software Engineer"), "Senior Software Engineer");
+  assert.equal(scrubSourceTitle("Vacancy Announcement"), "Vacancy Announcement");
+});
+
+test("the public mapping never exposes a source name in a title or its URL", () => {
+  const row = {
+    id: 47,
+    title: "Women And Girls Adviser SEO via GeezJobs",
+    company: "UN Women",
+    category: "Business and Management",
+    status: "active",
+  };
+  const job = toFrontendJob(row);
+  assert.equal(job.title, "Women And Girls Adviser SEO");
+  assert.equal(job.publicPath, "/job/47/women-and-girls-adviser-seo");
+  assert.equal(job.publicPath.includes("geezjobs"), false);
 });
 
 // ---------------------------------------------------------------------------

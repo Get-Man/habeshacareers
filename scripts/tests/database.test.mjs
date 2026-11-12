@@ -154,6 +154,34 @@ test("a board-hosted employer logo is exposed through the proxy, not directly", 
   await db.close();
 });
 
+test("stored titles never keep a discovery source's own name", { skip }, async () => {
+  const db = await freshDb();
+  // The rows below are inserted before the scrub migration runs, so they
+  // reproduce the historical titles that leaked the board's name.
+  await db.exec(`
+    insert into job_listings (title, company, status, job_status, deadline, normalized_title)
+    values ('Secretary via GeezJobs','Amhara Bank','active','open', current_date + 30, 'secretary via geezjobs'),
+           ('Accountant | GeezJobs','Addis Trading','active','open', current_date + 30, 'accountant | geezjobs'),
+           ('Siinqee Bank S.C. Job Vacancy 2026: Apply for 55 Jobs in Ethiopia','Siinqee Bank','active','open', current_date + 30, 'siinqee bank sc job vacancy 2026 apply for 55 jobs in ethiopia'),
+           ('Senior Software Engineer','BlueSpark','active','open', current_date + 30, 'senior software engineer');
+  `);
+  const migration = fs.readFileSync(path.join(MIGRATIONS_DIR, "018_scrub_source_titles.sql"), "utf8");
+  await db.exec(migration);
+  const rows = await db.query(`select title from public_job_listings order by id`);
+  const titles = rows.rows.map((r) => r.title);
+  assert.deepEqual(titles, [
+    "Secretary",
+    "Accountant",
+    "Siinqee Bank S.C. Job Vacancy 2026: Apply for 55 Jobs in Ethiopia",
+    "Senior Software Engineer",
+  ]);
+  // The deduplication key follows the corrected title.
+  const keys = await db.query(`select title, normalized_title from job_listings order by id`);
+  assert.equal(keys.rows[0].normalized_title, "secretary");
+  assert.equal(keys.rows[1].normalized_title, "accountant");
+  await db.close();
+});
+
 test("every registered source has a working adapter", { skip }, async () => {
   const db = await freshDb();
   const { getAdapter } = await import("../../lib/jobs/sources/adapters.mjs");

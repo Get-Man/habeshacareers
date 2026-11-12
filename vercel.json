@@ -8,6 +8,24 @@
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/robots.txt", "destination": "/api/robots" }
   ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "https://habeshacareers.vercel.app/",
+      "permanent": true,
+      "has": [
+        { "type": "header", "key": "host", "value": "habeshacareers-brown.vercel.app" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "destination": "https://habeshacareers.vercel.app/:path*",
+      "permanent": true,
+      "has": [
+        { "type": "header", "key": "host", "value": "habeshacareers-brown.vercel.app" }
+      ]
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/sync-jobs",

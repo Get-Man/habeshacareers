@@ -76,7 +76,7 @@ async function runSource({ slug, maxBatches }) {
 try {
   const results = await Promise.all(SLUGS.map((s) => runSource(s).catch((e) => ({ error: String(e.message || e) }))));
   try {
-    const t = await (await fetch("https://habeshacareers-brown.vercel.app/api/jobs?limit=1")).json();
+    const t = await (await fetch("https://habeshacareers.vercel.app/api/jobs?limit=1")).json();
     console.log(`\nAPI total: ${t.total}`);
   } catch {}
   console.log("\n== SUMMARY ==\n" + JSON.stringify(results, null, 2));

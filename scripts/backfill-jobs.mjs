@@ -4,12 +4,12 @@
  * Requires rotated ADMIN_API_KEY in env - do NOT hardcode secrets.
  *
  * Usage (PowerShell):
- *   $env:ADMIN_API_KEY="...rotated..."; $env:BASE_URL="https://habeshacareers-brown.vercel.app"; node scripts/backfill-jobs.mjs geezjobs ethiojobs
+ *   $env:ADMIN_API_KEY="...rotated..."; $env:BASE_URL="https://habeshacareers.vercel.app"; node scripts/backfill-jobs.mjs geezjobs ethiojobs
  *
  * Stops when a source reports progress.done=true (after a full catalog pass) or on repeated errors.
  * Respects delays between batches. Upserts/dedup make runs idempotent.
  */
-const base = (process.env.BASE_URL || "https://habeshacareers-brown.vercel.app").replace(/\/$/, "");
+const base = (process.env.BASE_URL || "https://habeshacareers.vercel.app").replace(/\/$/, "");
 const adminKey = process.env.ADMIN_API_KEY;
 const slugs = process.argv.slice(2).filter(Boolean);
 if (!adminKey) { console.error("Set ADMIN_API_KEY (rotated). Never commit or share it."); process.exit(1); }

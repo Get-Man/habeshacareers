@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const BASE = "https://habeshacareers-brown.vercel.app";
+const BASE = "https://habeshacareers.vercel.app";
 const TOKEN_FILE = path.resolve(".env.tmp-token");
 const SLUGS = [
   { slug: "geezjobs", maxBatches: 420 },
