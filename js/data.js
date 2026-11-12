@@ -134,7 +134,7 @@ const APPLY_META = {
   third_party:       { badge: 'Third-party application', badgeClass: 'badge-third-party', note: 'This vacancy was published on another platform. The link opens that application form.', official: false },
   email:             { badge: 'Application email', badgeClass: 'badge-neutral', note: 'Sends your application directly to the employer.', official: true },
   employer_careers:  { badge: 'Official careers page', badgeClass: 'badge-official', note: 'No direct application link was published, so this opens the employer’s own careers page.', official: true },
-  none:              { badge: '', badgeClass: '', note: 'Contact details and application instructions are listed in the vacancy.', official: false }
+  none:              { badge: 'Application details below', badgeClass: 'badge-neutral', note: 'This vacancy does not publish an application link. The employer\'s application details are listed in the vacancy.', official: false }
 };
 
 /**
@@ -181,13 +181,14 @@ function applyInfo(job) {
 function applyButtonHtml(job, extraClass) {
   const info = applyInfo(job);
   const cls = ('jd-apply-btn' + (extraClass ? ' ' + extraClass : '')).trim();
+  const badge = info.badge ? '<span class="jd-apply-origin"><span class="badge ' + escHtml(info.badgeClass || 'badge-neutral') + '">' + escHtml(info.badge) + '</span></span>' : '';
   if (!info.url) {
-    return '<div class="jd-apply-unavailable">Application details are listed in the vacancy below.</div>' +
-           '<a class="' + cls + '" href="jobs.html">Browse similar jobs</a>';
+    // No application link was published: the button still leads the reader
+    // to the employer's own application details.
+    return badge + '<a class="' + cls + '" href="#how-to-apply">Apply Now</a>';
   }
   const external = /^https?:/i.test(info.url);
   const attrs = external ? ' target="_blank" rel="noopener noreferrer nofollow"' : '';
-  const badge = info.badge ? '<span class="jd-apply-origin"><span class="badge ' + escHtml(info.badgeClass || 'badge-neutral') + '">' + escHtml(info.badge) + '</span></span>' : '';
   const note = info.note ? '<p class="jd-apply-note">' + escHtml(info.note) + '</p>' : '';
   return badge + '<a class="' + cls + '" href="' + escHtml(info.url) + '"' + attrs + '>Apply Now</a>' + note;
 }

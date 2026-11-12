@@ -193,13 +193,14 @@
   function applyButton(job, extraClass) {
     const a = applyDetails(job);
     const cls = ('jd-apply-btn' + (extraClass ? ' ' + extraClass : '')).trim();
+    const badge = a && a.badge ? `<span class="jd-apply-origin"><span class="badge ${esc(a.badgeClass || 'badge-neutral')}">${esc(a.badge)}</span></span>` : '';
     if (!a || !a.url) {
-      return `<div class="jd-apply-unavailable">${icon('alert')} Application details are listed in the vacancy below.</div>
-        <a class="${cls}" href="jobs.html">Browse similar jobs</a>`;
+      // No application link was published: the button still leads the reader
+      // to the employer's own application details.
+      return `${badge}<a class="${cls}" href="#how-to-apply">Apply Now</a>`;
     }
     const external = /^https?:/i.test(a.url);
     const attrs = external ? ' target="_blank" rel="noopener noreferrer nofollow"' : '';
-    const badge = a.badge ? `<span class="jd-apply-origin"><span class="badge ${esc(a.badgeClass || 'badge-neutral')}">${esc(a.badge)}</span></span>` : '';
     return `${badge}<a class="${cls}" href="${esc(a.url)}"${attrs}>Apply Now</a>`;
   }
 
@@ -301,10 +302,16 @@
               <div class="job-post-content"><ul>${skills.map((s) => `<li>${esc(s)}</li>`).join('')}</ul></div>
             </section>` : ''}
 
-            ${job.applicationInstructions ? `<section class="job-post-section">
+            ${job.applicationInstructions ? `<section class="job-post-section" id="how-to-apply">
               <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">📨</span>How to Apply</h2>
               <div class="job-post-content"><p>${esc(job.applicationInstructions)}</p></div>
-            </section>` : ''}
+            </section>` : `<section class="job-post-section" id="how-to-apply">
+              <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">📨</span>How to Apply</h2>
+              <div class="job-post-content">
+                <p>This vacancy does not publish an online application link. Contact <strong>${esc(employer)}</strong> using the details in the announcement above, and mention the job title when you apply.</p>
+                ${job.organizationWebsite ? `<p>Employer website: <a href="${esc(job.organizationWebsite)}" target="_blank" rel="noopener noreferrer nofollow">${esc(job.organizationDomain || job.organizationWebsite)}</a></p>` : ''}
+              </div>
+            </section>`}
 
             <section class="jd-card jd-before">
               <h2>Before you apply</h2>

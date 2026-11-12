@@ -113,12 +113,12 @@ function applyBlock(job) {
     : "";
 
   if (!url) {
+    // No application link was published for this vacancy. The button still
+    // leads the reader to the employer's own application details.
     return `
-      <div class="jd-apply-unavailable">
-        <strong>Application details</strong>
-        <p style="margin:.4rem 0 0">This vacancy does not publish an application link. Use the employer details below, or browse other openings.</p>
-      </div>
-      <a class="jd-apply-btn" href="/jobs.html">Browse similar jobs</a>`;
+      ${badge}
+      <a class="jd-apply-btn" href="#how-to-apply">Apply Now</a>
+      ${note}`;
   }
 
   const external = /^https?:/i.test(url);
@@ -303,11 +303,17 @@ export default async function handler(req, res) {
     const employer = job.organizationName || job.company || "Organization not verified";
     const sections = jobPost(job.sections);
     const instructions = job.applicationInstructions
-      ? `<section class="job-post-section">
+      ? `<section class="job-post-section" id="how-to-apply">
           <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">📨</span>How to Apply</h2>
           <div class="job-post-content"><p>${esc(job.applicationInstructions)}</p></div>
         </section>`
-      : "";
+      : `<section class="job-post-section" id="how-to-apply">
+          <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">📨</span>How to Apply</h2>
+          <div class="job-post-content">
+            <p>This vacancy does not publish an online application link. Contact <strong>${esc(employer)}</strong> using the details in the announcement above, and mention the job title when you apply.</p>
+            ${job.organizationWebsite ? `<p>Employer website: <a href="${esc(job.organizationWebsite)}" target="_blank" rel="noopener noreferrer nofollow">${esc(job.organizationDomain || job.organizationWebsite)}</a></p>` : ""}
+          </div>
+        </section>`;
     const skillsBlock = skills.length
       ? `<section class="job-post-section">
           <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">🧰</span>Required skills</h2>
