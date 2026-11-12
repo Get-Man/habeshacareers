@@ -586,7 +586,7 @@ button {
 
 /* The filter drawer toggle on small screens. */
 .filters-toggle {
-  display: inline-flex;
+  display: none;
   align-items: center;
   justify-content: center;
   gap: var(--sp-2);
@@ -1027,8 +1027,8 @@ input[type="radio"] {
 /* The filter panel is a card, like every other panel on the site. */
 .jobs-layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: var(--sp-6);
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: var(--sp-5);
   align-items: start;
 }
 
@@ -1036,20 +1036,27 @@ input[type="radio"] {
   min-width: 0;
 }
 
+.jobs-page h2 {
+  margin-bottom: var(--sp-4);
+}
+
 .filters {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  padding: var(--sp-4);
   height: fit-content;
+  max-height: calc(100vh - var(--header-h) - 2rem);
+  overflow: auto;
   position: sticky;
   top: calc(var(--header-h) + var(--sp-4));
   box-shadow: var(--shadow-sm);
+  scrollbar-gutter: stable;
 }
 
 .filters h3 {
-  margin: 0 0 var(--sp-4);
-  font-size: 1.05rem;
+  margin: 0 0 var(--sp-3);
+  font-size: 1rem;
   color: var(--brand-800);
 }
 
@@ -1057,14 +1064,30 @@ input[type="radio"] {
   margin-bottom: var(--sp-3);
 }
 
+.filters .filter-group label {
+  margin-bottom: 0.35rem;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.filters .filter-group select,
+.filters .filter-group input {
+  padding: 0.55rem 0.75rem;
+  font-size: var(--fs-sm);
+}
+
 .filters .filter-group:last-of-type {
-  margin-bottom: var(--sp-4);
+  margin-bottom: var(--sp-3);
 }
 
 .filters > .btn-primary,
 .filters > .btn-secondary,
 .filters > button {
+  width: 100%;
   margin-bottom: var(--sp-2);
+  padding: 0.6rem 0.9rem;
+  font-size: var(--fs-sm);
 }
 .job-card {
   display: flex;
@@ -1516,6 +1539,12 @@ input[type="radio"] {
   max-width: 60ch;
 }
 
+.jd-final-apply .jd-apply-note a {
+  color: var(--brand-700);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .jd-final-apply .jd-apply-origin {
   justify-content: flex-start;
   margin-bottom: var(--sp-3);
@@ -1956,24 +1985,7 @@ footer::before {
   }
 
   .jd-page {
-    padding-bottom: 6rem;
-  }
-
-  .jd-mobile-apply {
-    display: block;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: var(--sp-3) var(--sp-4);
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.08);
-    z-index: 40;
-  }
-
-  .jd-mobile-apply .jd-apply-btn {
-    padding: 0.8rem;
+    padding-bottom: var(--sp-8);
   }
 
   .jd-logo {
@@ -1992,13 +2004,14 @@ footer::before {
   }
 
   .filters-toggle {
+    display: inline-flex;
     width: 100%;
     justify-content: space-between;
   }
 
   .jobs-layout.filters-open .filters {
     display: block;
-    max-height: min(70vh, 520px);
+    max-height: min(65vh, 480px);
     overflow: auto;
     animation: filtersReveal 180ms ease;
   }

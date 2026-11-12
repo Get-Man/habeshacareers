@@ -172,15 +172,17 @@ function applyBlock(job) {
     // The button leads to the employer's own application details on this page.
     return `
       ${badge}
-      <a class="jd-apply-btn" href="#how-to-apply">Apply Now</a>
+      <a class="jd-apply-btn" href="#how-to-apply">View application details</a>
       ${note}`;
   }
 
   const external = /^https?:/i.test(url);
   const attrs = external ? 'target="_blank" rel="noopener noreferrer nofollow"' : "";
+  const direct = external ? `<p class="jd-apply-note">Direct link: <a href="${esc(url)}" ${attrs}>${esc(url)}</a></p>` : "";
   return `
     ${badge}
     <a class="jd-apply-btn" href="${esc(url)}" ${attrs}>Apply Now</a>
+    ${direct}
     ${note}
     ${verifiedNote}`;
 }

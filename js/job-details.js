@@ -197,11 +197,12 @@
     if (!a || !a.url) {
       // No application link was published: the button still leads the reader
       // to the employer's own application details.
-      return `${badge}<a class="${cls}" href="#how-to-apply">Apply Now</a>`;
+      return `${badge}<a class="${cls}" href="#how-to-apply">View application details</a>`;
     }
     const external = /^https?:/i.test(a.url);
     const attrs = external ? ' target="_blank" rel="noopener noreferrer nofollow"' : '';
-    return `${badge}<a class="${cls}" href="${esc(a.url)}"${attrs}>Apply Now</a>`;
+    const label = external ? 'Apply Now' : 'Apply Now';
+    return `${badge}<a class="${cls}" href="${esc(a.url)}"${attrs}>${label}</a>`;
   }
 
   function renderLoading(container) {
@@ -323,6 +324,7 @@
               <h2>Ready to apply?</h2>
               <p>Review the complete vacancy details above before applying.</p>
               ${applyButton(job, 'jd-apply-btn--end')}
+              ${apply && apply.url && /^https?:/i.test(apply.url) ? `<p class="jd-apply-note">Direct link: <a href="${esc(apply.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(apply.url)}</a></p>` : ''}
               ${apply && apply.note ? `<p class="jd-apply-note">${esc(apply.note)}</p>` : '<p class="jd-apply-note">No reliable application link could be verified for this vacancy. Use the employer’s official contact or application details above.</p>'}
             </section>
           </div>
