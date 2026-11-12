@@ -1,6 +1,6 @@
-import { json, requireAdmin, parseJsonBody } from "../_lib/http.js";
-import { hasDatabase } from "../../lib/db.mjs";
-import { syncSourceBySlug, syncEnabledSources } from "../../lib/jobs/sync.mjs";
+import { json, requireAdmin, parseJsonBody } from "../../http.js";
+import { hasDatabase } from "../../../../lib/db.mjs";
+import { syncSourceBySlug, syncEnabledSources } from "../../../../lib/jobs/sync.mjs";
 
 // Heavy catalog batches (listing page + many detail fetches) exceed the 10s serverless default.
 export const maxDuration = 60;

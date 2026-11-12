@@ -1,6 +1,6 @@
-import { json, requireCron, requireAdmin } from "../_lib/http.js";
-import { hasDatabase } from "../../lib/db.mjs";
-import { syncEnabledSources } from "../../lib/jobs/sync.mjs";
+import { json, requireCron, requireAdmin } from "../../http.js";
+import { hasDatabase } from "../../../../lib/db.mjs";
+import { syncEnabledSources } from "../../../../lib/jobs/sync.mjs";
 
 // Catalog batches (listing page + many detail fetches) exceed the 10s default.
 export const maxDuration = 60;

@@ -1,6 +1,6 @@
-import { json, requireCron, requireAdmin } from "../_lib/http.js";
-import { hasDatabase } from "../../lib/db.mjs";
-import { runQueuedExtraction } from "../../lib/jobs/sync.mjs";
+import { json, requireCron, requireAdmin } from "../../http.js";
+import { hasDatabase } from "../../../../lib/db.mjs";
+import { runQueuedExtraction } from "../../../../lib/jobs/sync.mjs";
 
 // Stage B extraction batch. The global lock prevents overlap with a running sync.
 export const maxDuration = 60;

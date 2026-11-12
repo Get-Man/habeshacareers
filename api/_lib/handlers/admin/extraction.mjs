@@ -1,7 +1,7 @@
-import { json, requireAdmin, parseJsonBody } from "../_lib/http.js";
-import { hasDatabase } from "../../lib/db.mjs";
-import { listActiveLocks, queueStats, requeueFailed } from "../../lib/jobs/extract/engine.mjs";
-import { runQueuedExtraction } from "../../lib/jobs/sync.mjs";
+import { json, requireAdmin, parseJsonBody } from "../../http.js";
+import { hasDatabase } from "../../../../lib/db.mjs";
+import { listActiveLocks, queueStats, requeueFailed } from "../../../../lib/jobs/extract/engine.mjs";
+import { runQueuedExtraction } from "../../../../lib/jobs/sync.mjs";
 
 export const maxDuration = 60;
 

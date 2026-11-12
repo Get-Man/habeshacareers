@@ -1,6 +1,6 @@
-import { json, requireAdmin, parseJsonBody } from "../_lib/http.js";
-import { hasDatabase, query } from "../../lib/db.mjs";
-import { approveSubmission } from "../../lib/jobs/repository.mjs";
+import { json, requireAdmin, parseJsonBody } from "../../http.js";
+import { hasDatabase, query } from "../../../../lib/db.mjs";
+import { approveSubmission } from "../../../../lib/jobs/repository.mjs";
 
 export default async function handler(req, res) {
   if (!requireAdmin(req)) return json(res, 401, { ok: false, error: "unauthorized" });

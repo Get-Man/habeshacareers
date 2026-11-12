@@ -1,6 +1,6 @@
-import { json, requireAdmin, parseJsonBody } from "../_lib/http.js";
-import { hasDatabase, query } from "../../lib/db.mjs";
-import { getAdminJob, listReviewQueue } from "../../lib/jobs/repository.mjs";
+import { json, requireAdmin, parseJsonBody } from "../../http.js";
+import { hasDatabase, query } from "../../../../lib/db.mjs";
+import { getAdminJob, listReviewQueue } from "../../../../lib/jobs/repository.mjs";
 
 const ACTIONS = new Set(["approve", "activate", "reject", "archive", "feature", "unfeature"]);
 

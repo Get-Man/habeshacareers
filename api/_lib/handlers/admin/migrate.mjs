@@ -1,5 +1,5 @@
-import { json, requireAdmin, parseJsonBody } from "../_lib/http.js";
-import { hasDatabase, query } from "../../lib/db.mjs";
+import { json, requireAdmin, parseJsonBody } from "../../http.js";
+import { hasDatabase, query } from "../../../../lib/db.mjs";
 import fs from "node:fs";
 import path from "node:path";
 

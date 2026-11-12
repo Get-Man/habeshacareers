@@ -33,6 +33,8 @@ import { computeJobStatus, daysUntil, detectUnavailablePage, isJsonLdEligible } 
 import { canonicalUrl, isLikelyJobUrl, isListingUrl, jobPublicPath, normalizeUrl } from "../../lib/jobs/extract/urls.mjs";
 import { extractJsonLd, extractMeta, findJobPosting, sanitizeHtml, stripDangerousBlocks } from "../../lib/jobs/extract/html.mjs";
 import { collectFlightText, decodeFlightPayload, findJobRecords } from "../../lib/jobs/extract/flight.mjs";
+import { isKnownSourceDomain } from "../../lib/jobs/extract/hosts.mjs";
+import { toFrontendJob } from "../../lib/jobs/repository.mjs";
 import { extractFromStructuredJob } from "../../lib/jobs/extract/structured.mjs";
 import { extractDerejaRecords } from "../../lib/jobs/sources/dereja.mjs";
 import { getAdapter, listAdapterKeys } from "../../lib/jobs/sources/adapters.mjs";
@@ -239,6 +241,17 @@ test("isFaviconServiceUrl recognises both services", () => {
   assert.equal(isFaviconServiceUrl("https://www.google.com/s2/favicons?domain=x.org&sz=128"), true);
   assert.equal(isFaviconServiceUrl("https://icons.duckduckgo.com/ip3/x.org.ico"), true);
   assert.equal(isFaviconServiceUrl("https://x.org/logo.png"), false);
+});
+
+test("a source hosted on a subdomain of a larger domain is still a source", () => {
+  // careers.un.org is a discovery source even though its registrable domain
+  // is un.org.
+  assert.equal(isKnownSourceDomain("careers.un.org"), true);
+  assert.equal(isKnownSourceDomain("un.org"), true);
+  assert.equal(isKnownSourceDomain("ethiopianjobs.net"), true);
+  // A genuine employer domain is never a source.
+  assert.equal(isKnownSourceDomain("amharabank.com.et"), false);
+  assert.equal(isKnownSourceDomain("idcoalition.org"), false);
 });
 
 test("source-hosted logos are never publishable directly but are detected as source hosted", () => {
@@ -474,6 +487,22 @@ test("the html flight wrapper is decoded", () => {
 // ---------------------------------------------------------------------------
 // Adapters
 // ---------------------------------------------------------------------------
+
+test("the public mapper never publishes a source favicon", () => {
+  const cases = [
+    ["https://icons.duckduckgo.com/ip3/careers.un.org.ico", null],
+    ["https://icons.duckduckgo.com/ip3/geezjobs.com.ico", null],
+    ["https://www.google.com/s2/favicons?domain=geezjobs.com&sz=128", null],
+    ["https://www.google.com/s2/favicons?domain=srazone.et&sz=128", null],
+    ["https://srazone.et/logo.png", null],
+    ["https://www.google.com/s2/favicons?domain=amharabank.com.et&sz=128", "https://www.google.com/s2/favicons?domain=amharabank.com.et&sz=128"],
+    ["https://amharabank.com.et/images/logo.png", "https://amharabank.com.et/images/logo.png"],
+  ];
+  for (const [logo, expected] of cases) {
+    const job = toFrontendJob({ id: 1, title: "T", company: "C", logo, organization_logo_url: null });
+    assert.equal(job.logo, expected, `logo ${logo} should map to ${expected}`);
+  }
+});
 
 test("every registered source slug resolves to an adapter", () => {
   const keys = listAdapterKeys();
