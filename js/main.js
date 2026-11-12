@@ -69,7 +69,7 @@ function _fallbackLogo(job){ return (window.HabeshaUI && window.HabeshaUI.orgLog
 function _logoImgHtml(job, className, alt){ const list = (window.HabeshaUI && window.HabeshaUI.logoCandidates) ? window.HabeshaUI.logoCandidates(job) : [_logo(job), _fallbackLogo(job)].filter(Boolean); const first = list[0] || _fallbackLogo(job) || ''; const json = _esc(JSON.stringify(list)); return `<img src="${_esc(first)}" data-logos="${json}" data-logo-idx="0" alt="${_esc(alt || (job && job.company) || '')}" class="${_esc(className||'company-logo')}" onerror="window.HabeshaUI&&window.HabeshaUI.nextLogo?window.HabeshaUI.nextLogo(this):(this.onerror=null)">`; }
 
 function _jobCardBadge(job) {
-    if (job && job.sourceName) return `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .45rem;border-radius:999px;background:#f3f4f6;color:#374151;font-size:.72rem;vertical-align:middle;border:1px solid #e5e7eb">${_esc(job.sourceName)}</span>`;
+    if (job && job.organizationVerified) return ' <span class="verified-chip">✓ Verified</span>';
     return '';
 }
 
@@ -100,10 +100,9 @@ function loadRecentJobs() {
                 <span>📍 ${_esc(job.location || job.regionCity || 'Not specified')}</span>
                 <span>💼 ${_esc(job.type || 'Not specified')}</span>
                 <span>📂 ${_esc(job.category || 'Other')}</span>
-                ${job.originalUrl ? `<span>🔗 ${_esc(job.sourceName || 'Original source')}</span>` : ''}
             </div>
             <p>Deadline: ${_esc(job.deadline || 'Not specified')}</p>
-            <a href="job-details.html?id=${encodeURIComponent(job.id)}" class="btn-view">View Details</a>
+            <a href="${_esc(job.publicPath || ('job-details.html?id=' + encodeURIComponent(job.id)))}" class="btn-view">View Details</a>
         </div>
     `).join('');
 }
@@ -139,7 +138,7 @@ async function loadImpactStats() {
     const total = stats && typeof stats.total === 'number' ? stats.total : jobs.length;
     const orgs = stats && typeof stats.orgs === 'number' ? stats.orgs : new Set(jobs.map(j => String(j.company||'').trim().toLowerCase()).filter(Boolean)).size;
     const categories = stats && typeof stats.categories === 'number' ? stats.categories : new Set(jobs.map(j => String(j.category||'').trim()).filter(Boolean)).size;
-    const sources = (stats && typeof stats.sources === 'number' ? stats.sources : (new Set(jobs.map(j => String(j.sourceName || j.sourceSlug || (j.origin==='direct'?'Direct':'') || '').trim()).filter(Boolean)).size)) || orgs;
+    const verifiedOrgs = stats && typeof stats.verifiedOrgs === 'number' ? stats.verifiedOrgs : new Set(jobs.filter(j=>j.organizationVerified).map(j => String(j.company||'').trim().toLowerCase()).filter(Boolean)).size;
     const setStat = (id, value, label) => {
         const el = document.getElementById(id);
         if (el) { el.textContent = String(value); el.setAttribute('data-target', String(value)); }
@@ -149,7 +148,7 @@ async function loadImpactStats() {
     setStat('statJobs', total, 'Active Vacancies');
     setStat('statOrgs', orgs, 'Partner Organizations');
     setStat('statCategories', categories, 'Categories Covered');
-    setStat('statSources', sources, 'Sources / Employers');
+    setStat('statSources', verifiedOrgs, 'Verified Employers');
 }
 
 window.addEventListener('habesha:jobs-updated', () => { try { loadRecentJobs(); loadTrustedPartners(); loadImpactStats(); if (typeof loadCategoriesWithVacancies==='function') loadCategoriesWithVacancies(); } catch(e){} });

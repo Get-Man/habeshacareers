@@ -9,3 +9,5 @@ Thumbs.db
 
 .vercel
 .env*
+
+package-lock.json

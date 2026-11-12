@@ -1,6 +1,6 @@
 import { json } from "../_lib/http.js";
 import { hasDatabase } from "../../lib/db.mjs";
-import { getPublicJobById } from "../../lib/jobs/repository.mjs";
+import { getPublicJobById, getRelatedJobs } from "../../lib/jobs/repository.mjs";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return json(res, 405, { ok: false, error: "Method not allowed" });
@@ -8,7 +8,8 @@ export default async function handler(req, res) {
   try {
     const job = await getPublicJobById(req.query.id);
     if (!job) return json(res, 404, { ok: false, error: "not_found" });
-    return json(res, 200, { ok: true, job });
+    const related = await getRelatedJobs(job, 4).catch(() => []);
+    return json(res, 200, { ok: true, job, related });
   } catch (e) {
     console.error(e);
     return json(res, 500, { ok: false, error: "server_error" });

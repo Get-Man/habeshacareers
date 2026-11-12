@@ -123,15 +123,15 @@ function displayJobs(jobs) {
         const urgentClass = (daysLeft != null && daysLeft <= 7) ? 'style="color: red;"' : '';
         const logoPath = _logo(job);
         const fallback = _fallbackLogo(job);
-        const badge = job.sourceName ? `<span style="display:inline-block;margin-left:.35rem;padding:.1rem .45rem;border-radius:999px;background:#f3f4f6;color:#374151;font-size:.72rem;border:1px solid #e5e7eb">${_esc(job.sourceName)}</span>` : '';
+        const verified = job.organizationVerified ? ' <span class="verified-chip">✓ Verified</span>' : '';
 
         return `
             <div class="job-card">
                 <div class="job-card-header">
                     <img src="${_esc(((window.HabeshaUI&&window.HabeshaUI.logoCandidates)?window.HabeshaUI.logoCandidates(job)[0]:logoPath)||fallback)}" data-logos="${_esc(JSON.stringify((window.HabeshaUI&&window.HabeshaUI.logoCandidates)?window.HabeshaUI.logoCandidates(job):[logoPath,fallback]))}" data-logo-idx="0" alt="${_esc(job.company || '')}" class="company-logo" onerror="window.HabeshaUI&&window.HabeshaUI.nextLogo?window.HabeshaUI.nextLogo(this):(this.onerror=null,this.src='${fallback}')">
                     <div class="job-card-title">
-                        <h4>${_esc(job.title)}${badge}</h4>
-                        <p class="company">${_esc(job.company || 'Organization not specified')}</p>
+                        <h4>${_esc(job.title)}${verified}</h4>
+                        <p class="company">${_esc(job.company || 'Organization not verified')}</p>
                     </div>
                 </div>
                 <div class="job-meta">
@@ -140,10 +140,9 @@ function displayJobs(jobs) {
                     <span>📂 ${_esc(job.category || 'Other')}</span>
                     <span>👥 ${_esc(job.vacancies || 1)} ${(job.vacancies || 1) === 1 ? 'position' : 'positions'}</span>
                     <span ${urgentClass}>⏰ ${daysLeft == null ? 'Deadline N/A' : daysLeft + ' days left'}</span>
-                    ${job.sourceName ? `<span>🔗 ${_esc(job.sourceName)}</span>` : (job.originalUrl ? `<span>🔗 Original source</span>` : '')}
                 </div>
                 <p><strong>Posted:</strong> ${_esc(job.postedDate || 'Not specified')} &nbsp; <strong>Deadline:</strong> ${_esc(job.deadline || 'Not specified')}</p>
-                <a href="job-details.html?id=${encodeURIComponent(job.id)}" class="btn-view">View Details</a>
+                <a href="${_esc(job.publicPath || ('job-details.html?id=' + encodeURIComponent(job.id)))}" class="btn-view">View Details</a>
             </div>
         `;
     }).join('');

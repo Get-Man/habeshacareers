@@ -3,21 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>Admin - Habesha Careers</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .admin-wrap{max-width:1200px;margin:0 auto;padding:1rem}.admin-grid{display:grid;gap:1rem}
-        .admin-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem}
-        .admin-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:1rem}
-        .admin-card h4{margin:.25rem 0;font-size:.9rem;color:#555}.admin-card .n{font-size:1.6rem;font-weight:700}
-        .admin-section{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:1rem}
-        .admin-table{width:100%;border-collapse:collapse;font-size:.92rem}.admin-table th,.admin-table td{border-bottom:1px solid #eee;padding:.5rem;text-align:left;vertical-align:top}
-        .admin-actions button,.admin-actions .btn{margin:.1rem}.admin-toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.75rem}
-        .pill{display:inline-block;padding:.15rem .45rem;border-radius:999px;background:#eef2ff;font-size:.75rem}
-        .status-pending{background:#fef3c7}.status-connected,.status-active{background:#dcfce7}.status-error,.status-rejected,.status-blocked{background:#fee2e2}
-        .muted{color:#666;font-size:.9rem}
+        .admin-wrap{max-width:1280px;margin:0 auto;padding:1rem}
+        .admin-grid{display:grid;gap:1rem}
+        .admin-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.85rem}
+        .admin-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:.9rem}
+        .admin-card h4{margin:.15rem 0;font-size:.76rem;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+        .admin-card .n{font-size:1.55rem;font-weight:800;color:#0f2c59;line-height:1.1}
+        .admin-card .sub{font-size:.72rem;color:#94a3b8;margin-top:.2rem}
+        .admin-section{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1rem;box-shadow:0 12px 30px -26px rgba(15,44,89,.45)}
+        .admin-section h3{margin:0;color:#0f2c59}
+        .admin-table{width:100%;border-collapse:collapse;font-size:.86rem}
+        .admin-table th,.admin-table td{border-bottom:1px solid #eef2f7;padding:.5rem;text-align:left;vertical-align:top}
+        .admin-table th{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;background:#f8fafc}
+        .admin-table tbody tr:hover{background:#fbfdff}
+        .admin-actions button,.admin-actions .btn{margin:.1rem .15rem .1rem 0}
+        .admin-toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.75rem}
+        .admin-toolbar h3{margin-right:auto}
+        .pill{display:inline-block;padding:.15rem .5rem;border-radius:999px;background:#eef2ff;font-size:.72rem;font-weight:700;white-space:nowrap}
+        .status-pending{background:#fef3c7;color:#92400e}.status-connected,.status-active,.status-ok,.status-verified,.status-approved{background:#dcfce7;color:#166534}
+        .status-error,.status-rejected,.status-blocked,.status-failed,.status-invalid{background:#fee2e2;color:#991b1b}
+        .status-review,.status-partial,.status-unverified,.status-needs_manual_review{background:#ffedd5;color:#9a3412}
+        .status-extracted{background:#e0f2fe;color:#075985}.status-skipped,.status-duplicate{background:#f1f5f9;color:#475569}
+        .muted{color:#64748b;font-size:.88rem}
         .key-box{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
-        .key-box input{flex:1;min-width:220px;padding:.5rem}
+        .key-box input{flex:1;min-width:220px;padding:.55rem;border:1px solid #cbd5e1;border-radius:8px}
+        .admin-tabs{display:flex;gap:.35rem;flex-wrap:wrap;margin:1rem 0}
+        .admin-tab{border:1px solid #dbe4ef;background:#fff;color:#334155;border-radius:999px;padding:.42rem .9rem;font-weight:700;font-size:.83rem;cursor:pointer}
+        .admin-tab.active{background:#0f2c59;border-color:#0f2c59;color:#fff}
+        .admin-panel[hidden]{display:none}
+        .admin-detail{margin-top:1rem;border-color:#bfe9df;background:#fbfefd}
+        .admin-detail h3{display:flex;align-items:center;gap:.5rem}
+        .admin-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.6rem;margin:.75rem 0}
+        .admin-kv div{background:#fff;border:1px solid #e8eef6;border-radius:9px;padding:.55rem .7rem;min-width:0}
+        .admin-kv span{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:700;margin-bottom:.15rem}
+        .admin-kv strong{display:block;font-size:.84rem;color:#1e293b;overflow-wrap:anywhere;font-weight:600}
+        .admin-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;word-break:break-all;color:#0f766e}
+        .admin-apply-row{display:flex;gap:.5rem;flex-wrap:wrap;margin:.75rem 0}
+        .admin-apply-row input{flex:1;min-width:240px;padding:.55rem;border:1px solid #cbd5e1;border-radius:8px}
+        .admin-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1rem}
+        .admin-sub{background:#fff;border:1px solid #e8eef6;border-radius:10px;padding:.75rem;min-width:0}
+        .admin-sub h4{margin:0 0 .5rem;color:#0f2c59;font-size:.85rem}
+        .admin-empty{color:#64748b;font-size:.86rem;padding:.5rem 0}
+        .admin-note{width:100%;min-height:60px;padding:.5rem;border:1px solid #cbd5e1;border-radius:8px;font:inherit;font-size:.85rem;margin-bottom:.5rem}
+        .admin-pagination{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem}
+        @media(max-width:820px){.admin-split{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -36,38 +69,109 @@
 <main>
 <section class="jobs-page"><div class="container admin-wrap">
     <h2>Admin Dashboard</h2>
-    <p class="muted">Manage aggregated jobs, sources, synchronization, and employer submissions. This dashboard uses a server-side <code>ADMIN_API_KEY</code>. Configure <code>DATABASE_URL</code>, <code>ADMIN_API_KEY</code>, and <code>CRON_SECRET</code> in Vercel environment variables.</p>
+    <p class="muted">Monitor discovery, extraction quality, application links and source health. Source identity is admin-only and never rendered on public pages. Requests use a server-side <code>ADMIN_API_KEY</code>.</p>
     <div class="key-box">
-        <input id="adminKey" type="password" placeholder="ADMIN_API_KEY (stored in this tab only)">
+        <input id="adminKey" type="password" placeholder="ADMIN_API_KEY (stored in this tab only)" autocomplete="off">
         <button class="btn-primary" onclick="AdminApp.saveKey()">Save Key</button>
         <button class="btn-secondary" onclick="AdminApp.refreshAll()">Refresh</button>
     </div>
-    <div id="adminMsg" class="muted"></div>
+    <div id="adminMsg" class="muted" role="status" aria-live="polite"></div>
+
+    <nav class="admin-tabs" aria-label="Admin sections">
+        <button class="admin-tab active" data-tab="overview" onclick="AdminApp.showTab('overview')">Overview</button>
+        <button class="admin-tab" data-tab="review" onclick="AdminApp.showTab('review')">Review queue <span id="reviewCountBadge" class="pill status-review">0</span></button>
+        <button class="admin-tab" data-tab="jobs" onclick="AdminApp.showTab('jobs')">Jobs</button>
+        <button class="admin-tab" data-tab="sources" onclick="AdminApp.showTab('sources')">Sources</button>
+        <button class="admin-tab" data-tab="employers" onclick="AdminApp.showTab('employers')">Employers</button>
+        <button class="admin-tab" data-tab="runs" onclick="AdminApp.showTab('runs')">Runs &amp; submissions</button>
+        <button class="admin-tab" data-tab="audit" onclick="AdminApp.showTab('audit')">Audit trail</button>
+    </nav>
 
     <div class="admin-grid">
-        <div class="admin-cards" id="statsCards"></div>
+        <div class="admin-panel" data-panel="overview">
+            <div class="admin-cards" id="statsCards"></div>
 
-        <div class="admin-section">
-            <div class="admin-toolbar"><h3 style="margin:0">Job Sources</h3><button class="btn-secondary" onclick="AdminApp.syncAll()">Sync Enabled Sources</button></div>
-            <p class="muted">Sources are seeded as pending/disabled. Enable only sources with verified legal/technical access. A connector is currently implemented for <code>reliefweb-ethiopia</code> (RSS). Others require permitted connector implementation or manual/import workflows.</p>
-            <div style="overflow:auto"><table class="admin-table" id="sourcesTable"><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Enabled</th><th>Last Sync</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
-        </div>
-
-        <div class="admin-section">
-            <h3>Synchronization Runs</h3>
-            <div style="overflow:auto"><table class="admin-table" id="runsTable"><thead><tr><th>Started</th><th>Source</th><th>Trigger</th><th>Status</th><th>Counts</th><th>Message</th></tr></thead><tbody></tbody></table></div>
-        </div>
-
-        <div class="admin-section">
-            <div class="admin-toolbar"><h3 style="margin:0">Employer Submissions</h3></div>
-            <div style="overflow:auto"><table class="admin-table" id="subsTable"><thead><tr><th>ID</th><th>Company</th><th>Title</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
-        </div>
-
-        <div class="admin-section">
-            <div class="admin-toolbar"><h3 style="margin:0">Job Listings</h3>
-                <select id="jobStatusFilter" onchange="AdminApp.loadJobs()"><option value="">All</option><option value="active">Active</option><option value="pending">Pending</option><option value="expired">Expired</option><option value="rejected">Rejected</option><option value="archived">Archived</option></select>
+            <div class="admin-section" style="margin-top:1rem">
+                <div class="admin-toolbar">
+                    <h3>Discovery &amp; extraction queue</h3>
+                    <button class="btn-secondary" onclick="AdminApp.loadExtraction()">Refresh</button>
+                    <button class="btn-secondary" onclick="AdminApp.requeueFailed()">Requeue failed</button>
+                    <button class="btn-primary" onclick="AdminApp.runExtraction()">Run extraction</button>
+                </div>
+                <p class="muted" style="margin-top:0">Stage A discovers individual announcement URLs. Stage B opens and verifies each announcement before publishing. Locks prevent overlapping runs.</p>
+                <div class="admin-cards" id="queueCards"></div>
+                <div class="admin-sub" style="margin-top:.85rem">
+                    <h4>Active locks</h4>
+                    <div style="overflow:auto"><table class="admin-table" id="locksTable"><thead><tr><th>Lock</th><th>Owner</th><th>Locked at</th><th>Expires</th></tr></thead><tbody></tbody></table></div>
+                </div>
             </div>
-            <div style="overflow:auto"><table class="admin-table" id="jobsTable"><thead><tr><th>ID</th><th>Title</th><th>Company</th><th>Origin</th><th>Source</th><th>Status</th><th>Deadline</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <div class="admin-panel" data-panel="review" hidden>
+            <div class="admin-section">
+                <div class="admin-toolbar">
+                    <h3>Needs review</h3>
+                    <select id="reviewFilter" onchange="AdminApp.loadReview()">
+                        <option value="">All flagged</option>
+                        <option value="pending">Pending review</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <button class="btn-secondary" onclick="AdminApp.loadReview()">Refresh</button>
+                </div>
+                <p class="muted" style="margin-top:0">Flagged when extraction is partial, the employer is unverified, or the application link is missing/unverified. Review never exposes source identity to the public site.</p>
+                <div style="overflow:auto"><table class="admin-table" id="reviewTable"><thead><tr><th>ID</th><th>Job</th><th>Source</th><th>Status</th><th>Extraction</th><th>Apply</th><th>Candidates</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+            </div>
+            <div class="admin-section admin-detail" id="reviewDetail" hidden></div>
+        </div>
+
+        <div class="admin-panel" data-panel="jobs" hidden>
+            <div class="admin-section">
+                <div class="admin-toolbar"><h3>Job listings</h3>
+                    <select id="jobStatusFilter" onchange="AdminApp.loadJobs()"><option value="">All statuses</option><option value="active">Active</option><option value="pending">Pending</option><option value="expired">Expired</option><option value="rejected">Rejected</option><option value="archived">Archived</option></select>
+                    <button class="btn-secondary" onclick="AdminApp.loadJobs()">Refresh</button>
+                </div>
+                <div style="overflow:auto"><table class="admin-table" id="jobsTable"><thead><tr><th>ID</th><th>Title</th><th>Company</th><th>Source</th><th>Status</th><th>Review</th><th>Apply</th><th>Deadline</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+
+        <div class="admin-panel" data-panel="sources" hidden>
+            <div class="admin-section">
+                <div class="admin-toolbar"><h3>Job sources</h3><button class="btn-secondary" onclick="AdminApp.syncAll()">Sync enabled sources</button></div>
+                <p class="muted" style="margin-top:0">Enable only sources with verified legal and technical access. Per-source locks prevent concurrent discovery. Source details are never published.</p>
+                <div style="overflow:auto"><table class="admin-table" id="sourcesTable"><thead><tr><th>Source</th><th>Adapter</th><th>Status</th><th>Enabled</th><th>Queue</th><th>Listings</th><th>Last discovery</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+
+        <div class="admin-panel" data-panel="employers" hidden>
+            <div class="admin-section">
+                <div class="admin-toolbar">
+                    <h3>Employer directory</h3>
+                    <input id="employerSearch" type="search" placeholder="Search organisations" oninput="AdminApp.loadEmployers()" style="padding:.45rem;border:1px solid #cbd5e1;border-radius:8px;min-width:220px">
+                    <button class="btn-secondary" onclick="AdminApp.loadEmployers()">Refresh</button>
+                </div>
+                <p class="muted" style="margin-top:0">One verified identity and one official logo per organisation, shared by every vacancy of that organisation — even when the vacancies come from different job boards.</p>
+                <div style="overflow:auto"><table class="admin-table" id="employersTable"><thead><tr><th>ID</th><th>Organisation</th><th>Website</th><th>Logo</th><th>Status</th><th>Vacancies</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+
+        <div class="admin-panel" data-panel="runs" hidden>
+            <div class="admin-section">
+                <div class="admin-toolbar"><h3>Synchronization runs</h3><button class="btn-secondary" onclick="AdminApp.loadRuns()">Refresh</button></div>
+                <div style="overflow:auto"><table class="admin-table" id="runsTable"><thead><tr><th>Started</th><th>Source</th><th>Trigger</th><th>Status</th><th>Discovered</th><th>Extracted</th><th>Apply</th><th>Review</th><th>Dupes</th><th>Errors</th><th>Duration</th><th>Message</th></tr></thead><tbody></tbody></table></div>
+            </div>
+            <div class="admin-section" style="margin-top:1rem">
+                <div class="admin-toolbar"><h3>Employer submissions</h3><button class="btn-secondary" onclick="AdminApp.loadSubs()">Refresh</button></div>
+                <div style="overflow:auto"><table class="admin-table" id="subsTable"><thead><tr><th>ID</th><th>Company</th><th>Title</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+
+        <div class="admin-panel" data-panel="audit" hidden>
+            <div class="admin-section">
+                <div class="admin-toolbar"><h3>Audit trail</h3><button class="btn-secondary" onclick="AdminApp.loadAudit()">Refresh</button></div>
+                <p class="muted" style="margin-top:0">Every manual apply correction, approval, rejection and retry is recorded with actor, timestamp and previous value.</p>
+                <div style="overflow:auto"><table class="admin-table" id="auditTable"><thead><tr><th>When</th><th>Job</th><th>Actor</th><th>Action</th><th>Field</th><th>Old → New</th><th>Note</th></tr></thead><tbody></tbody></table></div>
+            </div>
         </div>
     </div>
 </div></section>

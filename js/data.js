@@ -14,24 +14,40 @@ function orgInitials(name) {
 }
 
 function orgLogoColor(name) {
-  const palette = ['#0f766e','#1d4ed8','#7c3aed','#b45309','#be123c','#15803d','#0369a1','#4338ca','#a16207','#0f766e'];
+  const palette = ['#0F2C59','#1B9C85','#1D4ED8','#7C3AED','#B45309','#BE123C','#15803D','#0369A1','#4338CA','#A16207','#0E7490','#9D174D'];
   let h = 0; const s = String(name || '');
   for (let i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i);
   return palette[Math.abs(h) % palette.length];
 }
 
+// A professionally designed monogram placeholder used when no reliable
+// organisation logo exists. Never an unrelated logo.
 function orgLogoDataUri(name) {
-  const initials = orgInitials(name);
-  const bg = orgLogoColor(name);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" rx="18" fill="${bg}"/><text x="60" y="68" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="42" font-weight="700" fill="#ffffff">${escHtml(initials)}</text></svg>`;
+  const label = String(name || '').trim();
+  const initials = orgInitials(label);
+  const bg = orgLogoColor(label);
+  const bg2 = shade(bg, -18);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="${escHtml(label || 'Organization')}">`
+    + `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">`
+    + `<stop offset="0%" stop-color="${bg}"/><stop offset="100%" stop-color="${bg2}"/></linearGradient></defs>`
+    + `<rect width="120" height="120" rx="20" fill="url(#g)"/>`
+    + `<rect x="0.75" y="0.75" width="118.5" height="118.5" rx="19.25" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="1.5"/>`
+    + `<text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-size="42" font-weight="700" letter-spacing="1" fill="#ffffff">${escHtml(initials)}</text>`
+    + `</svg>`;
   return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
+
+function shade(hex, percent) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex || '#0F2C59'));
+  if (!m) return hex;
+  const shift = (v) => Math.max(0, Math.min(255, Math.round(parseInt(v, 16) * (1 + percent / 100))));
+  return '#' + [shift(m[1]), shift(m[2]), shift(m[3])].map((v) => v.toString(16).padStart(2, '0')).join('');
 }
 
 function domainFromUrl(url) {
   try { if (!url) return ''; return new URL(String(url)).hostname.replace(/^www\./i,''); } catch { return ''; }
 }
 
-const AGGREGATOR_HOST_RE = /(^|\.)geezjobs\.com$|(^|\.)ethiojobs\.net$|(^|\.)ethiojobs\.net\.et$|(^|\.)etcareers\.com$|(^|\.)alljobspo\.com$|(^|\.)hahu\.jobs$|(^|\.)dereja\.com$|(^|\.)ezega\.com$|(^|\.)jobwebethiopia\.com$|(^|\.)ngojobs\.et$|(^|\.)workethiopia\.net$|(^|\.)srazone\.et$|(^|\.)ethiopianreporterjobs\.com$|(^|\.)reliefweb\.int$|(^|\.)unjobs\.org$|(^|\.)linkedin\.com$|(^|\.)facebook\.com$|(^|\.)twitter\.com$|(^|\.)x\.com$/i;
 const ORG_DOMAIN_HINTS = [
   [/\bunicef\b/i,'unicef.org'],[/\bundp\b|united nations development programme/i,'undp.org'],[/\bwho\b|world health organization/i,'who.int'],
   [/\bwfp\b|world food programme/i,'wfp.org'],[/\bunhcr\b|un refugee agency|refugees\b/i,'unhcr.org'],[/\biom\b|international organization for migration/i,'iom.int'],
@@ -63,27 +79,22 @@ function isWeakLogo(url) {
   if (!s) return true;
   if (/default[-_]?logo|placeholder|no[-_]?logo|avatar|sprite|blank/.test(s)) return true;
   if (looksLikeVacancyPoster(s)) return true;
-  const h = hostOf(url);
-  return !!(h && AGGREGATOR_HOST_RE.test(h));
+  return false;
 }
 function logoCandidates(job) {
   const out = [];
   const seen = new Set();
   const add = (u) => { if (!u) return; const s = String(u); if (seen.has(s)) return; if (!/^https?:|^data:|^\//i.test(s)) return; seen.add(s); out.push(s); };
-  const stored = job && (job.logo || job.logoUrl || job.companyLogo || job.organizationLogo);
-  const raw = (job && job.raw_payload && typeof job.raw_payload === 'object') ? job.raw_payload : null;
-  const rawLogo = raw ? (raw.logo || raw.company_logo || raw.organization_logo || raw.image) : null;
-  const orgDomain = orgDomainHint(job && job.company);
+  const stored = job && (job.organizationLogo || job.logo || job.logoUrl || job.companyLogo);
+  const orgDomain = job && (job.organizationDomain || job.employerWebsiteDomain || '');
   const strongStored = stored && !isWeakLogo(stored);
-  const strongRaw = rawLogo && !isWeakLogo(rawLogo);
-  // 1) Strong explicit logos, 2) org-domain hints (e.g. UNICEF), 3) direct non-aggregator host, 4) initials.
-  // Never show aggregator platform icons (Ethiojobs/GeezJobs/etc.) as organization logos.
+  // 1) The verified employer logo (server-side, official organisation asset).
   if (strongStored) add(stored);
-  if (strongRaw) add(rawLogo);
+  // 2) The organisation's own favicon, keyed on its own verified domain.
   addFaviconCandidates(add, orgDomain);
-  const url = job && (job.originalUrl || job.applicationUrl || job.url);
-  const d = domainFromUrl(url);
-  if (d && !AGGREGATOR_HOST_RE.test(d)) addFaviconCandidates(add, d);
+  // 3) Well-known organisation domains.
+  addFaviconCandidates(add, orgDomainHint(job && job.company));
+  // 4) Professional initials placeholder — never an unrelated logo.
   add(orgLogoDataUri(job && job.company));
   return out;
 }
