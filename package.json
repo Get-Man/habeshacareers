@@ -8,7 +8,7 @@
   "scripts": {
     "db:migrate": "node scripts/migrate.mjs",
     "sync:once": "node scripts/sync-once.mjs",
-    "test:smoke": "node --test scripts/**/*.test.mjs"
+    "test:smoke": "node --test scripts/tests/*.test.mjs"
   },
   "dependencies": {
     "pg": "^8.13.1"
