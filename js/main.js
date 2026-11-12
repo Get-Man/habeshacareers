@@ -233,7 +233,10 @@ function filterByCategory(category) {
 
 // Update navbar based on login status
 function updateNavbar() {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    let currentUser = null;
+    try { currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch {}
+    const role = currentUser?.role || (currentUser?.type === 'jobseeker' ? 'employee' : currentUser?.type);
+    const type = currentUser?.type || (role === 'employee' ? 'jobseeker' : role);
     const profileLink = document.getElementById('profileLink');
     const loginLink = document.getElementById('loginLink');
     const postJobLink = document.getElementById('postJobLink');
@@ -246,7 +249,7 @@ function updateNavbar() {
             // Update profile link based on user type
             const profileAnchor = profileLink.querySelector('a');
             if (profileAnchor) {
-                if (currentUser.type === 'employer') {
+                if (type === 'employer' || role === 'employer') {
                     // For employers, link to employer dashboard (or profile for now)
                     profileAnchor.href = 'profile.html'; // TODO: Change to employer-dashboard.html when ready
                     profileAnchor.title = 'My Dashboard';
@@ -262,11 +265,11 @@ function updateNavbar() {
         
         // Hide/Show Post Job button based on user type
         if (postJobLink) {
-            if (currentUser.type === 'jobseeker') {
+            if (type === 'jobseeker' || role === 'employee') {
                 // Hide Post Job for job seekers
                 postJobLink.style.display = 'none';
-            } else if (currentUser.type === 'employer') {
-                // Show Post Job for employers
+            } else if (type === 'employer' || role === 'employer' || role === 'admin') {
+                // Show Post Job for employers/admin
                 postJobLink.style.display = 'block';
             }
         }
@@ -282,8 +285,15 @@ function updateNavbar() {
     }
 }
 
-// Logout function
-function logout() {
+// Logout function (server-backed when auth API is available)
+async function logout() {
+    try {
+        if (typeof apiAuth === 'function') {
+            await apiAuth('/api/auth/logout', { method: 'POST', body: '{}' });
+        } else {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' } }).catch(() => {});
+        }
+    } catch {}
     localStorage.removeItem('currentUser');
     window.location.href = 'index.html';
 }

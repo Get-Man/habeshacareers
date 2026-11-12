@@ -1,7 +1,11 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if user is logged in as employer
-    const user = getCurrentUser();
-    if (!user || user.type !== 'employer') {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check if user is logged in as employer (server-backed when available)
+    try {
+        if (typeof refreshCurrentUser === 'function') await refreshCurrentUser();
+    } catch {}
+    const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+    const role = user?.role || user?.type;
+    if (!user || !(role === 'employer' || role === 'admin' || user?.type === 'employer')) {
         alert('You must be logged in as an employer to post jobs.');
         window.location.href = 'login.html';
         return;
@@ -50,6 +54,7 @@ function handleSubmit(e) {
             const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
             const res = await fetch('/api/employer/submit', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ ...jobData, submitterRef: user?.email || user?.company || null })
             });

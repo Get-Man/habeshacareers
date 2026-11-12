@@ -8,6 +8,7 @@
 // /api/cron/extract-jobs.
 
 import { json } from "../_lib/http.js";
+import { getUserFromRequest } from "../../lib/auth.mjs";
 
 import extractJobs from "../_lib/handlers/cron/extract-jobs.mjs";
 import syncJobs from "../_lib/handlers/cron/sync-jobs.mjs";
@@ -32,6 +33,11 @@ function routeName(req) {
 }
 
 export default async function handler(req, res) {
+  try {
+    req.authUser = await getUserFromRequest(req);
+  } catch {
+    req.authUser = null;
+  }
   const name = routeName(req);
   const route = ROUTES[name];
   if (!route) {

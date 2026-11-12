@@ -19,9 +19,12 @@ const AdminApp = {
   },
   async api(path, opts = {}) {
     const key = this.key();
+    const headers = { Accept: 'application/json', 'Content-Type': 'application/json', ...(opts.headers || {}) };
+    if (key) headers['x-admin-key'] = key;
     const res = await fetch(path, {
+      credentials: 'same-origin',
       ...opts,
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'x-admin-key': key, ...(opts.headers || {}) }
+      headers
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.message || data.error || ('HTTP ' + res.status));

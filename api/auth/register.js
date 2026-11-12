@@ -38,13 +38,24 @@ export default async function handler(req, res) {
     if (role === "employer" && !payload.companyName) return json(res, 400, { ok: false, error: "validation", message: "Company name is required." });
     if (role === "employer" && !payload.contactName) return json(res, 400, { ok: false, error: "validation", message: "Contact person is required." });
 
-    const user = await createUser(payload);
+    let user;
+    try {
+      user = await createUser(payload);
+    } catch (e) {
+      const msg = String(e?.message || e);
+      const code = e?.code || "";
+      if (msg === "password_too_short") return json(res, 400, { ok: false, error: "weak_password", message: "Password must be at least 8 characters." });
+      if (msg === "invalid_email") return json(res, 400, { ok: false, error: "invalid_email", message: "Please provide a valid email address." });
+      // Unique email constraint (race-safe).
+      if (code === "23505" || /unique|duplicate/i.test(msg)) {
+        return json(res, 409, { ok: false, error: "email_exists", message: "An account with this email already exists." });
+      }
+      throw e;
+    }
     const session = await createSession(user.id, req);
     setSessionCookie(res, session.token);
     return json(res, 201, { ok: true, user: publicUser(user), message: "Registration successful." });
   } catch (e) {
-    const msg = String(e?.message || e);
-    if (msg === "password_too_short") return json(res, 400, { ok: false, error: "weak_password", message: "Password must be at least 8 characters." });
     console.error(e);
     return json(res, 500, { ok: false, error: "server_error", message: "Could not create account." });
   }

@@ -1,8 +1,11 @@
 // Check if user is logged in
-document.addEventListener('DOMContentLoaded', function() {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-    
-    if (!currentUser || currentUser.type !== 'jobseeker') {
+document.addEventListener('DOMContentLoaded', async function() {
+    try { if (typeof refreshCurrentUser === 'function') await refreshCurrentUser(); } catch {}
+    let currentUser = null;
+    try { currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch {}
+    const role = currentUser?.role || (currentUser?.type === 'jobseeker' ? 'employee' : currentUser?.type);
+    const type = currentUser?.type || (role === 'employee' ? 'jobseeker' : role);
+    if (!currentUser || !(type === 'jobseeker' || role === 'employee')) {
         alert('Please login as a job seeker to access this page');
         window.location.href = 'login.html';
         return;

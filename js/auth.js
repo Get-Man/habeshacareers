@@ -1,5 +1,21 @@
 // Standard authentication (server-backed sessions). Falls back gracefully if API/DB is unavailable.
 
+function normalizeCurrentUser(user) {
+  if (!user) return null;
+  const role = user.role || (user.type === 'jobseeker' ? 'employee' : user.type === 'employer' ? 'employer' : user.type) || null;
+  const type = role === 'employee' ? 'jobseeker' : role === 'employer' ? 'employer' : role;
+  const name = user.name || user.fullName || user.contactName || user.companyName || user.company || null;
+  return {
+    ...user,
+    role,
+    type,
+    name,
+    fullName: user.fullName || name || null,
+    company: user.company || user.companyName || null,
+    companyName: user.companyName || user.company || null,
+  };
+}
+
 async function apiAuth(path, options = {}) {
   const res = await fetch(path, {
     credentials: 'same-origin',
@@ -17,12 +33,17 @@ async function apiAuth(path, options = {}) {
 }
 
 function getCurrentUser() {
-  const user = localStorage.getItem('currentUser');
-  return user ? JSON.parse(user) : null;
+  try {
+    const user = localStorage.getItem('currentUser');
+    return user ? normalizeCurrentUser(JSON.parse(user)) : null;
+  } catch {
+    return null;
+  }
 }
 
 function setCurrentUser(user) {
-  if (user) localStorage.setItem('currentUser', JSON.stringify(user));
+  const normalized = normalizeCurrentUser(user);
+  if (normalized) localStorage.setItem('currentUser', JSON.stringify(normalized));
   else localStorage.removeItem('currentUser');
 }
 
@@ -56,7 +77,8 @@ function updateNavigation() {
   }
   const postJobLink = document.querySelector('a[href="post-job.html"]');
   if (postJobLink) {
-    postJobLink.parentElement.style.display = (user && user.role === 'employer') ? 'block' : 'none';
+    const isEmployer = user && (user.role === 'employer' || user.type === 'employer');
+    postJobLink.parentElement.style.display = isEmployer ? 'block' : 'none';
   }
 }
 
@@ -89,14 +111,19 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-function switchCardTab(userType, action) {
+function switchCardTab(userType, action, evt) {
   const loginContent = document.getElementById(userType + 'Login');
   const registerContent = document.getElementById(userType + 'Register');
   const card = loginContent ? loginContent.closest('.auth-card') : (registerContent ? registerContent.closest('.auth-card') : null);
   if (!card) return;
   const tabs = card.querySelectorAll('.card-tab-btn');
   tabs.forEach(tab => tab.classList.remove('active'));
-  if (event && event.target) event.target.classList.add('active');
+  const target = evt?.target || (typeof event !== 'undefined' ? event.target : null);
+  if (target && target.classList?.contains('card-tab-btn')) target.classList.add('active');
+  else {
+    const idx = action === 'login' ? 0 : 1;
+    if (tabs[idx]) tabs[idx].classList.add('active');
+  }
   if (action === 'login') {
     if (loginContent) loginContent.classList.add('active');
     if (registerContent) registerContent.classList.remove('active');
@@ -120,9 +147,9 @@ async function handleLogin(roleHint) {
     const data = await apiAuth('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
     setCurrentUser(data.user || null);
     updateNavigation();
-    if (data.user?.role === 'admin') {
+    if (data.user?.role === 'admin' || data.user?.type === 'admin') {
       window.location.href = 'admin.html';
-    } else if (data.user?.role === 'employer') {
+    } else if (data.user?.role === 'employer' || data.user?.type === 'employer') {
       window.location.href = 'post-job.html';
     } else {
       window.location.href = 'jobs.html';
@@ -164,7 +191,7 @@ async function handleRegistration(role) {
     setCurrentUser(data.user || null);
     updateNavigation();
     alert(data.message || 'Registration successful.');
-    if (data.user?.role === 'employer') window.location.href = 'post-job.html';
+    if (data.user?.role === 'employer' || data.user?.type === 'employer') window.location.href = 'post-job.html';
     else window.location.href = 'jobs.html';
   } catch (e) {
     alert(e.message || 'Registration failed.');
