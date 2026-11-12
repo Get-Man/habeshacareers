@@ -232,3 +232,52 @@ test("sync locks are exclusive and expire", { skip }, async () => {
   assert.equal(second.rows.length, 0, "a live lock must not be stolen by another owner");
   await db.close();
 });
+
+test("source attribution is scrubbed from legacy vacancy text", { skip }, async () => {
+  const db = await freshDb();
+  await db.exec(`
+    insert into job_listings
+      (title, company, logo, description, description_excerpt, application_instructions,
+       apply_url, apply_url_type, status, job_status)
+    values
+      ('UN intern','United Nations',
+       'https://icons.duckduckgo.com/ip3/careers.un.org.ico',
+       'This plain-English summary was prepared by workethiopia.net from the original advert.',
+       'This plain-English summary was prepared by workethiopia.net from the original advert.',
+       'Apply via the official UN Careers page: https://careers.un.org/jobSearchDescription/287744?language=en',
+       'https://geezjobs.com/job-detail/x','external_application','active','open'),
+      ('Real job','Amhara Bank',
+       'https://www.google.com/s2/favicons?domain=amharabank.com.et&sz=128',
+       'A genuine description with no source mention.',
+       'A genuine description with no source mention.',
+       'Send your CV to hr@amharabank.com.et',
+       'https://amharabank.com.et/careers/apply','external_application','active','open');
+  `);
+
+  // Apply the attribution scrub on its own, the way the migration does.
+  const file = "017_scrub_source_attribution.sql";
+  const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
+  await db.exec(sql);
+
+  const rows = await db.query("select title, logo, description, application_instructions, apply_url from job_listings order by id");
+  const legacy = rows.rows.find((r) => r.title === "UN intern");
+  const genuine = rows.rows.find((r) => r.title === "Real job");
+
+  // No discovery source is named or linked in the public text.
+  assert.equal(legacy.description.includes("workethiopia"), false);
+  assert.equal(legacy.description.includes("careers.un.org"), false);
+  assert.equal(legacy.application_instructions.includes("careers.un.org"), false);
+  assert.equal(legacy.application_instructions.includes("UN Careers"), false);
+  // The publisher's favicon is not kept as the organisation logo.
+  assert.equal(legacy.logo, null);
+  // An apply destination on a discovery source is dropped.
+  assert.equal(legacy.apply_url, null);
+  // The sentence is still readable.
+  assert.ok(legacy.description.includes("from the original advert"));
+
+  // A genuine employer logo and application link are untouched.
+  assert.equal(genuine.logo, "https://www.google.com/s2/favicons?domain=amharabank.com.et&sz=128");
+  assert.equal(genuine.apply_url, "https://amharabank.com.et/careers/apply");
+  assert.ok(genuine.description.includes("no source mention"));
+  await db.close();
+});
