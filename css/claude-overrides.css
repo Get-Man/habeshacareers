@@ -1,0 +1,110 @@
+/* Claude-style UI overrides for HabeshaCareers
+   Calm, warm, readable interface inspired by Claude's visual language. */
+
+:root {
+  --hc-bg: #f5f0e8;
+  --hc-surface: #fffdf9;
+  --hc-surface-alt: #faf7f2;
+  --hc-border: #e4ddd3;
+  --hc-border-strong: #d6cdbf;
+  --hc-text: #2f2d29;
+  --hc-muted: #5c5852;
+  --hc-accent: #c96442;
+  --hc-accent-dark: #a94f32;
+  --hc-warm: #ece6dc;
+}
+
+body { background: var(--hc-bg) !important; color: var(--hc-text); }
+
+/* Header */
+header { background: rgba(255,253,249,0.94) !important; border-bottom: 1px solid var(--hc-border) !important; box-shadow: none !important; }
+.nav-menu a { background: transparent !important; border: none !important; box-shadow: none !important; color: #5c5852 !important; }
+.nav-menu a:hover { background: #efeae2 !important; color: #2f2d29 !important; transform: none !important; }
+.nav-menu a.active { background: #ebe5db !important; color: #2f2d29 !important; }
+
+/* Hero: calm and warm */
+.hero {
+  background: linear-gradient(180deg, #ece6dc 0%, #f5f0e8 100%) !important;
+  color: var(--hc-text) !important;
+  border-radius: 0 0 28px 28px !important;
+  box-shadow: none !important;
+  padding: 3rem 0 3.5rem !important;
+}
+.hero::before, .hero::after { display: none !important; }
+.hero-lines, .hero-decorations, .deco-circle, .deco-square { display: none !important; }
+.hero-text h2 { color: #1f1e1b !important; font-weight: 600 !important; letter-spacing: -0.02em; text-shadow: none !important; white-space: normal !important; font-size: clamp(1.9rem, 3vw, 2.6rem) !important; }
+.hero-text p { color: #5c5852 !important; text-shadow: none !important; white-space: normal !important; font-size: 1.05rem !important; }
+.hero-image img { filter: none !important; opacity: 0.95; }
+.search-bar input { border: 1px solid var(--hc-border-strong) !important; background: #fffdf9 !important; box-shadow: none !important; height: auto !important; border-radius: 12px !important; }
+.search-bar input:focus { border-color: var(--hc-accent) !important; box-shadow: 0 0 0 3px rgba(201,100,66,0.12) !important; transform: none !important; }
+.search-bar button { background: var(--hc-accent) !important; border: none !important; box-shadow: 0 4px 12px rgba(201,100,66,0.18) !important; height: auto !important; border-radius: 12px !important; }
+.search-bar button:hover { background: var(--hc-accent-dark) !important; }
+
+/* Sections */
+.categories, .recent-jobs { background: var(--hc-bg) !important; }
+.categories h3, .recent-jobs h3, .jobs-page h2 { color: #1f1e1b !important; background: none !important; -webkit-text-fill-color: #1f1e1b !important; }
+.category-card {
+  background: var(--hc-surface) !important; border: 1px solid var(--hc-border) !important;
+  border-radius: 16px !important; box-shadow: 0 1px 3px rgba(31,30,27,0.06) !important;
+}
+.category-card::before, .category-card::after { display: none !important; }
+.category-card:hover { transform: translateY(-2px) !important; box-shadow: 0 4px 12px rgba(31,30,27,0.08) !important; border-color: var(--hc-border-strong) !important; }
+.category-card h4 { color: #2f2d29 !important; font-weight: 600; }
+.category-card .vacancy-count { color: var(--hc-accent-dark) !important; }
+
+/* Job cards (legacy selectors) */
+.job-card { background: var(--hc-surface) !important; border: 1px solid var(--hc-border) !important; box-shadow: 0 1px 3px rgba(31,30,27,0.06) !important; border-radius: 16px !important; }
+.job-card:hover { box-shadow: 0 4px 12px rgba(31,30,27,0.08) !important; border-color: var(--hc-border-strong) !important; }
+.job-card h4, .job-card h4 a { color: #1f1e1b !important; }
+.job-card .company { color: #5c5852 !important; }
+.job-card .btn-view, .job-card-btn { background: #2b2926 !important; border: 1px solid #2b2926 !important; }
+
+/* Partners */
+.partners-section { background: #ece6dc !important; }
+.partner-logo { background: var(--hc-surface) !important; border: 1px solid var(--hc-border); color: #2f2d29 !important; box-shadow: 0 1px 3px rgba(31,30,27,0.06) !important; }
+
+/* Login / auth pages */
+.login-page { background: var(--hc-bg) !important; min-height: auto !important; padding: 3rem 0 !important; }
+.login-page::before, .login-page::after { display: none !important; }
+.page-title { background: none !important; -webkit-background-clip: initial !important; -webkit-text-fill-color: #1f1e1b !important; color: #1f1e1b !important; }
+.page-subtitle { color: #5c5852 !important; }
+.auth-card { background: var(--hc-surface) !important; border: 1px solid var(--hc-border) !important; border-radius: 20px !important; box-shadow: 0 1px 3px rgba(31,30,27,0.06) !important; }
+.auth-card:hover { transform: none !important; box-shadow: 0 4px 12px rgba(31,30,27,0.08) !important; }
+.card-header { background: #ece6dc !important; color: #1f1e1b !important; border-bottom: 1px solid var(--hc-border) !important; }
+.card-header::before { display: none !important; }
+.card-header h3, .card-header p { color: #1f1e1b !important; text-shadow: none !important; }
+.card-icon { background: var(--hc-surface) !important; box-shadow: none !important; border: 1px solid var(--hc-border); }
+.card-icon svg { filter: none !important; color: var(--hc-accent) !important; }
+.card-tabs { background: var(--hc-surface-alt) !important; border-bottom: 1px solid var(--hc-border); }
+.card-tab-btn { color: #5c5852 !important; border-radius: 10px !important; }
+.card-tab-btn.active { color: #1f1e1b !important; background: var(--hc-surface) !important; box-shadow: none !important; }
+.card-tab-btn.active::after { background: var(--hc-accent) !important; }
+.card-content { background: var(--hc-surface) !important; }
+.login-form input, .login-form select, .login-form textarea { border-color: var(--hc-border-strong) !important; border-radius: 10px !important; }
+
+/* Post job / forms / general pages */
+.post-job, .about-page, .contact-page, .jobs-page, .job-details { background: var(--hc-bg) !important; }
+.job-form, .contact-form, .info-card, .serve-card { background: var(--hc-surface) !important; border: 1px solid var(--hc-border) !important; box-shadow: 0 1px 3px rgba(31,30,27,0.06) !important; border-radius: 16px !important; }
+.serve-card h4, .info-card h3, .about-section h3 { color: #1f1e1b !important; }
+.subtitle { color: #5c5852 !important; }
+.success-message { background: #ecfdf3 !important; border: 1px solid #abefc6 !important; color: #067647 !important; }
+
+/* Filters / search misc */
+.filters { background: var(--hc-surface) !important; border: 1px solid var(--hc-border) !important; }
+.filter-group select, .filter-group input { border-color: var(--hc-border-strong) !important; }
+.recent-jobs-search input { border: 1px solid var(--hc-border-strong) !important; border-radius: 10px !important; }
+.recent-jobs-search button { background: var(--hc-accent) !important; }
+.btn-primary { background: var(--hc-accent) !important; border-color: var(--hc-accent) !important; color: #fffdf9 !important; }
+.btn-primary:hover { background: var(--hc-accent-dark) !important; }
+.btn-secondary { background: #ebe5db !important; color: #2f2d29 !important; border: 1px solid var(--hc-border) !important; }
+.btn-secondary:hover { background: #e2dacd !important; }
+.view-all a, .btn-view { background: #2b2926 !important; border-color: #2b2926 !important; }
+
+/* Footer legacy pieces */
+.footer-section h4 { color: #fffdf9 !important; }
+
+/* Admin styling softening */
+.admin-wrap, .admin-panel, .admin-section { color: var(--hc-text); }
+@media (max-width: 860px) {
+  .nav-menu { background: var(--hc-surface) !important; border-bottom: 1px solid var(--hc-border) !important; }
+}
