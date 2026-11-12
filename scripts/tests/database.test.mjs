@@ -351,3 +351,64 @@ test("source attribution is scrubbed from legacy vacancy text", { skip }, async 
   assert.ok(genuine.description.includes("no source mention"));
   await db.close();
 });
+
+test("every organisation gets its own website and logo", { skip }, async () => {
+  const db = await freshDb();
+  await db.exec(`
+    insert into job_listings (title, company, status, job_status)
+    values ('Officer','Awash Insurance Company','active','open'),
+           ('Advisor','World Vision Ethiopia','active','open'),
+           ('Nurse','UNICEF Ethiopia','active','open'),
+           ('Engineer','Kalkidan Trading PLC','active','open');
+    -- Run the directory backfill the way migration 015 does.
+    insert into employer_directory (name, name_key, aliases)
+    select company, lower(regexp_replace(trim(company), '\\s+', ' ', 'g')), '{}'::text[]
+      from job_listings
+     where company is not null and btrim(company) <> ''
+     group by company
+    on conflict (name_key) do nothing;
+    update job_listings l set employer_id = e.id from employer_directory e
+     where l.employer_id is null
+       and lower(regexp_replace(trim(l.company), '\\s+', ' ', 'g')) = e.name_key;
+  `);
+
+  // The identity seeding runs the way the migration does.
+  const file = "021_fix_seeded_employer_identities.sql";
+  const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
+  await db.exec(sql);
+
+  const rows = await db.query(
+    `select name, website_domain, website_url, logo_public_url, logo_verified
+       from employer_directory order by name`
+  );
+  const byName = Object.fromEntries(rows.rows.map((r) => [r.name, r]));
+
+  // Each organisation keeps its OWN website, never another organisation's.
+  assert.equal(byName["Awash Insurance Company"].website_domain, "awashinsurance.com");
+  assert.equal(byName["World Vision Ethiopia"].website_domain, "worldvision.org");
+  assert.equal(byName["UNICEF Ethiopia"].website_domain, "unicef.org");
+  // An organisation we do not know keeps no invented identity.
+  assert.equal(byName["Kalkidan Trading PLC"].website_domain, null);
+
+  // The website is a real address, not a bare domain.
+  assert.equal(byName["Awash Insurance Company"].website_url, "https://awashinsurance.com");
+
+  // The logo is the organisation's own mark, served from its own domain.
+  const logo = byName["Awash Insurance Company"].logo_public_url;
+  assert.ok(logo && logo.includes("awashinsurance.com"), `unexpected logo: ${logo}`);
+  assert.equal(byName["Awash Insurance Company"].logo_verified, true);
+
+  // Every vacancy of an organisation points at the same directory entry.
+  const links = await db.query(
+    `select l.company, e.website_domain
+       from job_listings l join employer_directory e on e.id = l.employer_id
+      order by l.company`
+  );
+  assert.equal(links.rows.length, 4);
+  for (const row of links.rows) {
+    if (row.company === "World Vision Ethiopia") {
+      assert.equal(row.website_domain, "worldvision.org");
+    }
+  }
+  await db.close();
+});
