@@ -412,3 +412,32 @@ test("every organisation gets its own website and logo", { skip }, async () => {
   }
   await db.close();
 });
+
+test("a logo taken from another organisation's domain is replaced", { skip }, async () => {
+  const db = await freshDb();
+  await db.exec(`
+    insert into employer_directory
+      (name, name_key, website_url, website_domain, logo_url, logo_public_url,
+       logo_host_kind, logo_source, logo_confidence, logo_verified)
+    values ('Awash Insurance Company','awash insurance company',
+            'https://awashinsurance.com','awashinsurance.com',
+            'https://www.google.com/s2/favicons?domain=unicef.org&sz=128',
+            'https://www.google.com/s2/favicons?domain=unicef.org&sz=128',
+            'employer','seeded',55,true);
+  `);
+
+  const file = "022_fix_stale_employer_logos.sql";
+  const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
+  await db.exec(sql);
+
+  const row = await db.query(
+    `select logo_public_url, logo_source, logo_verified from employer_directory`
+  );
+  const logo = row.rows[0].logo_public_url;
+  // The logo names the organisation's OWN domain, never another one's.
+  assert.ok(logo && logo.includes("awashinsurance.com"), `unexpected logo: ${logo}`);
+  assert.equal(logo.includes("unicef.org"), false);
+  assert.equal(row.rows[0].logo_source, "favicon_service");
+  assert.equal(row.rows[0].logo_verified, true);
+  await db.close();
+});

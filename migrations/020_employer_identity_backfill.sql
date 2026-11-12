@@ -126,20 +126,16 @@ where e.website_domain is null
 -- board that published the vacancy. It is the fallback for organisations
 -- whose site does not expose a usable wordmark.
 update employer_directory e
-set logo_url = case
-      when e.logo_url is null then 'https://www.google.com/s2/favicons?domain=' || e.website_domain || '&sz=128'
-      else e.logo_url end,
-    logo_public_url = case
-      when e.logo_public_url is null and e.logo_url is null
-        then 'https://www.google.com/s2/favicons?domain=' || e.website_domain || '&sz=128'
-      else e.logo_public_url end,
-    logo_host_kind = coalesce(e.logo_host_kind, 'employer'),
-    logo_source = coalesce(e.logo_source, 'favicon_service'),
-    logo_confidence = greatest(coalesce(e.logo_confidence, 0), 55),
+set logo_url = 'https://www.google.com/s2/favicons?domain=' || e.website_domain || '&sz=128',
+    logo_public_url = 'https://www.google.com/s2/favicons?domain=' || e.website_domain || '&sz=128',
+    logo_host_kind = 'employer',
+    logo_source = 'favicon_service',
+    logo_confidence = 55,
     logo_verified = true,
-    logo_verified_at = coalesce(e.logo_verified_at, now()),
+    logo_verified_at = now(),
     updated_at = now()
 where e.website_domain is not null
+  and e.logo_url is null
   and e.logo_public_url is null;
 
 -- Every listing of an organisation points at its directory entry.
