@@ -423,17 +423,36 @@ test("a source's own name is removed from the vacancy title", () => {
   assert.equal(scrubSourceTitle("Manager at Work Ethiopia"), "Manager");
 });
 
-test("an employer's own headline is not mistaken for source attribution", () => {
+test("an employer's own headline keeps its wording", () => {
+  assert.equal(
+    scrubSourceTitle("Senior Software Engineer"),
+    "Senior Software Engineer"
+  );
+  assert.equal(
+    scrubSourceTitle("Vacancy Announcement"),
+    "Vacancy Announcement"
+  );
+  assert.equal(
+    scrubSourceTitle("Head of Finance"),
+    "Head of Finance"
+  );
+  assert.equal(
+    scrubSourceTitle("Marketing Lead, Growth & Brand"),
+    "Marketing Lead, Growth & Brand"
+  );
+});
+
+test("a board's own name is removed from the vacancy title", () => {
+  // "Jobs in Ethiopia" is the board's name, so it is removed exactly as it
+  // is removed from a vacancy description.
   assert.equal(
     scrubSourceTitle("Siinqee Bank S.C. Job Vacancy 2026: Apply for 55 Jobs in Ethiopia"),
-    "Siinqee Bank S.C. Job Vacancy 2026: Apply for 55 Jobs in Ethiopia"
+    "Siinqee Bank S.C. Job Vacancy 2026: Apply for 55"
   );
   assert.equal(
     scrubSourceTitle("Real Estate Jobs in Ethiopia 2026 – 4 Positions (160 Vacancies)"),
-    "Real Estate Jobs in Ethiopia 2026 – 4 Positions (160 Vacancies)"
+    "Real Estate 2026 – 4 Positions (160 Vacancies)"
   );
-  assert.equal(scrubSourceTitle("Senior Software Engineer"), "Senior Software Engineer");
-  assert.equal(scrubSourceTitle("Vacancy Announcement"), "Vacancy Announcement");
 });
 
 test("the public mapping never exposes a source name in a title or its URL", () => {

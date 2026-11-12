@@ -167,12 +167,14 @@ test("stored titles never keep a discovery source's own name", { skip }, async (
   `);
   const migration = fs.readFileSync(path.join(MIGRATIONS_DIR, "018_scrub_source_titles.sql"), "utf8");
   await db.exec(migration);
+  const brandMigration = fs.readFileSync(path.join(MIGRATIONS_DIR, "019_scrub_source_brand_titles.sql"), "utf8");
+  await db.exec(brandMigration);
   const rows = await db.query(`select title from public_job_listings order by id`);
   const titles = rows.rows.map((r) => r.title);
   assert.deepEqual(titles, [
     "Secretary",
     "Accountant",
-    "Siinqee Bank S.C. Job Vacancy 2026: Apply for 55 Jobs in Ethiopia",
+    "Siinqee Bank S.C. Job Vacancy 2026: Apply for 55",
     "Senior Software Engineer",
   ]);
   // The deduplication key follows the corrected title.
