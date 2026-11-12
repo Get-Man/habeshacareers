@@ -23,10 +23,12 @@ export function requireAdmin(req) {
   // Optional alternate automation/backfill token (e.g. created via CLI for scripts).
   // No effect unless SYNC_TOKEN is set in the deployment env; falls back to ADMIN_API_KEY-only.
   const token = clean(process.env.SYNC_TOKEN);
-  if (!key && !token) return false;
   const auth = req.headers.authorization || "";
   const provided = clean(auth.startsWith("Bearer ") ? auth.slice(7) : (req.headers["x-admin-key"] || req.query?.key));
-  return (!!key && provided === key) || (!!token && provided === token);
+  if ((!!key && provided === key) || (!!token && provided === token)) return true;
+  // Backward-compatible path: allow logged-in admin session users.
+  if (req.authUser && req.authUser.role === "admin") return true;
+  return false;
 }
 
 export function requireCron(req) {

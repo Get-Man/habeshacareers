@@ -11,6 +11,7 @@
 // /api/admin/submissions, /api/admin/sync and /api/admin/migrate.
 
 import { json } from "../_lib/http.js";
+import { getUserFromRequest } from "../../lib/auth.mjs";
 
 import audit from "../_lib/handlers/admin/audit.mjs";
 import employers from "../_lib/handlers/admin/employers.mjs";
@@ -57,6 +58,11 @@ function routeName(req) {
 }
 
 export default async function handler(req, res) {
+  try {
+    req.authUser = await getUserFromRequest(req);
+  } catch {
+    req.authUser = null;
+  }
   const name = routeName(req);
   const route = ROUTES[name];
   if (!route) {
