@@ -113,25 +113,32 @@ function displayJobs(jobs) {
     countElement.textContent = `${jobsState.total} job(s) found`;
 
     if (jobs.length === 0) {
-        container.innerHTML = `<p>No jobs match your criteria.</p>`;
+        container.innerHTML = `<div class="empty-state"><h3>No jobs match your criteria</h3><p>Try a different keyword, category or location.</p></div>`;
         document.getElementById('pagination').innerHTML = '';
         return;
     }
 
     container.innerHTML = jobs.map(job => {
         const daysLeft = getDaysUntilDeadline(job.deadline);
-        const urgentClass = (daysLeft != null && daysLeft <= 7) ? 'style="color: red;"' : '';
-        const logoPath = _logo(job);
+        const urgent = daysLeft != null && daysLeft <= 7;
         const fallback = _fallbackLogo(job);
-        const verified = job.organizationVerified ? ' <span class="verified-chip">✓ Verified</span>' : '';
+        const logos = (window.HabeshaUI && window.HabeshaUI.logoCandidates) ? window.HabeshaUI.logoCandidates(job) : [fallback];
+        const logo = logos[0] || fallback;
+        const employer = job.organizationName || job.company || 'Organization not verified';
+        const verified = job.organizationVerified ? ' <span class="badge badge-verified">✓ Verified</span>' : '';
+        const path = job.publicPath || ('job-details.html?id=' + encodeURIComponent(job.id));
+        const apply = (window.HabeshaUI && window.HabeshaUI.applyInfo) ? window.HabeshaUI.applyInfo(job) : null;
+        const applyHtml = apply && apply.url
+            ? `<a href="${_esc(apply.url)}" class="btn btn-primary"${/^https?:/i.test(apply.url) ? ' target="_blank" rel="noopener noreferrer nofollow"' : ''}>Apply Now</a>`
+            : `<a href="${_esc(path)}" class="btn btn-primary">Apply Now</a>`;
 
         return `
-            <div class="job-card">
+            <article class="job-card">
                 <div class="job-card-header">
-                    <img src="${_esc(((window.HabeshaUI&&window.HabeshaUI.logoCandidates)?window.HabeshaUI.logoCandidates(job)[0]:logoPath)||fallback)}" data-logos="${_esc(JSON.stringify((window.HabeshaUI&&window.HabeshaUI.logoCandidates)?window.HabeshaUI.logoCandidates(job):[logoPath,fallback]))}" data-logo-idx="0" alt="${_esc(job.company || '')}" class="company-logo" onerror="window.HabeshaUI&&window.HabeshaUI.nextLogo?window.HabeshaUI.nextLogo(this):(this.onerror=null,this.src='${fallback}')">
+                    <img src="${_esc(logo)}" data-logos="${_esc(JSON.stringify(logos))}" data-logo-idx="0" alt="${_esc(employer)} logo" class="company-logo" onerror="window.HabeshaUI&&window.HabeshaUI.nextLogo?window.HabeshaUI.nextLogo(this):(this.onerror=null,this.src='${fallback}')">
                     <div class="job-card-title">
                         <h4>${_esc(job.title)}${verified}</h4>
-                        <p class="company">${_esc(job.company || 'Organization not verified')}</p>
+                        <p class="company">${_esc(employer)}</p>
                     </div>
                 </div>
                 <div class="job-meta">
@@ -139,11 +146,14 @@ function displayJobs(jobs) {
                     <span>💼 ${_esc(job.type || 'Not specified')}</span>
                     <span>📂 ${_esc(job.category || 'Other')}</span>
                     <span>👥 ${_esc(job.vacancies || 1)} ${(job.vacancies || 1) === 1 ? 'position' : 'positions'}</span>
-                    <span ${urgentClass}>⏰ ${daysLeft == null ? 'Deadline N/A' : daysLeft + ' days left'}</span>
+                    <span${urgent ? ' style="color:#b91c1c;font-weight:600"' : ''}>⏰ ${daysLeft == null ? 'Deadline N/A' : daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ' left'}</span>
                 </div>
-                <p><strong>Posted:</strong> ${_esc(job.postedDate || 'Not specified')} &nbsp; <strong>Deadline:</strong> ${_esc(job.deadline || 'Not specified')}</p>
-                <a href="${_esc(job.publicPath || ('job-details.html?id=' + encodeURIComponent(job.id)))}" class="btn-view">View Details</a>
-            </div>
+                <p class="job-card-posted"><strong>Posted:</strong> ${_esc(job.postedDate || 'Not specified')} &nbsp; <strong>Deadline:</strong> ${_esc(job.deadline || 'Not specified')}</p>
+                <div class="job-card-actions">
+                    ${applyHtml}
+                    <a href="${_esc(path)}" class="btn btn-outline">View Details</a>
+                </div>
+            </article>
         `;
     }).join('');
 

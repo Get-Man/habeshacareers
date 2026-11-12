@@ -87,13 +87,20 @@ function loadRecentJobs() {
         return;
     }
 
-    container.innerHTML = recentJobs.map(job => `
-        <div class="job-card">
+    container.innerHTML = recentJobs.map(job => {
+        const employer = job.organizationName || job.company || 'Organization not verified';
+        const path = job.publicPath || ('job-details.html?id=' + encodeURIComponent(job.id));
+        const apply = (window.HabeshaUI && window.HabeshaUI.applyInfo) ? window.HabeshaUI.applyInfo(job) : null;
+        const applyHtml = apply && apply.url
+            ? `<a href="${_esc(apply.url)}" class="btn btn-primary"${/^https?:/i.test(apply.url) ? ' target="_blank" rel="noopener noreferrer nofollow"' : ''}>Apply Now</a>`
+            : `<a href="${_esc(path)}" class="btn btn-primary">Apply Now</a>`;
+        return `
+        <article class="job-card">
             <div class="job-card-header">
-                ${_logoImgHtml(job, 'company-logo', job.company || '')}
+                ${_logoImgHtml(job, 'company-logo', employer)}
                 <div class="job-card-title">
                     <h4>${_esc(job.title)}${_jobCardBadge(job)}</h4>
-                    <p class="company">${_esc(job.company || '')}</p>
+                    <p class="company">${_esc(employer)}</p>
                 </div>
             </div>
             <div class="job-meta">
@@ -101,10 +108,13 @@ function loadRecentJobs() {
                 <span>💼 ${_esc(job.type || 'Not specified')}</span>
                 <span>📂 ${_esc(job.category || 'Other')}</span>
             </div>
-            <p>Deadline: ${_esc(job.deadline || 'Not specified')}</p>
-            <a href="${_esc(job.publicPath || ('job-details.html?id=' + encodeURIComponent(job.id)))}" class="btn-view">View Details</a>
-        </div>
-    `).join('');
+            <p class="job-card-posted"><strong>Deadline:</strong> ${_esc(job.deadline || 'Not specified')}</p>
+            <div class="job-card-actions">
+                ${applyHtml}
+                <a href="${_esc(path)}" class="btn btn-outline">View Details</a>
+            </div>
+        </article>`;
+    }).join('');
 }
 
 function loadTrustedPartners() {

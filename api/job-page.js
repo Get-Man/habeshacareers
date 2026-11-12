@@ -38,68 +38,96 @@ function daysLeft(deadline) {
   return Math.ceil((target - today) / 86400000);
 }
 
-function paragraphs(text) {
-  const raw = String(text || "").replace(/\r\n?/g, "\n").trim();
-  if (!raw) return "";
-  const lines = raw.split("\n");
-  const blocks = [];
-  let list = null;
-  let para = [];
-  const flushPara = () => {
-    if (!para.length) return;
-    blocks.push(`<p>${esc(para.join(" ").replace(/\s+/g, " ").trim())}</p>`);
-    para = [];
-  };
-  const flushList = () => {
-    if (!list) return;
-    blocks.push(`<ul>${list.map((li) => `<li>${esc(li)}</li>`).join("")}</ul>`);
-    list = null;
-  };
-  for (const line of lines) {
-    const t = line.trim();
-    if (!t) {
-      flushPara();
-      flushList();
-      continue;
-    }
-    if (/^([•●▪◦*–—-]|\(?\d{1,3}[.)]\)?)\s+/.test(t)) {
-      flushPara();
-      if (!list) list = [];
-      list.push(t.replace(/^([•●▪◦*–—-]|\(?\d{1,3}[.)]\)?)\s+/, "").trim());
-      continue;
-    }
-    flushList();
-    para.push(t);
-  }
-  flushPara();
-  flushList();
-  return blocks.join("\n");
-}
+// The icon that introduces each section of the job post.
+const SECTION_ICONS = {
+  summary: "📝",
+  responsibilities: "🎯",
+  requirements: "🎓",
+  experience: "💼",
+  benefits: "🎁",
+  location: "📍",
+  salary: "💰",
+  employmentType: "🗂️",
+  howToApply: "📨",
+  other: "ℹ️",
+};
 
 function chip(label, value) {
   if (value == null || String(value).trim() === "") return "";
   return `<span class="jd-chip"><span class="jd-chip-label">${esc(label)}</span>${esc(value)}</span>`;
 }
 
-function overviewCard(icon, label, value) {
+function fact(icon, label, value) {
   if (value == null || String(value).trim() === "") return "";
-  return `<div class="jd-overview-card"><span class="jd-overview-icon" aria-hidden="true">${icon}</span><div><span class="jd-overview-label">${esc(label)}</span><strong>${esc(value)}</strong></div></div>`;
+  return `<div class="job-fact">
+      <span class="job-fact-icon" aria-hidden="true">${icon}</span>
+      <span><span class="job-fact-label">${esc(label)}</span><span class="job-fact-value">${esc(value)}</span></span>
+    </div>`;
 }
 
+/**
+ * Render the structured announcement.
+ *
+ * Each section becomes a titled block with its own paragraphs and bullet
+ * list, so the vacancy reads like a professional job post instead of one
+ * scrambled paragraph.
+ */
+function jobPost(sections) {
+  if (!Array.isArray(sections) || !sections.length) return "";
+  const blocks = sections
+    .map((section) => {
+      const title = section.title || "Details";
+      const icon = SECTION_ICONS[section.key] || "•";
+      const paragraphs = (section.paragraphs || [])
+        .map((p) => `<p>${esc(p)}</p>`)
+        .join("");
+      const items = (section.items || []).length
+        ? `<ul>${section.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`
+        : "";
+      return `<section class="job-post-section">
+          <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">${icon}</span>${esc(title)}</h2>
+          <div class="job-post-content">${paragraphs}${items}</div>
+        </section>`;
+    })
+    .join("\n");
+  return `<div class="job-post">${blocks}</div>`;
+}
+
+/**
+ * The Apply Now button.
+ *
+ * There is always a clearly visible button. The badge underneath says where
+ * it actually goes: the employer's own site, the employer's own recruitment
+ * portal, an application mailbox, the employer's careers page, or a
+ * third-party form published elsewhere.
+ */
 function applyBlock(job) {
-  const email = job.applicationEmail || job.contactEmail;
-  const url = job.applyUrl;
-  const verified = !!job.applyUrlVerified;
-  if (url) {
+  const apply = job.apply || {};
+  const url = apply.url || null;
+  const badge = apply.badge
+    ? `<span class="jd-apply-origin"><span class="badge ${esc(apply.badgeClass || "badge-neutral")}">${esc(apply.badge)}</span></span>`
+    : "";
+  const note = apply.note ? `<p class="jd-apply-note">${esc(apply.note)}</p>` : "";
+  const verifiedNote = apply.verified
+    ? `<p class="jd-apply-note">✓ This application link was verified.</p>`
+    : "";
+
+  if (!url) {
     return `
-      <a class="jd-apply-btn" href="${esc(url)}" target="_blank" rel="noopener noreferrer nofollow">Apply for this job</a>
-      <p class="jd-apply-note">${verified ? "✓ Application link verified" : "Application link not independently verified — confirm details with the employer."}</p>`;
+      <div class="jd-apply-unavailable">
+        <strong>Application details</strong>
+        <p style="margin:.4rem 0 0">This vacancy does not publish an application link. Use the employer details below, or browse other openings.</p>
+      </div>
+      <a class="jd-apply-btn" href="/jobs.html">Browse similar jobs</a>`;
   }
-  if (email) {
-    const subject = encodeURIComponent(`Application for ${job.title || "position"}`);
-    return `<a class="jd-apply-btn" href="mailto:${esc(email)}?subject=${subject}">Apply by email</a><p class="jd-apply-note">Send your application directly to the employer.</p>`;
-  }
-  return `<div class="jd-apply-unavailable">Application link is under review. Check the application instructions below.</div>`;
+
+  const external = /^https?:/i.test(url);
+  const attrs = external ? 'target="_blank" rel="noopener noreferrer nofollow"' : "";
+  return `
+    ${badge}
+    <a class="jd-apply-btn" href="${esc(url)}" ${attrs}>Apply Now</a>
+    ${note}
+    ${verifiedNote}`;
 }
 
 function relatedCard(job) {
@@ -138,6 +166,63 @@ function jsonLd(job, base) {
   return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
 }
 
+// The shared site chrome. The markup and the classes are the same as the
+// static pages, so a vacancy looks exactly like the rest of the site.
+function siteHeader() {
+  return `<header>
+    <nav class="navbar">
+      <div class="container">
+        <a class="logo" href="/">
+          <img src="/images/logo.png" alt="Habesha Careers" class="logo-img">
+          <h1>Habesha Careers</h1>
+        </a>
+        <ul class="nav-menu">
+          <li><a href="/">Home</a></li>
+          <li><a href="/jobs.html">Jobs</a></li>
+          <li><a href="/post-job.html">Post Job</a></li>
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+          <li><a href="/login.html" class="login-icon" title="Login" aria-label="Log in">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
+          </a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>`;
+}
+
+function siteFooter() {
+  const year = new Date().getFullYear();
+  return `<footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>Habesha Careers</h4>
+          <p>Empowering careers across Ethiopia and the Horn of Africa</p>
+        </div>
+        <div class="footer-section">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="/jobs.html">Browse Jobs</a></li>
+            <li><a href="/post-job.html">Post a Job</a></li>
+            <li><a href="/about.html">About Us</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Contact</h4>
+          <p>Email: info@habeshacareers.com</p>
+          <p>Phone: +251 910 804 879</p>
+          <p>Addis Ababa, Ethiopia</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© ${year} Habesha Careers. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>`;
+}
+
 function layout({ title, description, canonical, image, body, head = "" }) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -158,81 +243,13 @@ function layout({ title, description, canonical, image, body, head = "" }) {
   <meta name="twitter:description" content="${esc(description)}">
   <meta name="twitter:image" content="${esc(image)}">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/design-system.css">
   ${head}
-  <style>
-    :root{--navy:#0F2C59;--teal:#1B9C85;--bg:#F8FAFC;--line:#E2E8F0;--ink:#0f172a;--muted:#64748b}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif}
-    .jd-header{background:var(--navy);color:#fff;padding:.85rem 0}
-    .jd-header .wrap{max-width:1120px;margin:0 auto;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
-    .jd-brand{display:flex;align-items:center;gap:.6rem;color:#fff;text-decoration:none;font-weight:700}
-    .jd-brand img{width:34px;height:34px;border-radius:8px;background:#fff;object-fit:contain}
-    .jd-nav{display:flex;gap:1rem;flex-wrap:wrap}
-    .jd-nav a{color:#dbeafe;text-decoration:none;font-size:.92rem}
-    .jd-nav a:hover{color:#fff}
-    .jd-page{max-width:1120px;margin:0 auto;padding:1.25rem 1rem 3rem}
-    .jd-back{display:inline-flex;align-items:center;gap:.35rem;color:var(--navy);text-decoration:none;font-weight:600;font-size:.92rem;margin:.25rem 0 1rem}
-    .jd-hero{background:#fff;border:1px solid var(--line);border-radius:18px;padding:1.4rem;box-shadow:0 10px 30px rgba(15,44,89,.06);display:flex;gap:1.25rem;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
-    .jd-hero-main{display:flex;gap:1rem;align-items:flex-start;min-width:260px;flex:1}
-    .jd-logo{width:72px;height:72px;border-radius:16px;object-fit:contain;border:1px solid var(--line);background:#fff;flex:0 0 auto}
-    .jd-title{font-size:clamp(1.35rem,3vw,2rem);line-height:1.2;margin:0 0 .35rem;color:var(--navy)}
-    .jd-company{font-size:1.02rem;font-weight:600;color:#334155;margin:0 0 .35rem;display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
-    .jd-verified{display:inline-flex;align-items:center;gap:.25rem;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:999px;padding:.1rem .5rem;font-size:.72rem;font-weight:700}
-    .jd-chips{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.65rem}
-    .jd-chip{display:inline-flex;align-items:center;gap:.35rem;background:#f1f5f9;border:1px solid var(--line);border-radius:999px;padding:.28rem .65rem;font-size:.8rem;color:#334155}
-    .jd-chip-label{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
-    .jd-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:1.25rem;margin-top:1.25rem;align-items:start}
-    .jd-main{display:grid;gap:1rem}
-    .jd-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:1.25rem;box-shadow:0 6px 20px rgba(15,44,89,.04)}
-    .jd-card h2{font-size:1.08rem;margin:0 0 .85rem;color:var(--navy)}
-    .jd-overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.7rem}
-    .jd-overview-card{display:flex;gap:.6rem;align-items:center;border:1px solid var(--line);border-radius:12px;padding:.7rem;background:#fbfdff}
-    .jd-overview-icon{width:34px;height:34px;border-radius:10px;background:#ecfdf5;color:var(--teal);display:grid;place-items:center;font-size:1rem;flex:0 0 auto}
-    .jd-overview-label{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
-    .jd-overview-card strong{font-size:.9rem;color:#1e293b}
-    .jd-body p{margin:0 0 .8rem;line-height:1.65;color:#334155}
-    .jd-body ul{margin:0 0 .9rem;padding-left:1.2rem;color:#334155;line-height:1.65}
-    .jd-body li{margin-bottom:.35rem}
-    .jd-sidebar{position:sticky;top:1rem;display:grid;gap:1rem}
-    .jd-apply-btn{display:block;text-align:center;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;padding:.85rem 1rem;border-radius:12px;transition:.15s ease}
-    .jd-apply-btn:hover{filter:brightness(.94)}
-    .jd-apply-note{font-size:.78rem;color:var(--muted);margin:.6rem 0 0;text-align:center}
-    .jd-apply-unavailable{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:12px;padding:.8rem;font-size:.86rem}
-    .jd-facts{list-style:none;margin:0;padding:0;display:grid;gap:.7rem}
-    .jd-facts li{display:flex;justify-content:space-between;gap:.75rem;font-size:.88rem;border-bottom:1px dashed var(--line);padding-bottom:.55rem}
-    .jd-facts li:last-child{border-bottom:0;padding-bottom:0}
-    .jd-facts span{color:var(--muted)}
-    .jd-facts strong{text-align:right;color:#1e293b}
-    .jd-deadline{font-weight:700;color:var(--navy)}
-    .jd-deadline.urgent{color:#b91c1c}
-    .jd-related{margin-top:1.5rem}
-    .jd-related h2{font-size:1.15rem;color:var(--navy);margin:0 0 .8rem}
-    .jd-related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.8rem}
-    .jd-related-card{display:grid;gap:.25rem;background:#fff;border:1px solid var(--line);border-radius:12px;padding:.85rem;text-decoration:none;color:inherit;transition:.15s ease}
-    .jd-related-card:hover{border-color:#99f6e4;transform:translateY(-1px)}
-    .jd-related-title{font-weight:700;color:var(--navy);font-size:.92rem}
-    .jd-related-company{font-size:.82rem;color:#475569}
-    .jd-related-meta{font-size:.76rem;color:var(--muted)}
-    .jd-footer{background:var(--navy);color:#cbd5e1;text-align:center;padding:1.25rem;font-size:.85rem}
-    .jd-mobile-apply{display:none}
-    @media(max-width:860px){
-      .jd-grid{grid-template-columns:1fr}
-      .jd-sidebar{position:static;order:-1}
-      .jd-page{padding-bottom:5.5rem}
-      .jd-mobile-apply{display:block;position:fixed;left:0;right:0;bottom:0;padding:.7rem 1rem;background:#fff;border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(15,44,89,.08);z-index:30}
-      .jd-mobile-apply .jd-apply-btn{padding:.8rem}
-      .jd-hero{padding:1.1rem}
-      .jd-logo{width:58px;height:58px}
-    }
-  </style>
 </head>
 <body>
-<header class="jd-header"><div class="wrap">
-  <a class="jd-brand" href="/"><img src="/images/logo.png" alt="Habesha Careers logo">Habesha Careers</a>
-  <nav class="jd-nav" aria-label="Primary"><a href="/jobs.html">Browse jobs</a><a href="/about.html">About</a><a href="/contact.html">Contact</a></nav>
-</div></header>
+${siteHeader()}
 ${body}
-<footer class="jd-footer">© ${new Date().getFullYear()} Habesha Careers · Opportunities across Ethiopia and the Horn of Africa</footer>
+${siteFooter()}
 </body>
 </html>`;
 }
@@ -244,7 +261,7 @@ function notFoundPage(base) {
     canonical: `${base}/jobs.html`,
     image: `${base}/images/logo.png`,
     head: '<meta name="robots" content="noindex,follow">',
-    body: `<main class="jd-page"><div class="jd-card"><h1 class="jd-title">Job not found</h1><p>This vacancy may have expired or been removed.</p><p><a class="jd-apply-btn" href="/jobs.html">Browse current jobs</a></p></div></main>`,
+    body: `<main class="jd-page"><div class="jd-card"><h1 class="jd-title">Job not found</h1><p>This vacancy may have expired or been removed.</p><p style="margin-top:1rem"><a class="jd-apply-btn" href="/jobs.html">Browse current jobs</a></p></div></main>`,
   });
 }
 
@@ -277,12 +294,26 @@ export default async function handler(req, res) {
       160
     );
     const days = daysLeft(job.deadline);
-    const deadlineText = job.deadline ? `${formatDate(job.deadline)}${days != null && days >= 0 ? ` · ${days} day${days === 1 ? "" : "s"} left` : ""}` : "Not specified";
+    const deadlineText = job.deadline
+      ? `${formatDate(job.deadline)}${days != null && days >= 0 ? ` · ${days} day${days === 1 ? "" : "s"} left` : ""}`
+      : "Not specified";
     const logo = job.logo || "/images/logo.png";
     const logoUrl = /^https?:\/\//i.test(logo) ? logo : `${base}${logo.startsWith("/") ? "" : "/"}${logo}`;
-    const requirements = String(job.requirements || "").trim();
     const skills = Array.isArray(job.requiredSkills) ? job.requiredSkills.filter(Boolean) : [];
-    const verifiedBadge = job.organizationVerified ? '<span class="jd-verified">✓ Verified employer</span>' : "";
+    const employer = job.organizationName || job.company || "Organization not verified";
+    const sections = jobPost(job.sections);
+    const instructions = job.applicationInstructions
+      ? `<section class="job-post-section">
+          <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">📨</span>How to Apply</h2>
+          <div class="job-post-content"><p>${esc(job.applicationInstructions)}</p></div>
+        </section>`
+      : "";
+    const skillsBlock = skills.length
+      ? `<section class="job-post-section">
+          <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">🧰</span>Required skills</h2>
+          <div class="job-post-content"><ul>${skills.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>
+        </section>`
+      : "";
 
     const body = `
 <main class="jd-page">
@@ -290,10 +321,10 @@ export default async function handler(req, res) {
   <article>
     <header class="jd-hero">
       <div class="jd-hero-main">
-        <img class="jd-logo" src="${esc(logoUrl)}" alt="${esc(job.company || "Organization")} logo" loading="lazy" referrerpolicy="no-referrer">
+        <img class="jd-logo" src="${esc(logoUrl)}" alt="${esc(employer)} logo" loading="lazy" referrerpolicy="no-referrer">
         <div>
           <h1 class="jd-title">${esc(job.title)}</h1>
-          <p class="jd-company">${esc(job.company || "Organization not verified")} ${verifiedBadge}</p>
+          <p class="jd-company">${esc(employer)} ${job.organizationVerified ? '<span class="badge badge-verified">✓ Verified employer</span>' : ""}</p>
           <div class="jd-chips">
             ${chip("Location", job.location || job.regionCity)}
             ${chip("Type", job.type)}
@@ -307,36 +338,29 @@ export default async function handler(req, res) {
     <div class="jd-grid">
       <div class="jd-main">
         <section class="jd-card">
-          <h2>Overview</h2>
-          <div class="jd-overview">
-            ${overviewCard("📍", "Location", job.location || job.regionCity || "Ethiopia")}
-            ${overviewCard("💼", "Employment type", job.type)}
-            ${overviewCard("🗓️", "Application deadline", deadlineText)}
-            ${overviewCard("💰", "Salary", job.salary)}
-            ${overviewCard("🎓", "Education", job.educationRequirements)}
-            ${overviewCard("🧭", "Experience", job.experienceRequirements)}
+          <h2>Vacancy at a glance</h2>
+          <div class="job-facts">
+            ${fact("🏢", "Organization", employer)}
+            ${fact("📍", "Location", job.location || job.regionCity || "Ethiopia")}
+            ${fact("💼", "Employment type", job.type || "Not specified")}
+            ${fact("🗓️", "Application deadline", deadlineText)}
+            ${fact("👥", "Open positions", job.vacancies || 1)}
+            ${fact("📂", "Category", job.category)}
+            ${fact("💰", "Salary", job.salary)}
+            ${fact("🎓", "Education", job.educationRequirements)}
+            ${fact("🧭", "Experience", job.experienceRequirements)}
+            ${job.jobReference ? fact("🔖", "Reference", job.jobReference) : ""}
           </div>
         </section>
 
-        <section class="jd-card">
-          <h2>Job description</h2>
-          <div class="jd-body">${paragraphs(job.description) || "<p>Full description is available from the employer's application page.</p>"}</div>
-        </section>
-
-        <section class="jd-card">
-          <h2>Requirements &amp; qualifications</h2>
-          <div class="jd-body">${requirements ? paragraphs(requirements) : "<p>Not specified in the announcement.</p>"}</div>
-          ${skills.length ? `<h2 style="margin-top:1.1rem">Required skills</h2><div class="jd-body"><ul>${skills.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}
-        </section>
-
-        ${job.applicationInstructions ? `<section class="jd-card"><h2>How to apply</h2><div class="jd-body">${paragraphs(job.applicationInstructions)}</div></section>` : ""}
+        ${sections || `<section class="jd-card"><h2>Job description</h2><p>Full description is available from the employer's application page.</p></section>`}
+        ${skillsBlock}
+        ${instructions}
 
         <section class="jd-card">
           <h2>Before you apply</h2>
-          <div class="jd-body">
-            <p>Habesha Careers lists this opportunity for discovery. Always confirm the role, deadline and application requirements with the hiring organization before sending personal information.</p>
-            ${job.lastVerifiedAt ? `<p><small>Listing last checked ${esc(formatDate(job.lastVerifiedAt))}.</small></p>` : ""}
-          </div>
+          <p>Habesha Careers lists this opportunity for discovery. Always confirm the role, deadline and application requirements with the hiring organization before sending personal information.</p>
+          ${job.lastVerifiedAt ? `<p><small>Listing last checked ${esc(formatDate(job.lastVerifiedAt))}.</small></p>` : ""}
         </section>
       </div>
 

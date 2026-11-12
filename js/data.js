@@ -99,6 +99,99 @@ function logoCandidates(job) {
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// Application destination
+//
+// The API already classifies the destination for every vacancy. This is the
+// same rule applied on the client for jobs that come from the local cache,
+// so the Apply button always says the same thing and always has a target.
+// ---------------------------------------------------------------------------
+const ATS_HOSTS = [
+  'greenhouse.io', 'lever.co', 'workday.com', 'myworkdayjobs.com', 'bamboohr.com',
+  'smartrecruiters.com', 'icims.com', 'taleo.net', 'oraclecloud.com', 'successfactors.com',
+  'sapsf.com', 'jobvite.com', 'recruitee.com', 'personio.com', 'personio.de',
+  'zohorecruit.com', 'breezy.hr', 'ashbyhq.com', 'teamtailor.com', 'applytojob.com',
+  'workable.com', 'smartrecruiters.net', 'talent.com', 'hire.com', 'jobs.smartrecruiters.com'
+];
+const GENERIC_HOSTS = [
+  'forms.gle', 'docs.google.com', 'typeform.com', 'jotform.com', 'shorturl.at',
+  'tinyurl.com', 'bit.ly', 'rb.gy', 'linktr.ee', 't.me', 'wa.me', 'forms.office.com'
+];
+
+function _hostOf(url) {
+  try { return new URL(String(url)).hostname.toLowerCase().replace(/^www\./, ''); } catch { return ''; }
+}
+function _endsWith(host, domain) {
+  const h = String(host || ''), d = String(domain || '');
+  return !!h && !!d && (h === d || h.endsWith('.' + d));
+}
+function _isAtsHost(host) { return ATS_HOSTS.some((d) => _endsWith(host, d)); }
+function _isGenericHost(host) { return GENERIC_HOSTS.some((d) => _endsWith(host, d)); }
+
+const APPLY_META = {
+  official_employer: { badge: 'Official employer link', badgeClass: 'badge-official', note: 'Opens the employer’s own application page.', official: true },
+  official_ats:      { badge: 'Official employer link', badgeClass: 'badge-official', note: 'Opens the employer’s own recruitment portal.', official: true },
+  third_party:       { badge: 'Third-party application', badgeClass: 'badge-third-party', note: 'This vacancy was published on another platform. The link opens that application form.', official: false },
+  email:             { badge: 'Application email', badgeClass: 'badge-neutral', note: 'Sends your application directly to the employer.', official: true },
+  employer_careers:  { badge: 'Official careers page', badgeClass: 'badge-official', note: 'No direct application link was published, so this opens the employer’s own careers page.', official: true },
+  none:              { badge: '', badgeClass: '', note: 'Contact details and application instructions are listed in the vacancy.', official: false }
+};
+
+/**
+ * Where the "Apply Now" button goes, and how that destination is described.
+ */
+function applyInfo(job) {
+  if (job && job.apply && job.apply.url) {
+    const meta = APPLY_META[job.apply.kind] || APPLY_META.none;
+    return Object.assign({}, job.apply, {
+      badge: job.apply.badge || meta.badge,
+      badgeClass: job.apply.badgeClass || meta.badgeClass,
+      note: job.apply.note || meta.note
+    });
+  }
+  const email = job && (job.applicationEmail || job.contactEmail);
+  const url = job && job.applyUrl;
+  const domain = job && job.organizationDomain;
+  if (url && /^https?:/i.test(url)) {
+    const host = _hostOf(url);
+    let kind = 'third_party';
+    if (domain && (_endsWith(host, domain) || _endsWith(host, domain.replace(/^www\./, '')))) kind = 'official_employer';
+    else if (_isAtsHost(host)) kind = 'official_ats';
+    else if (_isGenericHost(host)) kind = 'third_party';
+    const meta = APPLY_META[kind];
+    return { kind, url, badge: meta.badge, badgeClass: meta.badgeClass, note: meta.note, official: meta.official, verified: !!(job && job.applyUrlVerified) };
+  }
+  if (email && /@/.test(email)) {
+    const subject = encodeURIComponent('Application for ' + String((job && job.title) || 'this position'));
+    const meta = APPLY_META.email;
+    return { kind: 'email', url: 'mailto:' + email + '?subject=' + subject, badge: meta.badge, badgeClass: meta.badgeClass, note: meta.note, official: meta.official, verified: false };
+  }
+  const careers = job && (job.organizationCareersUrl || job.organizationWebsite);
+  if (careers) {
+    const meta = APPLY_META.employer_careers;
+    return { kind: 'employer_careers', url: careers, badge: meta.badge, badgeClass: meta.badgeClass, note: meta.note, official: meta.official, verified: false };
+  }
+  const meta = APPLY_META.none;
+  return { kind: 'none', url: null, badge: meta.badge, badgeClass: meta.badgeClass, note: meta.note, official: false, verified: false };
+}
+
+/**
+ * The Apply Now button, with the badge that says where it goes.
+ */
+function applyButtonHtml(job, extraClass) {
+  const info = applyInfo(job);
+  const cls = ('jd-apply-btn' + (extraClass ? ' ' + extraClass : '')).trim();
+  if (!info.url) {
+    return '<div class="jd-apply-unavailable">Application details are listed in the vacancy below.</div>' +
+           '<a class="' + cls + '" href="jobs.html">Browse similar jobs</a>';
+  }
+  const external = /^https?:/i.test(info.url);
+  const attrs = external ? ' target="_blank" rel="noopener noreferrer nofollow"' : '';
+  const badge = info.badge ? '<span class="jd-apply-origin"><span class="badge ' + escHtml(info.badgeClass || 'badge-neutral') + '">' + escHtml(info.badge) + '</span></span>' : '';
+  const note = info.note ? '<p class="jd-apply-note">' + escHtml(info.note) + '</p>' : '';
+  return badge + '<a class="' + cls + '" href="' + escHtml(info.url) + '"' + attrs + '>Apply Now</a>' + note;
+}
+
 function jobLogoSrc(job) {
   return logoCandidates(job)[0] || orgLogoDataUri(job && job.company);
 }
@@ -119,7 +212,7 @@ function nextLogo(img) {
   img.onerror = null;
 }
 
-window.HabeshaUI = Object.assign(window.HabeshaUI || {}, { escHtml, orgInitials, orgLogoDataUri, jobLogoSrc, faviconLogo, logoCandidates, domainFromUrl, logoImgAttrs, nextLogo });
+window.HabeshaUI = Object.assign(window.HabeshaUI || {}, { escHtml, orgInitials, orgLogoDataUri, jobLogoSrc, faviconLogo, logoCandidates, domainFromUrl, logoImgAttrs, nextLogo, applyInfo, applyButtonHtml, orgDomainHint });
 
 /**
  * Identify a vacancy that came from the retired demo seed.

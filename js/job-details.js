@@ -117,7 +117,44 @@
   function logoImg(job, cls) {
     const list = logoList(job);
     const first = list[0] || '';
-    return `<img class="${cls || 'jd-logo'}" src="${esc(first)}" data-logos="${esc(JSON.stringify(list))}" data-logo-idx="0" alt="${esc(job.company || 'Organization')} logo" onerror="window.HabeshaUI&&window.HabeshaUI.nextLogo?window.HabeshaUI.nextLogo(this):(this.onerror=null)">`;
+    return `<img class="${cls || 'jd-logo'}" src="${esc(first)}" data-logos="${esc(JSON.stringify(list))}" data-logo-idx="0" alt="${esc(job.organizationName || job.company || 'Organization')} logo" onerror="window.HabeshaUI&&window.HabeshaUI.nextLogo?window.HabeshaUI.nextLogo(this):(this.onerror=null)">`;
+  }
+
+  // The icon that introduces each section of the job post.
+  const SECTION_ICONS = {
+    summary: '📝', responsibilities: '🎯', requirements: '🎓', experience: '💼',
+    benefits: '🎁', location: '📍', salary: '💰', employmentType: '🗂️',
+    howToApply: '📨', other: 'ℹ️'
+  };
+
+  /**
+   * Render the structured announcement.
+   *
+   * The API returns the vacancy as sections — each with its own heading,
+   * paragraphs and bullet list — so the post reads like a professional job
+   * advert instead of one scrambled paragraph.
+   */
+  function jobPostHtml(job) {
+    const sections = Array.isArray(job.sections) ? job.sections : [];
+    if (!sections.length) {
+      const body = formatPostText(job.description);
+      return body
+        ? `<section class="jd-card"><h2>Job description</h2><div class="job-post-content">${body}</div></section>`
+        : `<section class="jd-card"><h2>Job description</h2><p>Full description is available from the employer’s application page.</p></section>`;
+    }
+    const blocks = sections.map((section) => {
+      const title = section.title || 'Details';
+      const icon = SECTION_ICONS[section.key] || '•';
+      const paragraphs = (section.paragraphs || []).map((p) => `<p>${esc(p)}</p>`).join('');
+      const items = (section.items || []).length
+        ? `<ul>${section.items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>`
+        : '';
+      return `<section class="job-post-section">
+        <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">${icon}</span>${esc(title)}</h2>
+        <div class="job-post-content">${paragraphs}${items}</div>
+      </section>`;
+    }).join('');
+    return `<div class="job-post">${blocks}</div>`;
   }
 
   function chips(job) {
@@ -132,29 +169,38 @@
   }
 
   function applyDetails(job) {
+    if (window.HabeshaUI && window.HabeshaUI.applyInfo) return window.HabeshaUI.applyInfo(job);
     const email = job.applicationEmail || job.contactEmail;
     if (job.applyUrl) {
       return {
-        href: job.applyUrl,
-        external: true,
-        label: 'Apply for this job',
+        kind: 'third_party',
+        url: job.applyUrl,
+        badge: 'Third-party application',
+        badgeClass: 'badge-third-party',
         note: job.applyUrlVerified
           ? 'Application link verified'
-          : 'Application link not independently verified — confirm with the employer'
+          : 'Application link not independently verified — confirm with the employer',
+        verified: !!job.applyUrlVerified
       };
     }
     if (email) {
       const subject = encodeURIComponent(`Application for ${job.title || 'position'}`);
-      return { href: `mailto:${email}?subject=${subject}`, external: false, label: 'Apply by email', note: 'Sends your application directly to the employer' };
+      return { kind: 'email', url: `mailto:${email}?subject=${subject}`, badge: 'Application email', badgeClass: 'badge-neutral', note: 'Sends your application directly to the employer', verified: false };
     }
-    return null;
+    return { kind: 'none', url: null, badge: '', badgeClass: '', note: '', verified: false };
   }
 
   function applyButton(job, extraClass) {
     const a = applyDetails(job);
-    if (!a) return `<div class="jd-apply-unavailable">${icon('alert')} Application link is under review. See the application instructions below.</div>`;
-    const target = a.external ? ' target="_blank" rel="noopener noreferrer nofollow"' : '';
-    return `<a class="jd-apply-btn ${extraClass || ''}" href="${esc(a.href)}"${target}>${icon('arrow')} ${esc(a.label)}</a>`;
+    const cls = ('jd-apply-btn' + (extraClass ? ' ' + extraClass : '')).trim();
+    if (!a || !a.url) {
+      return `<div class="jd-apply-unavailable">${icon('alert')} Application details are listed in the vacancy below.</div>
+        <a class="${cls}" href="jobs.html">Browse similar jobs</a>`;
+    }
+    const external = /^https?:/i.test(a.url);
+    const attrs = external ? ' target="_blank" rel="noopener noreferrer nofollow"' : '';
+    const badge = a.badge ? `<span class="jd-apply-origin"><span class="badge ${esc(a.badgeClass || 'badge-neutral')}">${esc(a.badge)}</span></span>` : '';
+    return `${badge}<a class="${cls}" href="${esc(a.url)}"${attrs}>Apply Now</a>`;
   }
 
   function renderLoading(container) {
@@ -182,25 +228,34 @@
   function renderJob(container, job, related) {
     const days = daysLeft(job.deadline);
     const apply = applyDetails(job);
-    const verifiedBadge = job.organizationVerified ? `<span class="jd-verified">${icon('check')} Verified employer</span>` : '';
+    const employer = job.organizationName || job.company || 'Organization not verified';
+    const verifiedBadge = job.organizationVerified ? `<span class="badge badge-verified">${icon('check')} Verified employer</span>` : '';
     const skills = Array.isArray(job.requiredSkills) ? job.requiredSkills.filter(Boolean) : [];
     const deadlineClass = days != null && days <= 7 && days >= 0 ? 'urgent' : '';
     const deadlineValue = job.deadline ? `${fmtDate(job.deadline)}${days != null && days >= 0 ? ` · ${days} day${days === 1 ? '' : 's'} left` : ''}` : 'Not specified';
     const shareUrl = encodeURIComponent(location.origin + (job.publicPath || `/job/${job.id}`));
     const shareTitle = encodeURIComponent(`${job.title} at ${job.company || 'Habesha Careers'}`);
 
-    const overview = [
-      ['pin', 'Location', job.location || job.regionCity || 'Ethiopia'],
-      ['briefcase', 'Employment type', job.type],
-      ['calendar', 'Application deadline', deadlineValue],
-      ['wallet', 'Salary', job.salary],
-      ['graduation', 'Education', job.educationRequirements],
-      ['clock', 'Experience', job.experienceRequirements]
+    const facts = [
+      ['🏢', 'Organization', employer],
+      ['📍', 'Location', job.location || job.regionCity || 'Ethiopia'],
+      ['💼', 'Employment type', job.type],
+      ['🗓️', 'Application deadline', deadlineValue],
+      ['👥', 'Open positions', job.vacancies || 1],
+      ['📂', 'Category', job.category],
+      ['💰', 'Salary', job.salary],
+      ['🎓', 'Education', job.educationRequirements],
+      ['🧭', 'Experience', job.experienceRequirements],
+      ['🔖', 'Reference', job.jobReference]
     ].filter(([, , v]) => v != null && String(v).trim() !== '').map(([ic, label, value]) => `
-      <div class="jd-overview-card">
-        <span class="jd-overview-icon">${icon(ic)}</span>
-        <div><span class="jd-overview-label">${esc(label)}</span><strong>${esc(value)}</strong></div>
+      <div class="job-fact">
+        <span class="job-fact-icon" aria-hidden="true">${ic}</span>
+        <span><span class="job-fact-label">${esc(label)}</span><span class="job-fact-value">${esc(value)}</span></span>
       </div>`).join('');
+
+    const employerSite = job.organizationWebsite
+      ? `<p class="jd-employer-site"><span class="job-fact-label">Employer website</span> <a href="${esc(job.organizationWebsite)}" target="_blank" rel="noopener noreferrer nofollow">${esc(job.organizationDomain || job.organizationWebsite)}</a></p>`
+      : '';
 
     const relatedHtml = related && related.length ? `
       <section class="jd-related">
@@ -222,8 +277,9 @@
             ${logoImg(job)}
             <div class="jd-hero-text">
               <h1 class="jd-title">${esc(job.title)}</h1>
-              <p class="jd-company">${esc(job.company || 'Organization not verified')} ${verifiedBadge}</p>
+              <p class="jd-company">${esc(employer)} ${verifiedBadge}</p>
               <div class="jd-chips">${chips(job)}</div>
+              ${employerSite}
             </div>
           </div>
           <button type="button" class="jd-save-btn" onclick="toggleSaveJob('${esc(String(job.id))}')" aria-pressed="false" title="Save this job">
@@ -234,36 +290,33 @@
         <div class="jd-grid">
           <div class="jd-main">
             <section class="jd-card">
-              <h2>Overview</h2>
-              <div class="jd-overview">${overview}</div>
+              <h2>Vacancy at a glance</h2>
+              <div class="job-facts">${facts}</div>
             </section>
 
-            <section class="jd-card">
-              <h2>Job description</h2>
-              <div class="jd-body">${formatPostText(job.description) || '<p>Full description is available from the employer’s application page.</p>'}</div>
-            </section>
+            ${jobPostHtml(job)}
 
-            <section class="jd-card">
-              <h2>Requirements &amp; qualifications</h2>
-              <div class="jd-body">${job.requirements && !job.requirementsMissing ? formatPostText(job.requirements) : '<p>Not specified in the announcement.</p>'}</div>
-              ${skills.length ? `<h3 class="jd-subhead">Required skills</h3><div class="jd-body"><ul>${skills.map((s) => `<li>${esc(s)}</li>`).join('')}</ul></div>` : ''}
-            </section>
+            ${skills.length ? `<section class="job-post-section">
+              <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">🧰</span>Required skills</h2>
+              <div class="job-post-content"><ul>${skills.map((s) => `<li>${esc(s)}</li>`).join('')}</ul></div>
+            </section>` : ''}
 
-            ${job.applicationInstructions ? `<section class="jd-card"><h2>How to apply</h2><div class="jd-body">${formatPostText(job.applicationInstructions)}</div></section>` : ''}
+            ${job.applicationInstructions ? `<section class="job-post-section">
+              <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">📨</span>How to Apply</h2>
+              <div class="job-post-content"><p>${esc(job.applicationInstructions)}</p></div>
+            </section>` : ''}
 
             <section class="jd-card jd-before">
               <h2>Before you apply</h2>
-              <div class="jd-body">
-                <p>Habesha Careers lists this opportunity for discovery. Always confirm the role, deadline and requirements with the hiring organization before sharing personal information.</p>
-                ${job.lastVerifiedAt ? `<p><small>Listing last checked ${esc(fmtDate(job.lastVerifiedAt))}.</small></p>` : ''}
-              </div>
+              <p>Habesha Careers lists this opportunity for discovery. Always confirm the role, deadline and requirements with the hiring organization before sharing personal information.</p>
+              ${job.lastVerifiedAt ? `<p><small>Listing last checked ${esc(fmtDate(job.lastVerifiedAt))}.</small></p>` : ''}
             </section>
           </div>
 
           <aside class="jd-sidebar" aria-label="Application and job details">
             <section class="jd-card jd-apply-card">
               ${applyButton(job)}
-              ${apply ? `<p class="jd-apply-note">${esc(apply.note)}</p>` : ''}
+              ${apply && apply.verified ? '<p class="jd-apply-note">✓ This application link was verified.</p>' : ''}
               <div class="jd-share">
                 <span>${icon('share')} Share</span>
                 <a href="https://t.me/share/url?url=${shareUrl}&text=${shareTitle}" target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram">Telegram</a>

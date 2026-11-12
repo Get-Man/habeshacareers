@@ -1,6 +1,7 @@
 import { json, requireAdmin, parseJsonBody } from "../../http.js";
 import { hasDatabase, query } from "../../../../lib/db.mjs";
 import { listEmployerDirectory } from "../../../../lib/jobs/repository.mjs";
+import { backfillEmployerIdentities, relinkListingsToEmployers } from "../../../../lib/jobs/employer-backfill.mjs";
 
 export default async function handler(req, res) {
   if (!requireAdmin(req)) return json(res, 401, { ok: false, error: "unauthorized" });
@@ -16,6 +17,24 @@ export default async function handler(req, res) {
 
     if (req.method !== "POST") return json(res, 405, { ok: false, error: "Method not allowed" });
     const body = await parseJsonBody(req);
+
+    // Resolve the employers' own websites, careers pages and official logos.
+    if (body.action === "backfill") {
+      const linked = await relinkListingsToEmployers().catch(() => 0);
+      const limit = Math.min(200, Math.max(1, parseInt(body.limit || "20", 10) || 20));
+      const out = await backfillEmployerIdentities({ limit, withCareers: body.careers !== false });
+      return json(res, 200, {
+        ok: true,
+        linked,
+        processed: out.processed,
+        withDomain: out.withDomain,
+        withLogo: out.withLogo,
+        withCareers: out.withCareers,
+        errors: out.errors,
+        results: out.results,
+      });
+    }
+
     const id = parseInt(body.id, 10);
     if (!Number.isFinite(id) || id <= 0) return json(res, 400, { ok: false, error: "validation" });
 
