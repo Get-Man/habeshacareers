@@ -318,20 +318,16 @@
               <p>Habesha Careers lists this opportunity for discovery. Always confirm the role, deadline and requirements with the hiring organization before sharing personal information.</p>
               ${job.lastVerifiedAt ? `<p><small>Listing last checked ${esc(fmtDate(job.lastVerifiedAt))}.</small></p>` : ''}
             </section>
+
+            <section class="jd-card jd-final-apply" aria-label="Apply for this position">
+              <h2>Ready to apply?</h2>
+              <p>Review the complete vacancy details above before applying.</p>
+              ${applyButton(job, 'jd-apply-btn--end')}
+              ${apply && apply.note ? `<p class="jd-apply-note">${esc(apply.note)}</p>` : '<p class="jd-apply-note">No reliable application link could be verified for this vacancy. Use the employer’s official contact or application details above.</p>'}
+            </section>
           </div>
 
-          <aside class="jd-sidebar" aria-label="Application and job details">
-            <section class="jd-card jd-apply-card">
-              ${applyButton(job)}
-              ${apply && apply.verified ? '<p class="jd-apply-note">✓ This application link was verified.</p>' : ''}
-              <div class="jd-share">
-                <span>${icon('share')} Share</span>
-                <a href="https://t.me/share/url?url=${shareUrl}&text=${shareTitle}" target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram">Telegram</a>
-                <a href="https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn">LinkedIn</a>
-                <a href="https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}" target="_blank" rel="noopener noreferrer" aria-label="Share on X">X</a>
-              </div>
-            </section>
-
+          <aside class="jd-sidebar" aria-label="Job details and sharing">
             <section class="jd-card">
               <h2>Job details</h2>
               <ul class="jd-facts">
@@ -344,12 +340,20 @@
                 ${job.jobReference ? `<li><span>Reference</span><strong>${esc(job.jobReference)}</strong></li>` : ''}
               </ul>
             </section>
+
+            <section class="jd-card jd-share-card">
+              <h2>${icon('share')} Share this vacancy</h2>
+              <div class="jd-share">
+                <a href="https://t.me/share/url?url=${shareUrl}&text=${shareTitle}" target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram">Telegram</a>
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn">LinkedIn</a>
+                <a href="https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}" target="_blank" rel="noopener noreferrer" aria-label="Share on X">X</a>
+              </div>
+            </section>
           </aside>
         </div>
 
         ${relatedHtml}
       </article>
-      <div class="jd-mobile-apply">${applyButton(job)}</div>
     `;
 
     // Reflect saved state.

@@ -60,7 +60,16 @@ const ORG_DOMAIN_HINTS = [
   [/\bamref\b/i,'amref.org'],[/\bpath\b/i,'path.org'],[/\bjhpiego\b/i,'jhpiego.org'],[/\bfhi 360\b|\bfhi360\b/i,'fhi360.org']
 ];
 function orgDomainHint(company){ const n = String(company||''); for (const [re,d] of ORG_DOMAIN_HINTS) if (re.test(n)) return d; return ''; }
-function addFaviconCandidates(add, domain){ if (!domain) return; add(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`); add(`https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`); add(`https://${domain}/favicon.ico`); }
+function addOrgLogoCandidates(add, domain){
+  if (!domain) return;
+  const d = String(domain).toLowerCase().replace(/^www\./, '');
+  // Prefer organisation-specific marks over generic letter placeholders.
+  add(`https://logo.clearbit.com/${encodeURIComponent(d)}`);
+  add(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=128`);
+  add(`https://icons.duckduckgo.com/ip3/${encodeURIComponent(d)}.ico`);
+  add(`https://${d}/favicon.ico`);
+  add(`https://${d}/apple-touch-icon.png`);
+}
 
 function faviconLogo(url) {
   const d = domainFromUrl(url);
@@ -90,11 +99,11 @@ function logoCandidates(job) {
   const strongStored = stored && !isWeakLogo(stored);
   // 1) The verified employer logo (server-side, official organisation asset).
   if (strongStored) add(stored);
-  // 2) The organisation's own favicon, keyed on its own verified domain.
-  addFaviconCandidates(add, orgDomain);
-  // 3) Well-known organisation domains.
-  addFaviconCandidates(add, orgDomainHint(job && job.company));
-  // 4) Professional initials placeholder — never an unrelated logo.
+  // 2) The organisation's own official/brand marks, keyed on its verified domain.
+  addOrgLogoCandidates(add, orgDomain);
+  // 3) Well-known organisation domains (best available org-specific marks).
+  addOrgLogoCandidates(add, orgDomainHint(job && job.company));
+  // 4) Professional initials placeholder — organisation-specific, never unrelated.
   add(orgLogoDataUri(job && job.company));
   return out;
 }
@@ -150,7 +159,9 @@ function applyInfo(job) {
     });
   }
   const email = job && (job.applicationEmail || job.contactEmail);
-  const url = job && job.applyUrl;
+  const rawUrl = job && job.applyUrl ? String(job.applyUrl).trim() : '';
+  const hasValidUrl = /^https?:\/\//i.test(rawUrl) || /^mailto:/i.test(rawUrl);
+  const url = hasValidUrl ? rawUrl : '';
   const domain = job && job.organizationDomain;
   if (url && /^https?:/i.test(url)) {
     const host = _hostOf(url);
@@ -159,7 +170,12 @@ function applyInfo(job) {
     else if (_isAtsHost(host)) kind = 'official_ats';
     else if (_isGenericHost(host)) kind = 'third_party';
     const meta = APPLY_META[kind];
-    return { kind, url, badge: meta.badge, badgeClass: meta.badgeClass, note: meta.note, official: meta.official, verified: !!(job && job.applyUrlVerified) };
+    const note = (job && job.applyUrlVerified) ? meta.note : (meta.note + ' If the link does not open, use the employer’s application details below.');
+    return { kind, url, badge: meta.badge, badgeClass: meta.badgeClass, note, official: meta.official, verified: !!(job && job.applyUrlVerified) };
+  }
+  if (url && /^mailto:/i.test(url)) {
+    const meta = APPLY_META.email;
+    return { kind: 'email', url, badge: meta.badge, badgeClass: meta.badgeClass, note: meta.note, official: meta.official, verified: false };
   }
   if (email && /@/.test(email)) {
     const subject = encodeURIComponent('Application for ' + String((job && job.title) || 'this position'));

@@ -127,31 +127,28 @@ function displayJobs(jobs) {
         const employer = job.organizationName || job.company || 'Organization not verified';
         const verified = job.organizationVerified ? ' <span class="badge badge-verified">✓ Verified</span>' : '';
         const path = job.publicPath || ('job-details.html?id=' + encodeURIComponent(job.id));
-        const apply = (window.HabeshaUI && window.HabeshaUI.applyInfo) ? window.HabeshaUI.applyInfo(job) : null;
-        const applyHtml = apply && apply.url
-            ? `<a href="${_esc(apply.url)}" class="btn btn-primary"${/^https?:/i.test(apply.url) ? ' target="_blank" rel="noopener noreferrer nofollow"' : ''}>Apply Now</a>`
-            : `<a href="${_esc(path)}" class="btn btn-primary">Apply Now</a>`;
+        const summaryRaw = String(job.summary || job.shortDescription || job.excerpt || job.description || '').replace(/\s+/g, ' ').trim();
+        const summary = summaryRaw ? (summaryRaw.length > 160 ? summaryRaw.slice(0, 157).trimEnd() + '…' : summaryRaw) : '';
 
         return `
             <article class="job-card">
                 <div class="job-card-header">
                     <img src="${_esc(logo)}" data-logos="${_esc(JSON.stringify(logos))}" data-logo-idx="0" alt="${_esc(employer)} logo" class="company-logo" onerror="window.HabeshaUI&&window.HabeshaUI.nextLogo?window.HabeshaUI.nextLogo(this):(this.onerror=null,this.src='${fallback}')">
                     <div class="job-card-title">
-                        <h4>${_esc(job.title)}${verified}</h4>
+                        <h4><a href="${_esc(path)}" class="job-card-link">${_esc(job.title)}</a>${verified}</h4>
                         <p class="company">${_esc(employer)}</p>
                     </div>
                 </div>
                 <div class="job-meta">
                     <span>📍 ${_esc(job.location || job.regionCity || 'Not specified')}</span>
-                    <span>💼 ${_esc(job.type || 'Not specified')}</span>
+                    ${job.type ? `<span>💼 ${_esc(job.type)}</span>` : ''}
                     <span>📂 ${_esc(job.category || 'Other')}</span>
-                    <span>👥 ${_esc(job.vacancies || 1)} ${(job.vacancies || 1) === 1 ? 'position' : 'positions'}</span>
                     <span${urgent ? ' style="color:#b91c1c;font-weight:600"' : ''}>⏰ ${daysLeft == null ? 'Deadline N/A' : daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ' left'}</span>
                 </div>
-                <p class="job-card-posted"><strong>Posted:</strong> ${_esc(job.postedDate || 'Not specified')} &nbsp; <strong>Deadline:</strong> ${_esc(job.deadline || 'Not specified')}</p>
+                ${summary ? `<p class="job-card-excerpt">${_esc(summary)}</p>` : ''}
+                <p class="job-card-posted"><strong>Posted:</strong> ${_esc(job.postedDate || 'Not specified')}</p>
                 <div class="job-card-actions">
-                    ${applyHtml}
-                    <a href="${_esc(path)}" class="btn btn-outline">View Details</a>
+                    <a href="${_esc(path)}" class="btn btn-primary">View Full Job</a>
                 </div>
             </article>
         `;

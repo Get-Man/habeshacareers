@@ -778,6 +778,42 @@ select {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+/* The filter panel uses its own field classes; they are the same fields. */
+.filter-group input,
+.filter-group select,
+.filter-group textarea,
+.filters input,
+.filters select,
+.filters textarea {
+  width: 100%;
+  padding: 0.62rem 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.filter-group input:focus,
+.filter-group select:focus,
+.filters input:focus,
+.filters select:focus {
+  outline: none;
+  border-color: var(--accent-600);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: var(--sp-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink-700);
+}
+
 .form-hint {
   margin: var(--sp-2) 0 0;
   font-size: var(--fs-sm);
@@ -989,15 +1025,46 @@ input[type="radio"] {
 }
 
 /* The filter panel is a card, like every other panel on the site. */
+.jobs-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+.jobs-content {
+  min-width: 0;
+}
+
 .filters {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  padding: var(--sp-5);
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
   height: fit-content;
   position: sticky;
   top: calc(var(--header-h) + var(--sp-4));
   box-shadow: var(--shadow-sm);
+}
+
+.filters h3 {
+  margin: 0 0 var(--sp-4);
+  font-size: 1.05rem;
+  color: var(--brand-800);
+}
+
+.filters .filter-group {
+  margin-bottom: var(--sp-3);
+}
+
+.filters .filter-group:last-of-type {
+  margin-bottom: var(--sp-4);
+}
+
+.filters > .btn-primary,
+.filters > .btn-secondary,
+.filters > button {
+  margin-bottom: var(--sp-2);
 }
 .job-card {
   display: flex;
@@ -1426,6 +1493,78 @@ input[type="radio"] {
   line-height: 1.55;
 }
 
+.jd-final-apply {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fffb 100%);
+}
+
+.jd-final-apply h2 {
+  margin-bottom: var(--sp-2);
+}
+
+.jd-final-apply p {
+  color: var(--text-soft);
+  margin-bottom: var(--sp-4);
+}
+
+.jd-final-apply .jd-apply-btn {
+  max-width: 320px;
+}
+
+.jd-final-apply .jd-apply-note {
+  text-align: left;
+  max-width: 60ch;
+}
+
+.jd-final-apply .jd-apply-origin {
+  justify-content: flex-start;
+  margin-bottom: var(--sp-3);
+}
+
+.jd-final-apply .jd-apply-btn {
+  font-size: 1rem;
+  padding: 0.9rem 1.5rem;
+  box-shadow: var(--shadow-brand);
+}
+
+.job-card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.job-card-link:hover {
+  color: var(--brand-600);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.company-logo,
+.jd-logo {
+  object-position: center;
+  background: #fff;
+}
+
+.empty-state {
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  padding: var(--sp-8) var(--sp-5);
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.empty-state h3 {
+  margin: 0 0 var(--sp-2);
+  color: var(--brand-800);
+}
+
+.jobs-count {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  margin: var(--sp-2) 0 var(--sp-4);
+}
+
 .jd-facts {
   list-style: none;
   margin: 0;
@@ -1846,11 +1985,51 @@ footer::before {
   .job-card-actions .btn-view {
     flex: 1 1 100%;
   }
+
+  .jobs-layout {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+
+  .filters-toggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .jobs-layout.filters-open .filters {
+    display: block;
+    max-height: min(70vh, 520px);
+    overflow: auto;
+    animation: filtersReveal 180ms ease;
+  }
+
+  @keyframes filtersReveal {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+  }
 }
 
 @media (max-width: 640px) {
   body {
     font-size: 0.9rem;
+  }
+
+  .search-bar,
+  .recent-jobs-search {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    gap: 0.6rem;
+  }
+
+  .search-bar .search-input-wrapper,
+  .search-bar input,
+  .search-bar button,
+  .recent-jobs-search input,
+  .recent-jobs-search button {
+    width: 100%;
+    max-width: 100%;
+    flex: 1 1 auto;
   }
 
   .card,

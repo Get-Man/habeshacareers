@@ -91,10 +91,13 @@ function logoMarkup(job, logoUrl) {
     candidates.push(url);
   };
   add(job.logo);
-  const domain = String(job.organizationDomain || "").toLowerCase();
+  const domain = String(job.organizationDomain || "").toLowerCase().replace(/^www\./, "");
   if (domain) {
-    add(`https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`);
+    add(`https://logo.clearbit.com/${encodeURIComponent(domain)}`);
     add(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`);
+    add(`https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`);
+    add(`https://${domain}/favicon.ico`);
+    add(`https://${domain}/apple-touch-icon.png`);
   }
   add(monogramDataUri(job.organizationName || job.company));
 
@@ -159,14 +162,14 @@ function applyBlock(job) {
   const badge = apply.badge
     ? `<span class="jd-apply-origin"><span class="badge ${esc(apply.badgeClass || "badge-neutral")}">${esc(apply.badge)}</span></span>`
     : "";
-  const note = apply.note ? `<p class="jd-apply-note">${esc(apply.note)}</p>` : "";
-  const verifiedNote = apply.verified
+  const note = apply.note ? `<p class="jd-apply-note">${esc(apply.note)}</p>` : `<p class="jd-apply-note">No reliable application link could be verified for this vacancy. Use the employer’s official contact or application details above.</p>`;
+  const verifiedNote = apply.verified && url
     ? `<p class="jd-apply-note">✓ This application link was verified.</p>`
     : "";
 
   if (!url) {
-    // No application link was published for this vacancy. The button still
-    // leads the reader to the employer's own application details.
+    // No reliable application link was published/verified for this vacancy.
+    // The button leads to the employer's own application details on this page.
     return `
       ${badge}
       <a class="jd-apply-btn" href="#how-to-apply">Apply Now</a>
@@ -284,6 +287,7 @@ function layout({ title, description, canonical, image, body, head = "" }) {
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(description)}">
   <link rel="canonical" href="${esc(canonical)}">
+  <link rel="icon" type="image/png" href="/images/logo.png">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Habesha Careers">
   <meta property="og:title" content="${esc(title)}">
@@ -420,12 +424,15 @@ export default async function handler(req, res) {
           <p>Habesha Careers lists this opportunity for discovery. Always confirm the role, deadline and application requirements with the hiring organization before sending personal information.</p>
           ${job.lastVerifiedAt ? `<p><small>Listing last checked ${esc(formatDate(job.lastVerifiedAt))}.</small></p>` : ""}
         </section>
-      </div>
 
-      <aside class="jd-sidebar" aria-label="Application">
-        <section class="jd-card">
+        <section class="jd-card jd-final-apply" aria-label="Apply for this position">
+          <h2>Ready to apply?</h2>
+          <p>Review the complete vacancy details above before applying.</p>
           ${applyBlock(job)}
         </section>
+      </div>
+
+      <aside class="jd-sidebar" aria-label="Job details">
         <section class="jd-card">
           <h2>Job details</h2>
           <ul class="jd-facts">
@@ -443,7 +450,6 @@ export default async function handler(req, res) {
     ${related.length ? `<section class="jd-related"><h2>Similar jobs</h2><div class="jd-related-grid">${related.map(relatedCard).join("")}</div></section>` : ""}
   </article>
 </main>
-<div class="jd-mobile-apply">${applyBlock(job)}</div>
 `;
 
     res.status(200);

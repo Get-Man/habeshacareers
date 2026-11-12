@@ -94,24 +94,26 @@ function loadRecentJobs() {
         const applyHtml = apply && apply.url
             ? `<a href="${_esc(apply.url)}" class="btn btn-primary"${/^https?:/i.test(apply.url) ? ' target="_blank" rel="noopener noreferrer nofollow"' : ''}>Apply Now</a>`
             : `<a href="${_esc(path)}" class="btn btn-primary">Apply Now</a>`;
+        const posted = job.postedDate || 'Not specified';
+        const summaryRaw = String(job.summary || job.shortDescription || job.excerpt || job.description || '').replace(/\s+/g, ' ').trim();
+        const summary = summaryRaw ? (summaryRaw.length > 140 ? summaryRaw.slice(0, 137).trimEnd() + '…' : summaryRaw) : '';
         return `
         <article class="job-card">
             <div class="job-card-header">
                 ${_logoImgHtml(job, 'company-logo', employer)}
                 <div class="job-card-title">
-                    <h4>${_esc(job.title)}${_jobCardBadge(job)}</h4>
+                    <h4><a href="${_esc(path)}" class="job-card-link">${_esc(job.title)}</a>${_jobCardBadge(job)}</h4>
                     <p class="company">${_esc(employer)}</p>
                 </div>
             </div>
             <div class="job-meta">
                 <span>📍 ${_esc(job.location || job.regionCity || 'Not specified')}</span>
-                <span>💼 ${_esc(job.type || 'Not specified')}</span>
-                <span>📂 ${_esc(job.category || 'Other')}</span>
+                ${job.type ? `<span>💼 ${_esc(job.type)}</span>` : ''}
             </div>
-            <p class="job-card-posted"><strong>Deadline:</strong> ${_esc(job.deadline || 'Not specified')}</p>
+            ${summary ? `<p class="job-card-excerpt">${_esc(summary)}</p>` : ''}
+            <p class="job-card-posted"><strong>Posted:</strong> ${_esc(posted)}</p>
             <div class="job-card-actions">
-                ${applyHtml}
-                <a href="${_esc(path)}" class="btn btn-outline">View Details</a>
+                <a href="${_esc(path)}" class="btn btn-primary">View Full Job</a>
             </div>
         </article>`;
     }).join('');
