@@ -90,10 +90,6 @@ function loadRecentJobs() {
     container.innerHTML = recentJobs.map(job => {
         const employer = job.organizationName || job.company || 'Organization not verified';
         const path = job.publicPath || ('job-details.html?id=' + encodeURIComponent(job.id));
-        const apply = (window.HabeshaUI && window.HabeshaUI.applyInfo) ? window.HabeshaUI.applyInfo(job) : null;
-        const applyHtml = apply && apply.url
-            ? `<a href="${_esc(apply.url)}" class="btn btn-primary"${/^https?:/i.test(apply.url) ? ' target="_blank" rel="noopener noreferrer nofollow"' : ''}>Apply Now</a>`
-            : `<a href="${_esc(path)}" class="btn btn-primary">Apply Now</a>`;
         const posted = job.postedDate || 'Not specified';
         const summaryRaw = String(job.summary || job.shortDescription || job.excerpt || job.description || '').replace(/\s+/g, ' ').trim();
         const summary = summaryRaw ? (summaryRaw.length > 140 ? summaryRaw.slice(0, 137).trimEnd() + '…' : summaryRaw) : '';

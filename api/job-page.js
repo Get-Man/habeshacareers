@@ -359,7 +359,13 @@ export default async function handler(req, res) {
     const logoUrl = /^https?:\/\//i.test(logo) ? logo : `${base}${logo.startsWith("/") ? "" : "/"}${logo}`;
     const skills = Array.isArray(job.requiredSkills) ? job.requiredSkills.filter(Boolean) : [];
     const employer = job.organizationName || job.company || "Organization not verified";
-    const sections = jobPost(job.sections);
+    let sections = jobPost(job.sections);
+    const fallbackText = String(job.description || "").replace(/\s+/g, " ").trim();
+    if (!sections && fallbackText) {
+      sections = `<section class="jd-card"><h2>Job description</h2><div class="job-post-content"><p>${esc(job.description)}</p></div></section>`;
+    } else if (!sections) {
+      sections = `<section class="jd-card"><h2>Job description</h2><p>Full description is not available for this vacancy. Please use the employer’s application details below to view the complete announcement.</p></section>`;
+    }
     const instructions = job.applicationInstructions
       ? `<section class="job-post-section" id="how-to-apply">
           <h2 class="job-post-title"><span class="job-post-icon" aria-hidden="true">📨</span>How to Apply</h2>
@@ -417,7 +423,7 @@ export default async function handler(req, res) {
           </div>
         </section>
 
-        ${sections || `<section class="jd-card"><h2>Job description</h2><p>Full description is available from the employer's application page.</p></section>`}
+        ${sections}
         ${skillsBlock}
         ${instructions}
 

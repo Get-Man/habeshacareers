@@ -136,11 +136,11 @@
    */
   function jobPostHtml(job) {
     const sections = Array.isArray(job.sections) ? job.sections : [];
+    const fallbackBody = formatPostText(job.description || job.descriptionHtml || '');
     if (!sections.length) {
-      const body = formatPostText(job.description);
-      return body
-        ? `<section class="jd-card"><h2>Job description</h2><div class="job-post-content">${body}</div></section>`
-        : `<section class="jd-card"><h2>Job description</h2><p>Full description is available from the employer’s application page.</p></section>`;
+      return fallbackBody
+        ? `<section class="jd-card"><h2>Job description</h2><div class="job-post-content">${fallbackBody}</div></section>`
+        : `<section class="jd-card"><h2>Job description</h2><p>Full description is not available for this vacancy. Please use the employer’s application details below to view the complete announcement.</p></section>`;
     }
     const blocks = sections.map((section) => {
       const title = section.title || 'Details';
@@ -154,7 +154,12 @@
         <div class="job-post-content">${paragraphs}${items}</div>
       </section>`;
     }).join('');
-    return `<div class="job-post">${blocks}</div>`;
+    const rendered = `<div class="job-post">${blocks}</div>`;
+    // Safety: if structured sections somehow render empty, show full text.
+    if (rendered.replace(/<[^>]+>/g, '').trim().length < 20 && fallbackBody) {
+      return `<section class="jd-card"><h2>Job description</h2><div class="job-post-content">${fallbackBody}</div></section>`;
+    }
+    return rendered;
   }
 
   function chips(job) {
