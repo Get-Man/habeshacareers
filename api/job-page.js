@@ -57,6 +57,58 @@ function chip(label, value) {
   return `<span class="jd-chip"><span class="jd-chip-label">${esc(label)}</span>${esc(value)}</span>`;
 }
 
+// A professionally designed monogram, used only when no reliable official
+// mark exists. It is never an unrelated organisation's logo.
+function monogramDataUri(name) {
+  const label = String(name || "Organization").trim();
+  const parts = label.split(/\s+/).filter(Boolean);
+  const initials = (parts.slice(0, 2).map((p) => p[0].toUpperCase()).join("")) || "O";
+  const palette = ["#0F2C59", "#1B9C85", "#1D4ED8", "#7C3AED", "#B45309", "#BE123C", "#15803D", "#0369A1"];
+  let hash = 0;
+  for (let i = 0; i < label.length; i += 1) hash = (hash << 5) - hash + label.charCodeAt(i);
+  const bg = palette[Math.abs(hash) % palette.length];
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="${esc(label)}">` +
+    `<rect width="120" height="120" rx="20" fill="${bg}"/>` +
+    `<text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-size="42" font-weight="700" fill="#ffffff">${esc(initials)}</text>` +
+    `</svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+/**
+ * The organisation's official mark, with fallbacks.
+ *
+ * The official logo comes first, then the organisation's own favicon, then a
+ * monogram. If one image cannot be loaded, the next one is tried.
+ */
+function logoMarkup(job, logoUrl) {
+  const candidates = [];
+  const add = (value) => {
+    if (!value) return;
+    const url = String(value);
+    if (!/^https?:|^data:|^\//i.test(url)) return;
+    if (candidates.includes(url)) return;
+    candidates.push(url);
+  };
+  add(job.logo);
+  const domain = String(job.organizationDomain || "").toLowerCase();
+  if (domain) {
+    add(`https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`);
+    add(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`);
+  }
+  add(monogramDataUri(job.organizationName || job.company));
+
+  const first = candidates[0] || logoUrl;
+  const json = JSON.stringify(candidates).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  const fallback =
+    "var l=this.getAttribute('data-logos')?JSON.parse(this.getAttribute('data-logos')):[];" +
+    "var i=(+this.getAttribute('data-logo-idx')||0)+1;" +
+    "if(i<l.length){this.setAttribute('data-logo-idx',String(i));this.src=l[i];}else{this.onerror=null;}";
+  return `<img class="jd-logo" src="${esc(first)}" data-logos="${json}" data-logo-idx="0" alt="${esc(
+    job.organizationName || job.company || "Organization"
+  )} logo" loading="lazy" referrerpolicy="no-referrer" onerror="${fallback}">`;
+}
+
 function fact(icon, label, value) {
   if (value == null || String(value).trim() === "") return "";
   return `<div class="job-fact">
@@ -327,7 +379,7 @@ export default async function handler(req, res) {
   <article>
     <header class="jd-hero">
       <div class="jd-hero-main">
-        <img class="jd-logo" src="${esc(logoUrl)}" alt="${esc(employer)} logo" loading="lazy" referrerpolicy="no-referrer">
+          ${logoMarkup(job, logoUrl)}
         <div>
           <h1 class="jd-title">${esc(job.title)}</h1>
           <p class="jd-company">${esc(employer)} ${job.organizationVerified ? '<span class="badge badge-verified">✓ Verified employer</span>' : ""}</p>

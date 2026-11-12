@@ -408,6 +408,7 @@ header {
   font-weight: 600;
   font-size: var(--fs-base);
   text-decoration: none;
+  box-shadow: none;
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
@@ -463,7 +464,14 @@ header {
 /* ---------------------------------------------------------------------------
    5. Buttons
    --------------------------------------------------------------------------- */
-.btn {
+/* Every button on the site — whatever its class — is the same control. */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-outline,
+.btn-ghost,
+.btn-brand,
+.btn-view {
   --btn-bg: var(--accent-600);
   --btn-fg: #fff;
   --btn-border: transparent;
@@ -488,13 +496,32 @@ header {
     color var(--dur) var(--ease);
 }
 
-.btn:hover {
+/* Buttons that carry their own class keep their own look, but they all
+   share the site's type and pointer behaviour. */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-outline:hover,
+.btn-ghost:hover,
+.btn-brand:hover,
+.btn-view:hover {
   color: var(--btn-fg);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
-.btn:active {
+.btn:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-outline:active,
+.btn-ghost:active,
+.btn-brand:active,
+.btn-view:active {
   transform: translateY(0);
   box-shadow: var(--shadow-xs);
 }
@@ -505,6 +532,79 @@ header {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+/* The search and filter controls of the site are the same button as every
+   other action. */
+.search-bar button,
+.recent-jobs-search button,
+.filters form button[type="submit"],
+.filters > button:not(.clear-btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: 0.68rem 1.35rem;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: var(--accent-600);
+  color: #fff;
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.search-bar button:hover,
+.recent-jobs-search button:hover,
+.filters form button[type="submit"]:hover,
+.filters > button:not(.clear-btn):hover {
+  background: var(--accent-700);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* A small round button that clears a text field. */
+.clear-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-500);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--r-full);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.clear-btn:hover {
+  background: var(--ink-100);
+  color: var(--danger);
+}
+
+/* The filter drawer toggle on small screens. */
+.filters-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--brand-800);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+.filters-toggle:hover {
+  background: var(--brand-050);
+  border-color: var(--brand-600);
 }
 
 .btn-primary {
@@ -712,8 +812,7 @@ input[type="radio"] {
 
 /* ---------------------------------------------------------------------------
    7. Cards & surfaces
-   --------------------------------------------------------------------------- */
-.card {
+   --------------------------------------------------------------------------- */.card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
@@ -828,6 +927,78 @@ input[type="radio"] {
 /* ---------------------------------------------------------------------------
    9. Job list cards
    --------------------------------------------------------------------------- */
+
+/* Pagination ------------------------------------------------------------ */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-10);
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink-700);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--brand-050);
+  border-color: var(--brand-600);
+  color: var(--brand-800);
+  transform: translateY(-1px);
+}
+
+.pagination button.active {
+  background: var(--accent-600);
+  border-color: var(--accent-600);
+  color: #fff;
+  box-shadow: var(--shadow-brand);
+}
+
+.pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pagination .page-dots {
+  color: var(--ink-400);
+  font-weight: 700;
+  padding: 0 var(--sp-2);
+}
+
+.pagination .page-info {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  margin: 0 var(--sp-3);
+}
+
+/* The filter panel is a card, like every other panel on the site. */
+.filters {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  height: fit-content;
+  position: sticky;
+  top: calc(var(--header-h) + var(--sp-4));
+  box-shadow: var(--shadow-sm);
+}
 .job-card {
   display: flex;
   flex-direction: column;
@@ -1477,10 +1648,21 @@ tbody tr:last-child td {
   margin-bottom: var(--sp-2);
 }
 
+/* The partners band used a multi-megabyte photograph as a decorative
+   background that was almost completely washed out. A soft brand gradient
+   gives the same depth, loads instantly and never 404s. */
+.partners-section {
+  background: linear-gradient(135deg, #e6f3ee 0%, #f7faf9 48%, #fdf5e3 100%);
+  background-attachment: scroll;
+}
+
+.partners-section::before {
+  background: rgba(255, 255, 255, 0.55);
+}
+
 /* ---------------------------------------------------------------------------
    14. Footer
-   --------------------------------------------------------------------------- */
-footer {
+   --------------------------------------------------------------------------- */footer {
   background: var(--brand-900);
   color: var(--ink-300);
   padding: var(--sp-12) 0 var(--sp-8);
