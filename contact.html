@@ -4,150 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us - Habesha Careers</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="description" content="Get in touch with the Habesha Careers team with questions, feedback or enquiries about the platform.">
     <link rel="icon" type="image/png" href="images/logo.png">
-    <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/claude-overrides.css">
-    <link rel="stylesheet" href="css/glass-ui.css">
+    <link rel="stylesheet" href="css/app.css">
 </head>
-<body>
-<a class="skip-link" href="#main-content">Skip to main content</a>
-    <header>
-        <nav class="navbar">
-            <div class="container">
-                <div class="logo">
-                    <img src="images/logo.png" alt="Logo" class="logo-img">
-                    <h1>Habesha Careers</h1>
-                </div>
-                <ul class="nav-menu">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="jobs.html">Jobs</a></li>
-                    <li id="postJobLink"><a href="post-job.html">Post Job</a></li>
-                    <li><a href="about.html">About</a></li>
-                    <li><a href="contact.html" class="active">Contact</a></li>
-                    <li id="loginLink">
-                        <a href="login.html" class="login-icon" title="Login">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                                <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/>
-                            </svg>
-                        </a>
-                    </li>
-                    <li id="profileLink" style="display: none;">
-                        <a href="profile.html" class="profile-icon" title="My Profile">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                            </svg>
-                        </a>
-                    </li>
-                </ul>
-                <div class="hamburger">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        </nav>
-    </header>
+<body data-page="contact">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div id="app-header"></div>
 
     <main id="main-content">
         <section class="contact-page">
             <div class="container">
-                <h2>Contact Us</h2>
-                <p class="subtitle">Have questions? We'd love to hear from you.</p>
+                <h1 class="page-title">Contact Us</h1>
+                <p class="page-subtitle">Have a question or feedback? Draft a message below, or reach the team directly by email.</p>
 
                 <div class="contact-layout">
                     <div class="contact-form-section">
-                        <form id="contactForm" class="contact-form">
-                            <div class="form-group">
-                                <label for="name">Your Name *</label>
-                                <input type="text" id="name" required>
-                            </div>
+                        <div class="card">
+                            <h2 class="card-title">Send a message</h2>
+                            <form id="contactForm" class="contact-form">
+                                <div class="form-group">
+                                    <label for="name">Your Name *</label>
+                                    <input type="text" id="name" class="form-control" autocomplete="name" required>
+                                </div>
 
-                            <div class="form-group">
-                                <label for="email">Your Email *</label>
-                                <input type="email" id="email" required>
-                            </div>
+                                <div class="form-group">
+                                    <label for="email">Your Email *</label>
+                                    <input type="email" id="email" class="form-control" autocomplete="email" required>
+                                </div>
 
-                            <div class="form-group">
-                                <label for="subject">Subject *</label>
-                                <input type="text" id="subject" required>
-                            </div>
+                                <div class="form-group">
+                                    <label for="subject">Subject *</label>
+                                    <input type="text" id="subject" class="form-control" required>
+                                </div>
 
-                            <div class="form-group">
-                                <label for="message">Message *</label>
-                                <textarea id="message" rows="6" required></textarea>
-                            </div>
+                                <div class="form-group">
+                                    <label for="message">Message *</label>
+                                    <textarea id="message" class="form-control" rows="6" required></textarea>
+                                </div>
 
-                            <button type="submit" class="btn-primary">Send Message</button>
-                        </form>
-
-                        <div id="contactSuccess" class="success-message" style="display: none;">
-                            <h3>✓ Message Sent!</h3>
-                            <p>Thank you for contacting us. We'll get back to you soon.</p>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Prepare Message</button>
+                                </div>
+                                <p class="form-note muted">This form validates your message in the browser; it does not send email. For a real enquiry, email the team directly.</p>
+                            </form>
                         </div>
+                        <div id="contactSuccess" class="alert alert-success" role="status" aria-live="polite" hidden></div>
                     </div>
 
-                    <div class="contact-info">
-                        <div class="info-card">
-                            <h3>📧 Email</h3>
+                    <aside class="contact-info" aria-label="Contact details">
+                        <div class="card info-card">
+                            <h2 class="card-title">Email</h2>
                             <p>info@habeshacareers.com</p>
                         </div>
-
-                        <div class="info-card">
-                            <h3>📍 Location</h3>
+                        <div class="card info-card">
+                            <h2 class="card-title">Based in</h2>
                             <p>Addis Ababa, Ethiopia</p>
                         </div>
-
-                        <div class="info-card">
-                            <h3>🕒 Business Hours</h3>
-                            <p>Monday - Friday: 9:00 AM - 5:00 PM</p>
-                            <p>Saturday: 10:00 AM - 2:00 PM</p>
+                        <div class="card info-card">
+                            <h2 class="card-title">About this form</h2>
+                            <p>Use the form to draft and review a message. Nothing is delivered to a server from this page.</p>
                         </div>
-
-                        <div class="info-card">
-                            <h3>🌐 Follow Us</h3>
-                            <div class="social-links">
-                                <a href="#" class="social-link">Facebook</a>
-                                <a href="#" class="social-link">LinkedIn</a>
-                                <a href="#" class="social-link">Twitter</a>
-                            </div>
-                        </div>
-                    </div>
+                    </aside>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>Habesha Careers</h4>
-                    <p>Empowering careers across Ethiopia and the Horn of Africa</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="jobs.html">Browse Jobs</a></li>
-                        <li><a href="post-job.html">Post a Job</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Contact</h4>
-                    <p>Email: info@habeshacareers.com</p>
-                    <p>Addis Ababa, Ethiopia</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Habesha Careers. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="js/data.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/contact.js"></script>
-    <script src="js/main.js"></script>
+    <div id="app-footer"></div>
+    <script src="js/app.js" defer></script>
+    <script src="js/pages.js" defer></script>
 </body>
 </html>

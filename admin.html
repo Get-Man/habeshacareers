@@ -5,171 +5,222 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Admin - Habesha Careers</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="description" content="Administrative tools for Habesha Careers.">
     <link rel="icon" type="image/png" href="images/logo.png">
-    <link rel="stylesheet" href="css/admin.css">
-    <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/claude-overrides.css">
-    <link rel="stylesheet" href="css/glass-ui.css">
+    <link rel="stylesheet" href="css/app.css">
 </head>
-<body>
-<a class="skip-link" href="#main-content">Skip to main content</a>
-<header>
-    <nav class="navbar"><div class="container">
-        <div class="logo"><img src="images/logo.png" alt="Logo" class="logo-img"><h1>Habesha Careers</h1></div>
-        <ul class="nav-menu">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="jobs.html">Jobs</a></li>
-            <li id="postJobLink"><a href="post-job.html">Post Job</a></li>
-            <li><a href="admin.html" class="active">Admin</a></li>
-            <li id="loginLink">
-                <a href="login.html" class="login-icon" title="Login">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                        <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/>
-                    </svg>
-                </a>
-            </li>
-            <li id="profileLink" style="display: none;">
-                <a href="profile.html" class="profile-icon" title="My Profile">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
-                </a>
-            </li>
-        </ul>
-        <div class="hamburger"><span></span><span></span><span></span></div>
-    </div></nav>
-</header>
-<main id="main-content">
-<section class="jobs-page"><div class="container admin-wrap">
-    <h2>Admin Dashboard</h2>
-    <p class="muted">Monitor discovery, extraction quality, application links and source health. Source identity is admin-only and never rendered on public pages. Requests use a server-side <code>ADMIN_API_KEY</code>.</p>
-    <div class="key-box">
-        <input id="adminKey" type="password" placeholder="ADMIN_API_KEY (stored in this tab only)" autocomplete="off">
-        <button class="btn-primary" onclick="AdminApp.saveKey()">Save Key</button>
-        <button class="btn-secondary" onclick="AdminApp.refreshAll()">Refresh</button>
-    </div>
-    <div id="adminMsg" class="muted" role="status" aria-live="polite"></div>
+<body data-page="admin" data-roles="admin">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div id="app-header"></div>
 
-    <nav class="admin-tabs" aria-label="Admin sections">
-        <button class="admin-tab active" data-tab="overview" onclick="AdminApp.showTab('overview')">Overview</button>
-        <button class="admin-tab" data-tab="review" onclick="AdminApp.showTab('review')">Review queue <span id="reviewCountBadge" class="pill status-review">0</span></button>
-        <button class="admin-tab" data-tab="jobs" onclick="AdminApp.showTab('jobs')">Jobs</button>
-        <button class="admin-tab" data-tab="sources" onclick="AdminApp.showTab('sources')">Sources</button>
-        <button class="admin-tab" data-tab="monitoring" onclick="AdminApp.showTab('monitoring')">Source monitoring</button>
-        <button class="admin-tab" data-tab="employers" onclick="AdminApp.showTab('employers')">Employers</button>
-        <button class="admin-tab" data-tab="runs" onclick="AdminApp.showTab('runs')">Runs &amp; submissions</button>
-        <button class="admin-tab" data-tab="audit" onclick="AdminApp.showTab('audit')">Audit trail</button>
-    </nav>
+    <main id="main-content">
+        <section class="jobs-page admin-page">
+            <div class="container admin-wrap">
+                <h1 class="page-title">Admin Dashboard</h1>
+                <p class="muted">Monitor discovery, extraction quality, application links and source health. Source identity is admin-only and never rendered on public pages.</p>
 
-    <div class="admin-grid">
-        <div class="admin-panel" data-panel="overview">
-            <div class="admin-cards" id="statsCards"></div>
-
-            <div class="admin-section" style="margin-top:1rem">
-                <div class="admin-toolbar">
-                    <h3>Discovery &amp; extraction queue</h3>
-                    <button class="btn-secondary" onclick="AdminApp.loadExtraction()">Refresh</button>
-                    <button class="btn-secondary" onclick="AdminApp.requeueFailed()">Requeue failed</button>
-                    <button class="btn-primary" onclick="AdminApp.runExtraction()">Run extraction</button>
+                <div class="card key-box">
+                    <div class="form-group">
+                        <label for="adminKey">Admin API key</label>
+                        <input id="adminKey" type="password" class="form-control" placeholder="Admin API key (stored in this tab only)" autocomplete="off">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="saveAdminKey" class="btn btn-primary" data-admin-action="save-key">Save Key</button>
+                        <button type="button" id="refreshAdmin" class="btn btn-secondary" data-admin-action="refresh">Refresh</button>
+                    </div>
                 </div>
-                <p class="muted" style="margin-top:0">Stage A discovers individual announcement URLs. Stage B opens and verifies each announcement before publishing. Locks prevent overlapping runs.</p>
-                <div class="admin-cards" id="queueCards"></div>
-                <div class="admin-sub" style="margin-top:.85rem">
-                    <h4>Active locks</h4>
-                    <div style="overflow:auto"><table class="admin-table" id="locksTable"><thead><tr><th>Lock</th><th>Owner</th><th>Locked at</th><th>Expires</th></tr></thead><tbody></tbody></table></div>
+                <div id="adminMsg" class="muted" role="status" aria-live="polite"></div>
+
+                <nav class="admin-tabs" aria-label="Admin sections">
+                    <button type="button" class="admin-tab active" data-admin-tab="overview" data-tab="overview" aria-selected="true">Overview</button>
+                    <button type="button" class="admin-tab" data-admin-tab="review" data-tab="review" aria-selected="false">Review queue <span id="reviewCountBadge" class="pill badge status-review">0</span></button>
+                    <button type="button" class="admin-tab" data-admin-tab="jobs" data-tab="jobs" aria-selected="false">Jobs</button>
+                    <button type="button" class="admin-tab" data-admin-tab="sources" data-tab="sources" aria-selected="false">Sources</button>
+                    <button type="button" class="admin-tab" data-admin-tab="monitoring" data-tab="monitoring" aria-selected="false">Source monitoring</button>
+                    <button type="button" class="admin-tab" data-admin-tab="employers" data-tab="employers" aria-selected="false">Employers</button>
+                    <button type="button" class="admin-tab" data-admin-tab="runs" data-tab="runs" aria-selected="false">Runs &amp; submissions</button>
+                    <button type="button" class="admin-tab" data-admin-tab="audit" data-tab="audit" aria-selected="false">Audit trail</button>
+                </nav>
+
+                <div class="admin-grid">
+                    <section class="admin-panel" data-admin-tab="overview" data-panel="overview">
+                        <div class="admin-cards" id="statsCards"></div>
+
+                        <div class="admin-section">
+                            <div class="admin-toolbar">
+                                <h2 class="section-title">Discovery &amp; extraction queue</h2>
+                                <button type="button" id="refreshExtraction" class="btn btn-secondary" data-admin-action="load-extraction">Refresh</button>
+                                <button type="button" id="requeueFailed" class="btn btn-secondary" data-admin-action="requeue-failed">Requeue failed</button>
+                                <button type="button" id="runExtraction" class="btn btn-primary" data-admin-action="run-extraction">Run extraction</button>
+                            </div>
+                            <p class="muted">Stage A discovers individual announcement URLs. Stage B opens and verifies each announcement before publishing. Locks prevent overlapping runs.</p>
+                            <div class="admin-cards" id="queueCards"></div>
+                            <div class="admin-sub">
+                                <h3>Active locks</h3>
+                                <div class="table-responsive">
+                                    <table class="table admin-table" id="locksTable">
+                                        <thead><tr><th>Lock</th><th>Owner</th><th>Locked at</th><th>Expires</th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="admin-panel" data-admin-tab="review" data-panel="review" hidden>
+                        <div class="admin-section">
+                            <div class="admin-toolbar">
+                                <h2 class="section-title">Needs review</h2>
+                                <select id="reviewFilter" class="form-control" aria-label="Review status">
+                                    <option value="">All flagged</option>
+                                    <option value="pending">Pending review</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                                <button type="button" id="refreshReview" class="btn btn-secondary" data-admin-action="load-review">Refresh</button>
+                            </div>
+                            <p class="muted">Flagged when extraction is partial, the employer is unverified, or the application link is missing or unverified. Review never exposes source identity on the public site.</p>
+                            <div class="table-responsive">
+                                <table class="table admin-table" id="reviewTable">
+                                    <thead><tr><th>ID</th><th>Job</th><th>Source</th><th>Status</th><th>Extraction</th><th>Apply</th><th>Candidates</th><th>Actions</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="admin-section admin-detail" id="reviewDetail" hidden>
+                            <h2 class="section-title">Review detail</h2>
+                            <p class="muted">Select a flagged job above to inspect and correct it.</p>
+                            <div class="form-group">
+                                <label for="manualApplyUrl">Application link</label>
+                                <input id="manualApplyUrl" type="url" class="form-control" placeholder="https://employer.example/careers/apply/123 or mailto:jobs@employer.example">
+                            </div>
+                            <div class="form-group">
+                                <label for="reviewNote">Reviewer note</label>
+                                <textarea id="reviewNote" class="form-control admin-note" rows="3" placeholder="Reviewer note (recorded in audit trail)"></textarea>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="admin-panel" data-admin-tab="jobs" data-panel="jobs" hidden>
+                        <div class="admin-section">
+                            <div class="admin-toolbar">
+                                <h2 class="section-title">Job listings</h2>
+                                <select id="jobStatusFilter" class="form-control" aria-label="Job status">
+                                    <option value="">All statuses</option>
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="expired">Expired</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="archived">Archived</option>
+                                </select>
+                                <button type="button" id="refreshJobs" class="btn btn-secondary" data-admin-action="load-jobs">Refresh</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table admin-table" id="jobsTable">
+                                    <thead><tr><th>ID</th><th>Title</th><th>Company</th><th>Source</th><th>Status</th><th>Review</th><th>Apply</th><th>Deadline</th><th>Actions</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="admin-panel" data-admin-tab="sources" data-panel="sources" hidden>
+                        <div class="admin-section">
+                            <div class="admin-toolbar">
+                                <h2 class="section-title">Job sources</h2>
+                                <button type="button" id="syncSources" class="btn btn-secondary" data-admin-action="sync-sources">Sync enabled sources</button>
+                            </div>
+                            <p class="muted">Enable only sources with verified legal and technical access. Per-source locks prevent concurrent discovery. Source details are never published.</p>
+                            <div class="table-responsive">
+                                <table class="table admin-table" id="sourcesTable">
+                                    <thead><tr><th>Source</th><th>Adapter</th><th>Status</th><th>Enabled</th><th>Queue</th><th>Listings</th><th>Last discovery</th><th>Actions</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="admin-panel" data-admin-tab="monitoring" data-panel="monitoring" hidden>
+                        <div class="admin-section">
+                            <div class="admin-toolbar">
+                                <h2 class="section-title">Source monitoring</h2>
+                                <button type="button" id="refreshMonitoring" class="btn btn-secondary" data-admin-action="load-monitoring">Refresh</button>
+                            </div>
+                            <p class="muted">Latest sync result per source. Counts come from the most recent run; rows stay visible before the first run. Source details are never published.</p>
+                            <div class="table-responsive">
+                                <table class="admin-table" id="monitoringTable"><thead><tr><th>Source</th><th>Status</th><th>Last Fetch</th><th>Jobs Found</th><th>New Jobs</th><th>Updated</th><th>Errors</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="admin-panel" data-admin-tab="employers" data-panel="employers" hidden>
+                        <div class="admin-section">
+                            <div class="admin-toolbar">
+                                <h2 class="section-title">Employer directory</h2>
+                                <input id="employerSearch" type="search" class="form-control" aria-label="Search organisations" placeholder="Search organisations" data-admin-action="load-employers">
+                                <button type="button" id="refreshEmployers" class="btn btn-secondary" data-admin-action="load-employers">Refresh</button>
+                            </div>
+                            <p class="muted">One verified identity and one official logo per organisation, shared by every vacancy of that organisation — even when the vacancies come from different job boards.</p>
+                            <div class="table-responsive">
+                                <table class="table admin-table" id="employersTable">
+                                    <thead><tr><th>ID</th><th>Organisation</th><th>Website</th><th>Logo</th><th>Status</th><th>Vacancies</th><th>Actions</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="admin-panel" data-admin-tab="runs" data-panel="runs" hidden>
+                        <div class="admin-section">
+                            <div class="admin-toolbar">
+                                <h2 class="section-title">Synchronization runs</h2>
+                                <button type="button" id="refreshRuns" class="btn btn-secondary" data-admin-action="load-runs">Refresh</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table admin-table" id="runsTable">
+                                    <thead><tr><th>Started</th><th>Source</th><th>Trigger</th><th>Status</th><th>Discovered</th><th>Extracted</th><th>Apply</th><th>Review</th><th>Dupes</th><th>Errors</th><th>Duration</th><th>Message</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="admin-section">
+                            <div class="admin-toolbar">
+                                <h2 class="section-title">Employer submissions</h2>
+                                <button type="button" id="refreshSubs" class="btn btn-secondary" data-admin-action="load-subs">Refresh</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table admin-table" id="subsTable">
+                                    <thead><tr><th>ID</th><th>Company</th><th>Title</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="admin-panel" data-admin-tab="audit" data-panel="audit" hidden>
+                        <div class="admin-section">
+                            <div class="admin-toolbar">
+                                <h2 class="section-title">Audit trail</h2>
+                                <button type="button" id="refreshAudit" class="btn btn-secondary" data-admin-action="load-audit">Refresh</button>
+                            </div>
+                            <p class="muted">Every manual apply correction, approval, rejection and retry is recorded with actor, timestamp and previous value.</p>
+                            <div class="table-responsive">
+                                <table class="table admin-table" id="auditTable">
+                                    <thead><tr><th>When</th><th>Job</th><th>Actor</th><th>Action</th><th>Field</th><th>Old &rarr; New</th><th>Note</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
-        </div>
+        </section>
+    </main>
 
-        <div class="admin-panel" data-panel="review" hidden>
-            <div class="admin-section">
-                <div class="admin-toolbar">
-                    <h3>Needs review</h3>
-                    <select id="reviewFilter" onchange="AdminApp.loadReview()">
-                        <option value="">All flagged</option>
-                        <option value="pending">Pending review</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
-                    <button class="btn-secondary" onclick="AdminApp.loadReview()">Refresh</button>
-                </div>
-                <p class="muted" style="margin-top:0">Flagged when extraction is partial, the employer is unverified, or the application link is missing/unverified. Review never exposes source identity to the public site.</p>
-                <div style="overflow:auto"><table class="admin-table" id="reviewTable"><thead><tr><th>ID</th><th>Job</th><th>Source</th><th>Status</th><th>Extraction</th><th>Apply</th><th>Candidates</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
-            </div>
-            <div class="admin-section admin-detail" id="reviewDetail" hidden></div>
-        </div>
-
-        <div class="admin-panel" data-panel="jobs" hidden>
-            <div class="admin-section">
-                <div class="admin-toolbar"><h3>Job listings</h3>
-                    <select id="jobStatusFilter" onchange="AdminApp.loadJobs()"><option value="">All statuses</option><option value="active">Active</option><option value="pending">Pending</option><option value="expired">Expired</option><option value="rejected">Rejected</option><option value="archived">Archived</option></select>
-                    <button class="btn-secondary" onclick="AdminApp.loadJobs()">Refresh</button>
-                </div>
-                <div style="overflow:auto"><table class="admin-table" id="jobsTable"><thead><tr><th>ID</th><th>Title</th><th>Company</th><th>Source</th><th>Status</th><th>Review</th><th>Apply</th><th>Deadline</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
-            </div>
-        </div>
-
-        <div class="admin-panel" data-panel="sources" hidden>
-            <div class="admin-section">
-                <div class="admin-toolbar"><h3>Job sources</h3><button class="btn-secondary" onclick="AdminApp.syncAll()">Sync enabled sources</button></div>
-                <p class="muted" style="margin-top:0">Enable only sources with verified legal and technical access. Per-source locks prevent concurrent discovery. Source details are never published.</p>
-                <div style="overflow:auto"><table class="admin-table" id="sourcesTable"><thead><tr><th>Source</th><th>Adapter</th><th>Status</th><th>Enabled</th><th>Queue</th><th>Listings</th><th>Last discovery</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
-            </div>
-        </div>
-
-        <div class="admin-panel" data-panel="monitoring" hidden>
-            <div class="admin-section">
-                <div class="admin-toolbar"><h3>Source monitoring</h3><button class="btn-secondary" onclick="AdminApp.loadMonitoring()">Refresh</button></div>
-                <p class="muted" style="margin-top:0">Latest sync result per source. Counts come from the most recent run; rows stay visible before the first run. Source details are never published.</p>
-                <div style="overflow:auto"><table class="admin-table" id="monitoringTable"><thead><tr><th>Source</th><th>Status</th><th>Last Fetch</th><th>Jobs Found</th><th>New Jobs</th><th>Updated</th><th>Errors</th></tr></thead><tbody></tbody></table></div>
-            </div>
-        </div>
-
-        <div class="admin-panel" data-panel="employers" hidden>
-            <div class="admin-section">
-                <div class="admin-toolbar">
-                    <h3>Employer directory</h3>
-                    <input id="employerSearch" type="search" placeholder="Search organisations" oninput="AdminApp.loadEmployers()" style="padding:.45rem;border:1px solid #cbd5e1;border-radius:8px;min-width:220px">
-                    <button class="btn-secondary" onclick="AdminApp.loadEmployers()">Refresh</button>
-                </div>
-                <p class="muted" style="margin-top:0">One verified identity and one official logo per organisation, shared by every vacancy of that organisation — even when the vacancies come from different job boards.</p>
-                <div style="overflow:auto"><table class="admin-table" id="employersTable"><thead><tr><th>ID</th><th>Organisation</th><th>Website</th><th>Logo</th><th>Status</th><th>Vacancies</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
-            </div>
-        </div>
-
-        <div class="admin-panel" data-panel="runs" hidden>
-            <div class="admin-section">
-                <div class="admin-toolbar"><h3>Synchronization runs</h3><button class="btn-secondary" onclick="AdminApp.loadRuns()">Refresh</button></div>
-                <div style="overflow:auto"><table class="admin-table" id="runsTable"><thead><tr><th>Started</th><th>Source</th><th>Trigger</th><th>Status</th><th>Discovered</th><th>Extracted</th><th>Apply</th><th>Review</th><th>Dupes</th><th>Errors</th><th>Duration</th><th>Message</th></tr></thead><tbody></tbody></table></div>
-            </div>
-            <div class="admin-section" style="margin-top:1rem">
-                <div class="admin-toolbar"><h3>Employer submissions</h3><button class="btn-secondary" onclick="AdminApp.loadSubs()">Refresh</button></div>
-                <div style="overflow:auto"><table class="admin-table" id="subsTable"><thead><tr><th>ID</th><th>Company</th><th>Title</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
-            </div>
-        </div>
-
-        <div class="admin-panel" data-panel="audit" hidden>
-            <div class="admin-section">
-                <div class="admin-toolbar"><h3>Audit trail</h3><button class="btn-secondary" onclick="AdminApp.loadAudit()">Refresh</button></div>
-                <p class="muted" style="margin-top:0">Every manual apply correction, approval, rejection and retry is recorded with actor, timestamp and previous value.</p>
-                <div style="overflow:auto"><table class="admin-table" id="auditTable"><thead><tr><th>When</th><th>Job</th><th>Actor</th><th>Action</th><th>Field</th><th>Old → New</th><th>Note</th></tr></thead><tbody></tbody></table></div>
-            </div>
-        </div>
-    </div>
-</div></section>
-</main>
-<footer><div class="container"><div class="footer-bottom"><p>&copy; 2025 Habesha Careers. Admin tools require secure server configuration.</p></div></div></footer>
-<script src="js/auth.js"></script>
-<script src="js/guards.js"></script>
-<script>
-    // The admin console also accepts a tab-scoped ADMIN_API_KEY (no session).
-    // Skip the session guard when a key is present so key-based access keeps working.
-    if (!sessionStorage.getItem('habesha_admin_key')) {
-        window.HCGuards.requireRole(['admin']);
-    }
-</script>
-<script src="js/main.js"></script>
-<script src="js/admin.js"></script>
+    <div id="app-footer"></div>
+    <script src="js/app.js" defer></script>
+    <script src="js/pages.js" defer></script>
 </body>
 </html>

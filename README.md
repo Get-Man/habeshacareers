@@ -1,82 +1,69 @@
-# Habesha Career - Job Portal Website
+# Habesha Careers
 
-A modern, responsive job portal platform for Ethiopia and the Horn of Africa.
+A job portal for Ethiopia and the Horn of Africa. Real vacancies are discovered from
+documented public sources, verified where possible, and published with a clear
+`verified` / `partially_verified` / `needs_review` / `expired` label.
 
-## Features
+Live site: https://habeshacareers.vercel.app
 
-- **Job Search & Filtering**: Search jobs by keyword, category, location, and type
-- **Job Listings**: Browse all available opportunities with detailed information
-- **Job Details**: View complete job descriptions, requirements, and application info
-- **Post Jobs**: Employers can submit job openings through a simple form
-- **About Page**: Learn about the platform's mission and vision
-- **Contact Form**: Get in touch with the Habesha Career team
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **Ethiopian Theme**: Colors inspired by the Ethiopian flag (Green, Yellow, Red)
+## What is in this repository
 
-## Pages
+- **Ten HTML pages** — a single shared shell with one stylesheet and one JS runtime.
+  `index.html`, `jobs.html`, `job-details.html`, `login.html`, `dashboard.html`,
+  `account.html`, `post-job.html`, `admin.html`, `about.html`, `contact.html`.
+- **`css/app.css`** — the only stylesheet: design tokens, components, responsive
+  breakpoints at 1024/860/640/420px, print and reduced-motion styles.
+- **`js/app.js`** — the shared runtime: server-verified sessions, injected header and
+  footer, role guards, toasts, API client, job cards and company-logo fallbacks.
+- **`js/pages.js`** — one controller per page: search/filter/sort/pagination, job
+  details, sign-in and registration, password reset, dashboards, profile and CV
+  builder, job submission and the admin console.
+- **`api/`** — Vercel serverless endpoints (auth, account, employer, admin, jobs,
+  sitemap). Catch-all functions keep the deployment within the Hobby function cap.
+- **`lib/`** — database, auth, job repository and the two-stage discovery/extraction
+  engine.
+- **`migrations/`** — PostgreSQL schema, including source monitoring and the account
+  suite.
+- **`scripts/`** — migrations, sync/extract jobs and the smoke test suite.
 
-1. **Home (index.html)** - Welcome page with search bar, categories, and recent jobs
-2. **Jobs (jobs.html)** - Complete job listings with filters and search
-3. **Job Details (job-details.html)** - Detailed view of individual job postings
-4. **Post Job (post-job.html)** - Form for employers to submit job openings
-5. **About (about.html)** - Information about Habesha Career
-6. **Contact (contact.html)** - Contact form and information
+## Accounts
 
-## Technologies Used
+Public registration creates `employee` or `employer` accounts only. Administrators are
+provisioned outside the site (bootstrap environment variables or
+`node scripts/create-admin.mjs`) and sign in through the normal login page.
 
-- **HTML5** - Structure and content
-- **CSS3** - Styling with Ethiopian color theme
-- **JavaScript** - Interactive functionality
-- **LocalStorage** - Client-side data persistence
+Signed-in users get role dashboards, editable profiles, a structured profile/CV builder,
+password change, password reset by email webhook, and a session list with
+"sign out everywhere".
 
-## Getting Started
+## Job sources
 
-1. Open `index.html` in your web browser
-2. Browse jobs, search by keyword, or filter by category
-3. Click on any job to view full details
-4. Use the "Post Job" page to add new opportunities
-5. Contact page for inquiries
+Enabled discovery adapters: `srafelagi`, `aradajobs`, `un-careers-ethiopia`.
+Source URLs are stored on every listing; duplicates update the canonical record and
+attach the new source. Expired listings are marked `expired` rather than deleted.
+The admin console's **Source monitoring** tab shows:
+`Source | Status | Last Fetch | Jobs Found | New Jobs | Updated | Errors`.
 
-## Color Scheme
+## Local development
 
-- Green: #009A44 (Ethiopian flag green)
-- Red: #DA1A32 (Ethiopian flag red)
-- Yellow: #FDB913 (Ethiopian flag yellow)
-- Dark: #2c3e50 (Text and headers)
-- Light Gray: #f4f4f4 (Backgrounds)
+```bash
+npm install
+npm run db:migrate      # requires a DATABASE_URL / POSTGRES_URL
+npm run sync:once       # discover and extract jobs once
+npm run test:smoke      # 122 assertions
+```
 
-## Job Categories
+The site is static HTML plus serverless functions; there is no bundler step. Deploying
+to Vercel runs `scripts/vercel-build.mjs`, which applies pending migrations when a
+database URL is configured.
 
-- IT & Technology
-- Health
-- NGO & Development
-- Engineering
-- Education
-- Finance
+## Environment
 
-## Data Storage
-
-Jobs are stored in the browser's localStorage, making it easy to test and demo. For production use, you would integrate with a backend database.
-
-## Future Enhancements
-
-- User authentication (job seekers and employers)
-- Resume upload system
-- Saved/favorite jobs
-- Email notifications
-- Admin dashboard
-- Backend integration (Node.js, Python, PHP)
-- Database (MongoDB, MySQL, PostgreSQL)
-- Mobile app
-
-## Browser Support
-
-Works on all modern browsers:
-- Chrome
-- Firefox
-- Safari
-- Edge
+Database and auth credentials are injected by the platform. Optional settings:
+`PUBLIC_SITE_URL`, `SYNC_TOKEN`, `CRON_SECRET`, `ADMIN_API_KEY`,
+`EMAIL_WEBHOOK_URL` (receives `{ to, resetUrl }` for password resets),
+`INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD`.
 
 ## License
 
-© 2025 Habesha Career. All rights reserved.
+© Habesha Careers. All rights reserved.

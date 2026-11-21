@@ -4,84 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Habesha Careers - Job Opportunities in Ethiopia</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="description" content="Discover job opportunities across Ethiopia and the Horn of Africa. Browse vacancies by category, location and job type on Habesha Careers.">
     <link rel="icon" type="image/png" href="images/logo.png">
-    <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/claude-overrides.css">
-    <link rel="stylesheet" href="css/glass-ui.css">
+    <link rel="stylesheet" href="css/app.css">
 </head>
-<body>
-<a class="skip-link" href="#main-content">Skip to main content</a>
-    <header>
-        <nav class="navbar">
-            <div class="container">
-                <div class="logo">
-                    <img src="images/logo.png" alt="Logo" class="logo-img">
-                    <h1>Habesha Careers</h1>
-                </div>
-                <ul class="nav-menu">
-                    <li><a href="index.html" class="active">Home</a></li>
-                    <li><a href="jobs.html">Jobs</a></li>
-                    <li id="postJobLink"><a href="post-job.html">Post Job</a></li>
-                    <li><a href="about.html">About</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                    <li id="loginLink">
-                        <a href="login.html" class="login-icon" title="Login">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                                <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/>
-                            </svg>
-                        </a>
-                    </li>
-                    <li id="profileLink" style="display: none;">
-                        <a href="profile.html" class="profile-icon" title="My Profile">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                            </svg>
-                        </a>
-                    </li>
-                </ul>
-                <div class="hamburger">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        </nav>
-    </header>
+<body data-page="home">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div id="app-header"></div>
 
     <main id="main-content">
         <section class="hero">
-            <svg class="hero-lines" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" preserveAspectRatio="none">
-                <path class="line-1" d="M0,150 Q300,50 600,150 T1200,150" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
-                <path class="line-2" d="M0,100 Q300,200 600,100 T1200,100" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
-                <path class="line-3" d="M0,200 Q300,100 600,200 T1200,200" fill="none" stroke="rgba(255,215,0,0.3)" stroke-width="3"/>
-                <circle class="circle-1" cx="150" cy="80" r="40" fill="rgba(255,255,255,0.1)"/>
-                <circle class="circle-2" cx="950" cy="220" r="60" fill="rgba(255,215,0,0.15)"/>
-                <circle class="circle-3" cx="500" cy="50" r="25" fill="rgba(255,255,255,0.08)"/>
-                <polygon class="poly-1" points="1100,50 1120,90 1080,90" fill="rgba(255,255,255,0.12)"/>
-                <polygon class="poly-2" points="250,250 280,280 220,280" fill="rgba(255,215,0,0.2)"/>
-            </svg>
-            <div class="hero-decorations">
-                <div class="deco-circle deco-1"></div>
-                <div class="deco-circle deco-2"></div>
-                <div class="deco-square deco-3"></div>
-                <div class="deco-square deco-4"></div>
-            </div>
             <div class="container">
                 <div class="hero-content">
                     <div class="hero-text">
-                        <h2>Find Your Dream Career in Ethiopia</h2>
-                        <p>Connecting talent with opportunities across the Horn of Africa</p>
-                        <div class="search-bar">
+                        <h1>Find Your Dream Career in Ethiopia</h1>
+                        <p>Connecting talent with opportunities across the Horn of Africa.</p>
+                        <div class="search-bar" role="search">
                             <div class="search-input-wrapper">
-                                <input type="text" id="homeSearch" placeholder="Search jobs by title or keyword...">
-                                <button class="clear-btn" onclick="clearSearch('homeSearch')" style="display: none;">✕</button>
+                                <input type="search" id="homeSearch" aria-label="Search jobs by title or keyword" placeholder="Search jobs by title or keyword...">
                             </div>
-                            <button onclick="searchJobs()">Search</button>
+                            <button type="button" id="homeSearchBtn" class="btn btn-primary" data-search-submit>Search</button>
                         </div>
                     </div>
                     <div class="hero-image">
-                        <img src="images/hero-image.png" alt="Career Success">
+                        <img src="images/hero-image.png" alt="Career success" class="hero-img">
                     </div>
                 </div>
             </div>
@@ -89,9 +35,10 @@
 
         <section class="categories">
             <div class="container">
-                <h3>Browse by Category</h3>
-                <div class="category-grid" id="categoryGrid">
-                    <!-- Categories will be loaded dynamically with vacancy counts -->
+                <h2>Browse by Category</h2>
+                <p class="page-subtitle">Explore openings across the sectors we cover.</p>
+                <div class="category-grid grid" id="categoryGrid">
+                    <div class="empty-state">Loading categories…</div>
                 </div>
             </div>
         </section>
@@ -99,94 +46,64 @@
         <section class="recent-jobs">
             <div class="container">
                 <div class="recent-jobs-header">
-                    <h3>Recently Posted Jobs</h3>
-                    <div class="recent-jobs-search">
-                        <input type="text" id="recentJobsSearch" placeholder="Search jobs...">
-                        <button onclick="searchRecentJobs()">Search</button>
+                    <h2>Recently Posted Jobs</h2>
+                    <div class="recent-jobs-search" role="search">
+                        <input type="search" id="recentJobsSearch" aria-label="Search recent jobs" placeholder="Search recent jobs...">
                     </div>
                 </div>
-                <div id="recentJobsList" class="jobs-grid"></div>
+                <div id="recentJobsList" class="jobs-grid grid">
+                    <div class="empty-state">Loading recent jobs…</div>
+                </div>
                 <div class="view-all">
-                    <a href="jobs.html" class="btn-primary">View All Jobs</a>
+                    <a href="jobs.html" class="btn btn-primary">View All Jobs</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="impact-stats">
+            <div class="container">
+                <h2>Live Platform Snapshot</h2>
+                <p class="page-subtitle">A current view of opportunities and organisations on Habesha Careers.</p>
+                <div class="stats-grid grid grid-4">
+                    <div class="stat-card">
+                        <div class="stat-icon" aria-hidden="true">&#128188;</div>
+                        <div class="stat-number" id="statJobs" data-target="0">0</div>
+                        <div class="stat-label" id="statJobsLabel">Active Vacancies</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" aria-hidden="true">&#127970;</div>
+                        <div class="stat-number" id="statOrgs" data-target="0">0</div>
+                        <div class="stat-label" id="statOrgsLabel">Partner Organisations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" aria-hidden="true">&#128193;</div>
+                        <div class="stat-number" id="statCategories" data-target="0">0</div>
+                        <div class="stat-label" id="statCategoriesLabel">Categories Covered</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" aria-hidden="true">&#128279;</div>
+                        <div class="stat-number" id="statSources" data-target="0">0</div>
+                        <div class="stat-label" id="statSourcesLabel">Verified Employers</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="partners-section">
+            <div class="container">
+                <h2>Our Trusted Partners</h2>
+                <p class="page-subtitle">Organisations with vacancies currently posted on Habesha Careers.</p>
+                <div class="partners-slider">
+                    <div class="partners-track" id="partnersTrack">
+                        <div class="partner-logo partner-logo-empty">Loading partner organisations…</div>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Impact Statistics Section -->
-    <section class="impact-stats">
-        <div class="container">
-            <h3>Live Platform Snapshot</h3>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">💼</div>
-                    <div class="stat-number" id="statJobs" data-target="0">0</div>
-                    <div class="stat-label" id="statJobsLabel">Active Vacancies</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🏢</div>
-                    <div class="stat-number" id="statOrgs" data-target="0">0</div>
-                    <div class="stat-label" id="statOrgsLabel">Partner Organizations</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📂</div>
-                    <div class="stat-number" id="statCategories" data-target="0">0</div>
-                    <div class="stat-label" id="statCategoriesLabel">Categories Covered</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🔗</div>
-                    <div class="stat-number" id="statSources" data-target="0">0</div>
-                    <div class="stat-label" id="statSourcesLabel">Verified Employers</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="partners-section">
-        <div class="container">
-            <h3>Our Trusted Partners</h3>
-            <p style="text-align:center;color:#555;margin:-.5rem 0 1rem">Organizations with vacancies currently posted on Habesha Careers</p>
-            <div class="partners-slider">
-                <div class="partners-track" id="partnersTrack">
-                    <div class="partner-logo partner-logo-empty">Loading partner organizations…</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>Habesha Careers</h4>
-                    <p>Empowering careers across Ethiopia and the Horn of Africa</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="jobs.html">Browse Jobs</a></li>
-                        <li><a href="post-job.html">Post a Job</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                        <li><a href="admin.html">Admin</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Contact</h4>
-                    <p>Email: info@habeshacareers.com</p>
-                    <p>Phone: +251 910 804 879</p>
-                    <p>Phone: +251 943 849 645</p>
-                    <p>Addis Ababa, Ethiopia</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Habesha Careers. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="js/data.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/main.js"></script>
+    <div id="app-footer"></div>
+    <script src="js/app.js" defer></script>
+    <script src="js/pages.js" defer></script>
 </body>
 </html>

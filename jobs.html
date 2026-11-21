@@ -4,64 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Listings - Habesha Careers</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="description" content="Search and filter current job vacancies across Ethiopia by category, location, job type and deadline.">
     <link rel="icon" type="image/png" href="images/logo.png">
-    <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/claude-overrides.css">
-    <link rel="stylesheet" href="css/glass-ui.css">
+    <link rel="stylesheet" href="css/app.css">
 </head>
-<body>
-<a class="skip-link" href="#main-content">Skip to main content</a>
-    <header>
-        <nav class="navbar">
-            <div class="container">
-                <div class="logo">
-                    <img src="images/logo.png" alt="Logo" class="logo-img">
-                    <h1>Habesha Careers</h1>
-                </div>
-                <ul class="nav-menu">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="jobs.html" class="active">Jobs</a></li>
-                    <li id="postJobLink"><a href="post-job.html">Post Job</a></li>
-                    <li><a href="about.html">About</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                    <li id="loginLink">
-                        <a href="login.html" class="login-icon" title="Login">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                                <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/>
-                            </svg>
-                        </a>
-                    </li>
-                    <li id="profileLink" style="display: none;">
-                        <a href="profile.html" class="profile-icon" title="My Profile">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                            </svg>
-                        </a>
-                    </li>
-                </ul>
-                <div class="hamburger">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        </nav>
-    </header>
+<body data-page="jobs">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div id="app-header"></div>
 
     <main id="main-content">
         <section class="jobs-page">
             <div class="container">
-                <h2>Available Job Opportunities</h2>
-                
+                <h1 class="page-title">Available Job Opportunities</h1>
+                <p class="page-subtitle">Browse the latest vacancies and narrow them down to fit your skills and location.</p>
+
                 <div class="jobs-layout" id="jobsLayout">
                     <button type="button" class="filters-toggle" id="filtersToggle" aria-expanded="false" aria-controls="jobsFilters">Categories &amp; Filters</button>
-                    <aside class="filters" id="jobsFilters">
-                        <h3>Filter Jobs</h3>
-                        
+
+                    <aside class="filters" id="jobsFilters" aria-label="Filter jobs">
+                        <h2 class="card-title">Filter Jobs</h2>
+
                         <div class="filter-group">
-                            <label>Category</label>
-                            <select id="categoryFilter">
+                            <label for="categoryFilter">Category</label>
+                            <select id="categoryFilter" class="form-control">
                                 <option value="">All Categories</option>
                                 <option value="Healthcare and Medical">Healthcare and Medical</option>
                                 <option value="Information Technology">Information Technology and Computer Science</option>
@@ -81,20 +46,17 @@
                         </div>
 
                         <div class="filter-group">
-                            <label>Location</label>
-                            <select id="locationFilter">
+                            <label for="locationFilter">Location</label>
+                            <select id="locationFilter" class="form-control">
                                 <option value="">All Locations</option>
-                                
                                 <optgroup label="Addis Ababa">
                                     <option value="Addis Ababa">Addis Ababa</option>
                                 </optgroup>
-                                
                                 <optgroup label="Afar Region">
                                     <option value="Semera">Semera</option>
                                     <option value="Asayita">Asayita</option>
                                     <option value="Dubti">Dubti</option>
                                 </optgroup>
-                                
                                 <optgroup label="Amhara Region">
                                     <option value="Bahir Dar">Bahir Dar</option>
                                     <option value="Gondar">Gondar</option>
@@ -110,16 +72,13 @@
                                     <option value="Injibara">Injibara</option>
                                     <option value="Finote Selam">Finote Selam</option>
                                 </optgroup>
-                                
                                 <optgroup label="Benishangul-Gumuz">
                                     <option value="Asosa">Asosa</option>
                                     <option value="Kamashi">Kamashi</option>
                                 </optgroup>
-                                
                                 <optgroup label="Dire Dawa">
                                     <option value="Dire Dawa">Dire Dawa</option>
                                 </optgroup>
-                                
                                 <optgroup label="Gambela Region">
                                     <option value="Gambela">Gambela</option>
                                     <option value="Akobo">Akobo</option>
@@ -127,11 +86,9 @@
                                     <option value="Lare">Lare</option>
                                     <option value="Gog">Gog</option>
                                 </optgroup>
-                                
                                 <optgroup label="Harari Region">
                                     <option value="Harar">Harar</option>
                                 </optgroup>
-                                
                                 <optgroup label="Oromia Region">
                                     <option value="Adama">Adama</option>
                                     <option value="Bishoftu">Bishoftu</option>
@@ -152,7 +109,6 @@
                                     <option value="Dembidolo">Dembidolo</option>
                                     <option value="Shambu">Shambu</option>
                                 </optgroup>
-                                
                                 <optgroup label="Sidama Region">
                                     <option value="Hawassa">Hawassa</option>
                                     <option value="Aleta Wondo">Aleta Wondo</option>
@@ -161,7 +117,6 @@
                                     <option value="Chuko">Chuko</option>
                                     <option value="Loka Abaya">Loka Abaya</option>
                                 </optgroup>
-                                
                                 <optgroup label="Somali Region">
                                     <option value="Jijiga">Jijiga</option>
                                     <option value="Gode">Gode</option>
@@ -172,7 +127,6 @@
                                     <option value="Dollo Ado">Dollo Ado</option>
                                     <option value="Warder">Warder</option>
                                 </optgroup>
-                                
                                 <optgroup label="Central Ethiopia Regional State">
                                     <option value="Butajira">Butajira</option>
                                     <option value="Welkite">Welkite</option>
@@ -181,21 +135,18 @@
                                     <option value="Durame">Durame</option>
                                     <option value="Worabe">Worabe</option>
                                 </optgroup>
-                                
                                 <optgroup label="South Ethiopia Regional State">
                                     <option value="Wolaita Sodo">Wolaita Sodo</option>
                                     <option value="Arba Minch">Arba Minch</option>
                                     <option value="Sawla">Sawla</option>
                                     <option value="Jinka">Jinka</option>
                                 </optgroup>
-                                
                                 <optgroup label="South West Ethiopia Peoples' Region">
                                     <option value="Bonga">Bonga</option>
                                     <option value="Mizan Teferi">Mizan Teferi</option>
                                     <option value="Tepi">Tepi</option>
                                     <option value="Tarcha">Tarcha</option>
                                 </optgroup>
-                                
                                 <optgroup label="Tigray Region">
                                     <option value="Mekelle">Mekelle</option>
                                     <option value="Adigrat">Adigrat</option>
@@ -212,8 +163,8 @@
                         </div>
 
                         <div class="filter-group">
-                            <label>Job Type</label>
-                            <select id="typeFilter">
+                            <label for="typeFilter">Job Type</label>
+                            <select id="typeFilter" class="form-control">
                                 <option value="">All Types</option>
                                 <option value="Full-time / Permanent">Full-time / Permanent</option>
                                 <option value="Part-time">Part-time</option>
@@ -225,27 +176,30 @@
                         </div>
 
                         <div class="filter-group">
-                            <label>Sort By</label>
-                            <select id="sortFilter">
+                            <label for="sortFilter">Sort By</label>
+                            <select id="sortFilter" class="form-control">
                                 <option value="newest">Newest First</option>
                                 <option value="deadline">Deadline Soon</option>
                             </select>
                         </div>
 
-                        <button onclick="applyFilters()" class="btn-primary">Apply Filters</button>
-                        <button onclick="clearFilters()" class="btn-secondary">Clear</button>
+                        <div class="filter-actions">
+                            <button type="button" id="applyFiltersBtn" class="btn btn-primary" data-filter-apply>Apply Filters</button>
+                            <button type="button" id="clearFiltersBtn" class="btn btn-secondary" data-filter-clear>Clear</button>
+                        </div>
                     </aside>
 
                     <div class="jobs-content">
-                        <div class="search-bar">
+                        <div class="search-bar" role="search">
                             <div class="search-input-wrapper">
-                                <input type="text" id="jobSearch" placeholder="Search jobs by title or keyword...">
-                                <button class="clear-btn" onclick="clearSearch('jobSearch')" style="display: none;">✕</button>
+                                <input type="search" id="jobSearch" aria-label="Search jobs by title or keyword" placeholder="Search jobs by title or keyword...">
                             </div>
-                            <button onclick="searchJobsPage()">Search</button>
+                            <button type="button" id="jobSearchBtn" class="btn btn-primary" data-search-submit>Search</button>
                         </div>
-                        <div id="jobsCount" class="jobs-count"></div>
-                        <div id="jobsList" class="jobs-list"></div>
+                        <div id="jobsCount" class="jobs-count" role="status" aria-live="polite"></div>
+                        <div id="jobsList" class="jobs-list">
+                            <div class="empty-state">Loading jobs…</div>
+                        </div>
                         <div id="pagination" class="pagination"></div>
                     </div>
                 </div>
@@ -253,36 +207,8 @@
         </section>
     </main>
 
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>Habesha Careers</h4>
-                    <p>Empowering careers across Ethiopia and the Horn of Africa</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="jobs.html">Browse Jobs</a></li>
-                        <li><a href="post-job.html">Post a Job</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="admin.html">Admin</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Contact</h4>
-                    <p>Email: info@habeshacareers.com</p>
-                    <p>Addis Ababa, Ethiopia</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Habesha Careers. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="js/data.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/jobs.js"></script>
+    <div id="app-footer"></div>
+    <script src="js/app.js" defer></script>
+    <script src="js/pages.js" defer></script>
 </body>
 </html>
