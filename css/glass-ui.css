@@ -292,3 +292,92 @@ footer {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Accessibility: skip link, focus rings, keyboard-friendly controls
+   --------------------------------------------------------------------------- */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 10px;
+  z-index: 1000;
+  background: #fffdf9;
+  color: #1f1e1b;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  box-shadow: var(--hc-glass-shadow);
+  font-weight: 600;
+}
+.skip-link:focus { left: 10px; }
+
+.card-tab-btn, .admin-tab, .filters-toggle, .pagination button, .clear-btn {
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+}
+.card-tab-btn:hover, .admin-tab:hover, .filters-toggle:hover { transform: translateY(-1px); }
+.card-tab-btn:focus-visible,
+.admin-tab:focus-visible,
+.filters-toggle:focus-visible,
+.pagination button:focus-visible,
+.clear-btn:focus-visible { outline: none; box-shadow: var(--hc-focus-ring) !important; }
+.admin-tab.active { background: rgba(201, 100, 66, 0.14) !important; color: #8f3d24 !important; }
+.key-box input { border-color: rgba(214, 205, 191, 0.95) !important; background: rgba(255, 253, 249, 0.9) !important; }
+
+/* ---------------------------------------------------------------------------
+   Motion: gentle entrance for cards, logo hover feedback
+   --------------------------------------------------------------------------- */
+.job-card, .category-card, .jd-related-card, .stat-card { animation: hc-rise 260ms ease both; }
+@keyframes hc-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .job-card, .category-card, .jd-related-card, .stat-card { animation: none; }
+}
+
+.company-logo, .jd-logo, .partner-logo-img {
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.company-logo:hover, .jd-logo:hover, .partner-logo-img:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(47, 45, 41, 0.12);
+}
+
+/* Stat cards and impact band read as glass panels too. */
+.stat-card {
+  background: var(--hc-glass-bg) !important;
+  border: 1px solid var(--hc-glass-border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--hc-glass-shadow) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 16px 30px rgba(47,45,41,0.14) !important; }
+
+/* ---------------------------------------------------------------------------
+   Responsive hardening: no horizontal overflow, touch-friendly targets
+   --------------------------------------------------------------------------- */
+img, svg, video, canvas { max-width: 100%; }
+.hero-content { min-width: 0; }
+.job-card-title, .jd-title { overflow-wrap: anywhere; }
+
+@media (max-width: 860px) {
+  .hero-content { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+  .hero-image { justify-content: center !important; }
+  .hero-image img { width: min(420px, 100%) !important; }
+  .hero-text h2, .hero-text p { white-space: normal !important; }
+  .search-bar { max-width: 100% !important; }
+  .nav-menu a, .btn, .jd-apply-btn { min-height: 44px; }
+  .job-card-actions .btn, .job-card-actions .btn-view { flex: 1 1 100%; }
+  .jd-grid { grid-template-columns: 1fr !important; }
+  .jd-sidebar { position: static !important; }
+}
+
+@media (max-width: 640px) {
+  .hero { padding: 2rem 0 2.5rem !important; }
+  .hero-text h2 { font-size: clamp(1.6rem, 7vw, 2.2rem) !important; }
+  .search-bar { flex-direction: column; }
+  .search-bar input, .search-bar button { width: 100%; }
+  .job-card, .card, .jd-card, .job-post-section, .auth-card { border-radius: 16px !important; }
+  .footer-content { grid-template-columns: 1fr !important; }
+}
