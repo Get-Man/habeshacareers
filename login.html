@@ -61,6 +61,7 @@
 
                         <div id="jobseekerLogin" class="card-content active">
                             <h4>Login to Your Account</h4>
+                            <div id="jsLoginMessage" class="alert alert-error" role="alert" hidden></div>
                             <form id="jobseekerLoginForm" class="login-form">
                                 <div class="form-group">
                                     <label for="jsEmail">Email *</label>
@@ -72,25 +73,17 @@
                                     <input type="password" id="jsPassword" required>
                                 </div>
 
+                                <div style="text-align: center;">
+                                    <button type="button" class="btn-ghost btn-sm" data-forgot-toggle>Forgot password?</button>
+                                </div>
+
                                 <button type="submit" class="btn-primary">Login</button>
                             </form>
-
-                            <div class="divider">
-                                <span>OR</span>
-                            </div>
-
-                            <div class="social-login">
-                                <button class="social-btn google-btn" onclick="alert('Google login coming soon!')">
-                                    <span class="social-icon">🔍</span> Continue with Google
-                                </button>
-                                <button class="social-btn linkedin-btn" onclick="alert('LinkedIn login coming soon!')">
-                                    <span class="social-icon">💼</span> Continue with LinkedIn
-                                </button>
-                            </div>
                         </div>
 
                         <div id="jobseekerRegister" class="card-content">
                             <h4>Create Job Seeker Account</h4>
+                            <div id="jsRegMessage" class="alert alert-error" role="alert" hidden></div>
                             <form id="jobseekerRegForm" class="register-form">
                                 <div class="form-group">
                                     <label for="jsName">Full Name *</label>
@@ -273,6 +266,7 @@
 
                         <div id="employerLogin" class="card-content active">
                             <h4>Login to Your Account</h4>
+                            <div id="empLoginMessage" class="alert alert-error" role="alert" hidden></div>
                             <form id="employerLoginForm" class="login-form">
                                 <div class="form-group">
                                     <label for="empEmail">Email *</label>
@@ -284,25 +278,17 @@
                                     <input type="password" id="empPassword" required>
                                 </div>
 
+                                <div style="text-align: center;">
+                                    <button type="button" class="btn-ghost btn-sm" data-forgot-toggle>Forgot password?</button>
+                                </div>
+
                                 <button type="submit" class="btn-primary">Login</button>
                             </form>
-
-                            <div class="divider">
-                                <span>OR</span>
-                            </div>
-
-                            <div class="social-login">
-                                <button class="social-btn google-btn" onclick="alert('Google login coming soon!')">
-                                    <span class="social-icon">🔍</span> Continue with Google
-                                </button>
-                                <button class="social-btn linkedin-btn" onclick="alert('LinkedIn login coming soon!')">
-                                    <span class="social-icon">💼</span> Continue with LinkedIn
-                                </button>
-                            </div>
                         </div>
 
                         <div id="employerRegister" class="card-content">
                             <h4>Create Employer Account</h4>
+                            <div id="empRegMessage" class="alert alert-error" role="alert" hidden></div>
                             <form id="employerRegForm" class="register-form">
                                 <div class="form-group">
                                     <label for="empCompany">Company Name *</label>
@@ -470,6 +456,49 @@
                             </form>
                         </div>
                     </div>
+                </div>
+
+                <p class="page-subtitle" style="font-size: .85rem; margin-top: 1.5rem;">
+                    Administrators sign in with their admin credentials using either box above — your role is detected automatically after sign-in.
+                </p>
+
+                <!-- FORGOT PASSWORD -->
+                <div id="forgotPanel" class="card" hidden>
+                    <h4 class="card-title">Reset your password</h4>
+                    <p>Enter the email on your account and we'll send you a reset link.</p>
+                    <form id="forgotForm" class="login-form">
+                        <div class="form-group">
+                            <label for="forgotEmail">Email *</label>
+                            <input type="email" id="forgotEmail" required placeholder="name@example.com">
+                        </div>
+                        <div id="forgotMessage" class="alert alert-error" role="alert" hidden></div>
+                        <button type="submit" class="btn-primary">Send reset link</button>
+                        <a id="devResetLink" href="#" hidden>Open local reset link</a>
+                    </form>
+                    <p><button type="button" id="forgotCancel" class="btn-ghost btn-sm">Cancel</button></p>
+                </div>
+
+                <!-- RESET PASSWORD (shown when ?reset=<token> is present) -->
+                <div id="resetPanel" class="card" hidden>
+                    <h4 class="card-title">Choose a new password</h4>
+                    <form id="resetForm" class="login-form">
+                        <div class="form-group">
+                            <label for="resetToken">Reset token *</label>
+                            <input type="text" id="resetToken" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="resetPassword">New password *</label>
+                            <input type="password" id="resetPassword" required minlength="8">
+                            <small>Minimum 8 characters</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="resetConfirm">Confirm new password *</label>
+                            <input type="password" id="resetConfirm" required>
+                        </div>
+                        <div id="resetMessage" class="alert alert-error" role="alert" hidden></div>
+                        <button type="submit" class="btn-primary">Set new password</button>
+                        <a id="resetLoginLink" href="login.html" hidden>Back to login</a>
+                    </form>
                 </div>
             </div>
         </section>

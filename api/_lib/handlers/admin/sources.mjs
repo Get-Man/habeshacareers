@@ -1,12 +1,15 @@
 import { json, requireAdmin, parseJsonBody } from "../../http.js";
 import { hasDatabase, query } from "../../../../lib/db.mjs";
-import { listSources, listSourcesWithStats, setSourceEnabled } from "../../../../lib/jobs/repository.mjs";
+import { listSourceMonitoring, listSources, listSourcesWithStats, setSourceEnabled } from "../../../../lib/jobs/repository.mjs";
 
 export default async function handler(req, res) {
   if (!requireAdmin(req)) return json(res, 401, { ok: false, error: "unauthorized" });
   if (!hasDatabase()) return json(res, 503, { ok: false, error: "db_unavailable" });
   try {
     if (req.method === "GET") {
+      if (req.query?.view === "monitoring") {
+        return json(res, 200, { ok: true, sources: await listSourceMonitoring() });
+      }
       const sources = req.query?.basic === "1" ? await listSources() : await listSourcesWithStats();
       return json(res, 200, { ok: true, sources });
     }

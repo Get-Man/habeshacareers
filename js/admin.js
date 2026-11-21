@@ -54,13 +54,14 @@ const AdminApp = {
     if (name === 'review') this.loadReview();
     if (name === 'audit') this.loadAudit();
     if (name === 'sources') this.loadSources();
+    if (name === 'monitoring') this.loadMonitoring();
     if (name === 'employers') this.loadEmployers();
     if (name === 'runs') { this.loadRuns(); this.loadSubs(); }
     if (name === 'jobs') this.loadJobs();
   },
   async refreshAll() {
     await Promise.allSettled([
-      this.loadStats(), this.loadSources(), this.loadRuns(), this.loadSubs(),
+      this.loadStats(), this.loadSources(), this.loadMonitoring(), this.loadRuns(), this.loadSubs(),
       this.loadJobs(), this.loadReview(), this.loadExtraction(), this.loadAudit()
     ]);
   },
@@ -149,6 +150,20 @@ const AdminApp = {
           </td></tr>`;
       }).join('') || '<tr><td colspan="8" class="admin-empty">No sources configured.</td></tr>';
     } catch (e) { this.msg('Sources: ' + e.message, true); }
+  },
+
+  async loadMonitoring() {
+    try {
+      const { sources } = await this.api('/api/admin/sources?view=monitoring');
+      document.querySelector('#monitoringTable tbody').innerHTML = sources.map((s) => `<tr>
+        <td><strong>${this.esc(s.name)}</strong><br><small class="muted">${this.esc(s.slug)}</small></td>
+        <td>${this.pill(s.status)}<br><small class="muted">${this.esc(this.short(s.status_note || s.last_run_message || s.last_error || '', 80))}</small></td>
+        <td>${this.esc(this.fmtDate(s.last_fetch))}</td>
+        <td>${this.num(s.jobs_found)}</td>
+        <td>${this.num(s.new_jobs)}</td>
+        <td>${this.num(s.updated)}</td>
+        <td>${this.num(s.errors)}</td></tr>`).join('') || '<tr><td colspan="7" class="admin-empty">No sources configured.</td></tr>';
+    } catch (e) { this.msg('Source monitoring: ' + e.message, true); }
   },
 
   async toggleSource(slug, enabled) {

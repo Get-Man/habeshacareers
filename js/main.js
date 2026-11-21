@@ -298,5 +298,9 @@ async function logout() {
     window.location.href = 'index.html';
 }
 
-// Update navbar on page load
-document.addEventListener('DOMContentLoaded', updateNavbar);
+// Update navbar on page load. When auth.js is present its updateNavigation()
+// already calls updateNavbar() and then applies the final nav visibility, so
+// skip our own pass here to avoid re-showing links (e.g. Post Job) to guests.
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof updateNavigation !== 'function') updateNavbar();
+});

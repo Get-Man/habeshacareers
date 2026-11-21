@@ -1,7 +1,10 @@
-export function json(res, status, body) {
+import { getUserFromRequest } from "../../lib/auth.mjs";
+
+export function json(res, status, body, options = {}) {
   res.status(status);
   res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", status === 200 ? "public, max-age=60" : "no-store");
+  // Account responses are user-specific: callers pass { private: true }.
+  res.setHeader("Cache-Control", status === 200 && !options.private ? "public, max-age=60" : "no-store");
   res.end(JSON.stringify(body));
 }
 
@@ -29,6 +32,39 @@ export function requireAdmin(req) {
   // Backward-compatible path: allow logged-in admin session users.
   if (req.authUser && req.authUser.role === "admin") return true;
   return false;
+}
+
+/**
+ * Resolve the signed-in user and (optionally) restrict to specific roles.
+ * Writes the error response itself and returns null when access is denied.
+ * No roles means "any authenticated account".
+ */
+export async function requireRole(req, res, roles) {
+  let user = null;
+  try {
+    user = await getUserFromRequest(req);
+  } catch {
+    user = null;
+  }
+  if (!user) {
+    json(res, 401, {
+      ok: false,
+      error: "unauthorized",
+      message: "Please sign in.",
+    });
+    return null;
+  }
+  const allowed = (Array.isArray(roles) ? roles : roles ? [roles] : []).map((r) => String(r).toLowerCase());
+  if (allowed.length && !allowed.includes(String(user.role || "").toLowerCase())) {
+    json(res, 403, {
+      ok: false,
+      error: "forbidden",
+      message: "Your account does not have access to this action.",
+    });
+    return null;
+  }
+  req.authUser = user;
+  return user;
 }
 
 export function requireCron(req) {

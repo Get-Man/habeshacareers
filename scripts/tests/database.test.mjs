@@ -9,6 +9,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 
+import { SOURCE_MONITORING_SQL } from "../../lib/jobs/repository.mjs";
+
 let PGlite = null;
 try {
   ({ PGlite } = await import("@electric-sql/pglite"));
@@ -226,6 +228,47 @@ test("new sources are registered but disabled until reviewed", { skip }, async (
   await db.close();
 });
 
+test("expansion sources are registered with documented access and bounded config", { skip }, async () => {
+  const db = await freshDb();
+  const rows = await db.query(
+    `select slug, enabled, integration_status, adapter_key, source_type, status_note, fetch_config
+       from job_sources
+      where slug in ('un-careers-ethiopia','srafelagi','aradajobs')
+      order by slug`
+  );
+  assert.equal(rows.rows.length, 3);
+  for (const row of rows.rows) {
+    assert.equal(row.enabled, true, `${row.slug} should be enabled`);
+    assert.equal(row.integration_status, "connected");
+    assert.equal(row.adapter_key, row.slug);
+    assert.ok(row.status_note && row.status_note.length > 40, `${row.slug} needs a compliance note`);
+    assert.ok(row.fetch_config.limit <= 10 && row.fetch_config.limit > 0, `${row.slug} needs a bounded batch`);
+    assert.ok(row.fetch_config.delayMs >= 400, `${row.slug} needs throttling`);
+  }
+  const un = rows.rows.find((r) => r.slug === "un-careers-ethiopia");
+  assert.equal(un.source_type, "rss");
+  assert.match(un.fetch_config.feedUrl, /careers\.un\.org\/jobfeed/);
+  assert.match(un.fetch_config.keywordPattern, /addis ababa/i);
+  for (const slug of ["srafelagi", "aradajobs"]) {
+    const row = rows.rows.find((r) => r.slug === slug);
+    assert.match(row.fetch_config.sitemapUrl, /sitemap\.xml/);
+  }
+  await db.close();
+});
+
+test("source monitoring query runs and exposes the required count fields", { skip }, async () => {
+  const db = await freshDb();
+  const result = await db.query(SOURCE_MONITORING_SQL);
+  assert.ok(result.rows.length > 0);
+  for (const field of [
+    "slug", "name", "enabled", "integration_status", "last_sync_at",
+    "jobs_found", "new_jobs", "updated", "errors",
+  ]) {
+    assert.ok(field in result.rows[0], `monitoring query must expose ${field}`);
+  }
+  await db.close();
+});
+
 test("the discovery queue records a job URL only once per source", { skip }, async () => {
   const db = await freshDb();
   const source = await db.query(`select id from job_sources where slug = 'geezjobs'`);
@@ -439,5 +482,84 @@ test("a logo taken from another organisation's domain is replaced", { skip }, as
   assert.equal(logo.includes("unicef.org"), false);
   assert.equal(row.rows[0].logo_source, "favicon_service");
   assert.equal(row.rows[0].logo_verified, true);
+  await db.close();
+});
+
+test("migration 027 adds private account tables without touching existing rows", { skip }, async () => {
+  const db = await freshDb();
+  await db.exec(`
+    insert into users (email, password_hash, role, name, company_name)
+    values ('owner@example.com','stored-hash','employer','Owner','Acme PLC');
+    insert into job_listings (title, company, status, job_status)
+    values ('Existing role','Acme PLC','active','open');
+  `);
+  const beforeUsers = await db.query(`select id, email, role, name, company_name from users`);
+  const beforeJobs = await db.query(`select id, title, company, status from job_listings`);
+
+  // Re-applying the migration must be additive and idempotent.
+  const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, "027_account_suite.sql"), "utf8");
+  await db.exec(sql);
+  await db.exec(sql);
+
+  const tables = await db.query(
+    `select table_name from information_schema.tables
+      where table_schema='public' and table_name in ('user_password_resets','user_profiles')
+      order by table_name`
+  );
+  assert.deepEqual(tables.rows.map((r) => r.table_name), ["user_password_resets", "user_profiles"]);
+
+  const resetColumns = await db.query(
+    `select column_name from information_schema.columns
+      where table_schema='public' and table_name='user_password_resets' order by ordinal_position`
+  );
+  assert.deepEqual(resetColumns.rows.map((r) => r.column_name), [
+    "id", "user_id", "token_hash", "expires_at", "used_at", "created_at",
+  ]);
+  const profileColumns = await db.query(
+    `select column_name from information_schema.columns
+      where table_schema='public' and table_name='user_profiles' order by ordinal_position`
+  );
+  assert.deepEqual(profileColumns.rows.map((r) => r.column_name), ["user_id", "data", "updated_at"]);
+
+  const fks = await db.query(
+    `select tc.table_name, ccu.table_name as referenced_table
+       from information_schema.table_constraints tc
+       join information_schema.constraint_column_usage ccu
+         on ccu.constraint_name = tc.constraint_name and ccu.constraint_schema = tc.constraint_schema
+      where tc.constraint_type='FOREIGN KEY' and tc.table_schema='public'
+        and tc.table_name in ('user_password_resets','user_profiles')`
+  );
+  const byTable = Object.fromEntries(fks.rows.map((r) => [r.table_name, r.referenced_table]));
+  assert.equal(byTable.user_password_resets, "users");
+  assert.equal(byTable.user_profiles, "users");
+
+  const indexes = await db.query(
+    `select indexname from pg_indexes
+      where schemaname='public' and tablename in ('user_password_resets','user_profiles')`
+  );
+  const indexNames = indexes.rows.map((r) => r.indexname);
+  for (const expected of [
+    "user_password_resets_user_id_idx",
+    "user_password_resets_expires_at_idx",
+    "user_password_resets_token_hash_key",
+    "user_profiles_pkey",
+  ]) {
+    assert.ok(indexNames.includes(expected), `expected index ${expected}`);
+  }
+
+  // Existing users and vacancies are unchanged, and no account column leaked
+  // onto the public job tables.
+  const afterUsers = await db.query(`select id, email, role, name, company_name from users`);
+  const afterJobs = await db.query(`select id, title, company, status from job_listings`);
+  assert.deepEqual(afterUsers.rows, beforeUsers.rows);
+  assert.deepEqual(afterJobs.rows, beforeJobs.rows);
+  const userColumns = await db.query(
+    `select column_name from information_schema.columns
+      where table_schema='public' and table_name='users' order by ordinal_position`
+  );
+  assert.deepEqual(userColumns.rows.map((r) => r.column_name), [
+    "id", "email", "password_hash", "role", "name", "company_name", "contact_name",
+    "phone", "location", "is_active", "created_at", "updated_at", "last_login_at",
+  ]);
   await db.close();
 });

@@ -1,14 +1,19 @@
 document.addEventListener('DOMContentLoaded', async function() {
-    // Check if user is logged in as employer (server-backed when available)
-    try {
-        if (typeof refreshCurrentUser === 'function') await refreshCurrentUser();
-    } catch {}
-    const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-    const role = user?.role || user?.type;
-    if (!user || !(role === 'employer' || role === 'admin' || user?.type === 'employer')) {
-        alert('You must be logged in as an employer to post jobs.');
-        window.location.href = 'login.html';
-        return;
+    // The shared guard handles redirects when guards.js is present.
+    if (window.HCGuards && window.HCGuards.lastCheck) {
+        const guardedUser = await window.HCGuards.lastCheck;
+        if (!guardedUser) return; // guard has already redirected
+    } else {
+        // Legacy fallback when guards.js is unavailable.
+        try {
+            if (typeof refreshCurrentUser === 'function') await refreshCurrentUser();
+        } catch {}
+        const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+        const role = user?.role || user?.type;
+        if (!user || !(role === 'employer' || role === 'admin' || user?.type === 'employer')) {
+            window.location.replace('login.html?next=post-job.html');
+            return;
+        }
     }
 
     // Form submission
