@@ -6,7 +6,7 @@
     { "source": "/job/:id/:slug", "destination": "/api/job-page?id=:id" },
     { "source": "/job/:id", "destination": "/api/job-page?id=:id" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
-    { "source": "/robots.txt", "destination": "/api/robots" }
+    { "source": "/robots.txt", "destination": "/api/sitemap?type=robots" }
   ],
   "redirects": [
     {

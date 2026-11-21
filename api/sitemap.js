@@ -14,12 +14,34 @@ function esc(s) {
     .replace(/'/g, "&apos;");
 }
 
+// robots.txt is served by this function too (vercel.json rewrites /robots.txt
+// to /api/sitemap?type=robots) to stay within the Hobby plan's function cap.
+function robotsBody(base) {
+  return [
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /admin.html",
+    "Disallow: /api/admin/",
+    "Disallow: /api/cron/",
+    "",
+    `Sitemap: ${base}/sitemap.xml`,
+    "",
+  ].join("\n");
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.status(405).end();
     return;
   }
   const base = siteUrl();
+  if (String(req?.query?.type || "").toLowerCase() === "robots") {
+    res.status(200);
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.end(robotsBody(base));
+    return;
+  }
   let rows = [];
   if (hasDatabase()) {
     try {
