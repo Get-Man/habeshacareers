@@ -164,6 +164,36 @@ test("resolves the same vacancy from a job title instead of a URL slug", async (
   }
 });
 
+const EMAIL_APPLY_RSS = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <item>
+    <title>Test Organization Job Vacancy - Test Organization - Addis Ababa, Ethiopia</title>
+    <link>https://etcareers.com/jobs/test-org-email-apply-f7206e1b</link>
+    <guid>https://etcareers.com/jobs/test-org-email-apply-f7206e1b</guid>
+    <description><![CDATA[
+      <h2>Job Overview</h2>
+      <p><strong>Hiring Organization:</strong> Test Organization</p>
+      <h2>How to Apply</h2>
+      <p>Applications can be submitted by email or in person.</p>
+      <p><strong>Email:</strong> hr@example.org</p>
+    ]]></description>
+  </item>
+</channel></rss>`;
+
+const EMAIL_CONTACT_RSS = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <item>
+    <title>Test Organization Job Vacancy - Test Organization - Addis Ababa, Ethiopia</title>
+    <link>https://etcareers.com/jobs/test-org-email-contact-f7206e1b</link>
+    <guid>https://etcareers.com/jobs/test-org-email-contact-f7206e1b</guid>
+    <description><![CDATA[
+      <h2>Job Overview</h2>
+      <p><strong>Hiring Organization:</strong> Test Organization</p>
+      <p>For general questions and inquiries only, contact: info@example.org</p>
+    ]]></description>
+  </item>
+</channel></rss>`;
+
 const AMBIGUOUS_RSS = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
   <item>
@@ -198,6 +228,37 @@ test("a full title phrase picks the right listing and a bare application URL is 
       record.apply_button_html,
       '<a href="https://rb.gy/abc123" target="_blank" rel="noopener noreferrer" class="apply-now-btn">Apply Now</a>'
     );
+  } finally {
+    rmSync(assetsDir, { recursive: true, force: true });
+  }
+});
+
+test("a plain-text application email becomes a direct mailto apply action", async () => {
+  const assetsDir = mkdtempSync(path.join(tmpdir(), "headless-job-email-"));
+  try {
+    const record = await extractHeadlessJob(
+      "https://etcareers.com/jobs/test-org-email-apply-f7206e1b",
+      { ...offlineOptions(assetsDir), rssXml: EMAIL_APPLY_RSS }
+    );
+    assert.equal(record.direct_apply_url, "mailto:hr@example.org");
+    assert.equal(
+      record.apply_button_html,
+      '<a href="mailto:hr@example.org" target="_blank" rel="noopener noreferrer" class="apply-now-btn">Apply Now</a>'
+    );
+  } finally {
+    rmSync(assetsDir, { recursive: true, force: true });
+  }
+});
+
+test("a generic contact email is never used as an apply action", async () => {
+  const assetsDir = mkdtempSync(path.join(tmpdir(), "headless-job-contact-"));
+  try {
+    const record = await extractHeadlessJob(
+      "https://etcareers.com/jobs/test-org-email-contact-f7206e1b",
+      { ...offlineOptions(assetsDir), rssXml: EMAIL_CONTACT_RSS }
+    );
+    assert.equal(record.direct_apply_url, null);
+    assert.equal(record.apply_button_html, null);
   } finally {
     rmSync(assetsDir, { recursive: true, force: true });
   }

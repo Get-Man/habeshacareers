@@ -53,6 +53,7 @@ const BROWSER_HEADERS = {
 };
 
 const ANCHOR_RE = /<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/a>/gi;
+const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 const BOARD_HOST_RE = /(?:^|\.)etcareers\.com$/i;
 const SOCIAL_HOST_RE =
   /(?:^|\.)(?:t\.me|telegram\.me|telegram\.com|facebook\.com|fb\.com|twitter\.com|x\.com|linkedin\.com|instagram\.com|youtube\.com|youtu\.be|whatsapp\.com|wa\.me)(?:$|\.)/i;
@@ -541,6 +542,41 @@ function jobTitleFromFeedTitle(title) {
     .trim();
 }
 
+/**
+ * Some employers publish the application address as plain text instead of a
+ * mailto anchor (for example "Email: hr@example.org"). Only accept it when the
+ * surrounding text is clearly an application instruction, never a generic
+ * contact/enquiry mailbox.
+ */
+function extractPlaintextApplyEmail(text, diag) {
+  const value = collapse(text);
+  let best = null;
+  for (const match of value.matchAll(EMAIL_RE)) {
+    const email = match[0].replace(/[.,;:!?)\]]+$/, "").toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email)) continue;
+
+    const before = value.slice(Math.max(0, match.index - 220), match.index);
+    const after = value.slice(match.index, Math.min(value.length, match.index + 140));
+    const recent = before.slice(-120);
+    const applicationWords = /\b(?:apply|application|applications|applicant|applicants|submit|submitted|submission|send|sent|cv|resume)\b/i;
+    const contactOnly = /\b(?:contact|inquir(?:y|ies)|enquir(?:y|ies)|question|complaint|customer\s+service|information\s+only)\b/i;
+    if (contactOnly.test(recent) && !applicationWords.test(recent)) continue;
+
+    let score = 0;
+    if (/(?:^|[\s>])(?:e-?mail|apply(?:\s+via\s+email)?|submission\s+email)\s*[:\-]\s*$/i.test(before.trim())) {
+      score += 60;
+    }
+    if (applicationWords.test(`${before} ${after}`)) score += 35;
+    if (/\b(?:to|at|via|using)\s+$/i.test(before.slice(-40))) score += 35;
+    if (/^(?:hr|hrm|recruit|jobs?|careers?|vacancy)/i.test(email.split("@")[0])) score += 10;
+    if (contactOnly.test(`${before} ${after}`)) score -= 50;
+
+    if (score >= 70 && (!best || score > best.score)) best = { email, score };
+  }
+  diag?.add("direct apply email", best ? `${best.email} (plain text, score ${best.score})` : "none");
+  return best ? `mailto:${best.email}` : null;
+}
+
 function extractApplyUrl(descriptionHtml, pageUrl, diag) {
   const candidates = [];
   for (const m of descriptionHtml.matchAll(ANCHOR_RE)) {
@@ -566,7 +602,10 @@ function extractApplyUrl(descriptionHtml, pageUrl, diag) {
   }
   candidates.sort((a, b) => b.score - a.score);
   const chosen = candidates[0] || null;
-  const cleaned = chosen ? cleanApplyUrl(chosen.href, pageUrl) : null;
+  let cleaned = chosen ? cleanApplyUrl(chosen.href, pageUrl) : null;
+  if (!cleaned) {
+    cleaned = extractPlaintextApplyEmail(stripTags(descriptionHtml), diag);
+  }
   diag?.match("direct apply URL", !!cleaned, cleaned || "none (no employer-provided destination)");
   return cleaned;
 }
