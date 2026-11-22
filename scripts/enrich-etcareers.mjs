@@ -101,6 +101,20 @@ export function htmlToText(html) {
     .trim();
 }
 
+function isUsableEmployerLogo(logoPublicUrl) {
+  return Boolean(
+    publicLogo({
+      employer_logo_url: logoPublicUrl,
+      organization_logo_url: null,
+      logo: null,
+    })
+  );
+}
+
+function isProxyLogoPath(value) {
+  return /^\/api\/employer-logo\?id=\d+$/i.test(String(value || "").trim());
+}
+
 export function needsEnrichment(row) {
   // A non-null legacy logo is not enough: board favicons and discovery-source
   // assets are filtered out by the public mapper, so the vacancy still renders
@@ -142,7 +156,7 @@ export async function ensureEmployer(client, orgName, logo) {
   if (!nameKey) return null;
 
   const existing = await client.query(
-    "select id, logo_url, logo_verified, logo_source from employer_directory where name_key = $1 limit 1",
+    "select id, logo_url, logo_public_url, logo_verified, logo_source from employer_directory where name_key = $1 limit 1",
     [nameKey]
   );
   const logoUrl = logo?.logo_url && !isForbiddenEtcareersUrl(logo.logo_url) ? logo.logo_url : null;
@@ -165,6 +179,7 @@ export async function ensureEmployer(client, orgName, logo) {
     const canImproveLogo =
       !existing.rows[0].logo_url ||
       !existing.rows[0].logo_verified ||
+      !isUsableEmployerLogo(existing.rows[0].logo_public_url) ||
       ["seeded", "legacy_listing", "none"].includes(existing.rows[0].logo_source);
     if (logoUrl && canImproveLogo) {
       await client.query(
@@ -183,11 +198,12 @@ export async function ensureEmployer(client, orgName, logo) {
     }
   }
 
-  if (logoUrl) {
+  if (logoUrl && !isProxyLogoPath(existing.rows[0]?.logo_public_url)) {
+    // Always publish through our own proxy, replacing any legacy/filtered URL.
     await client.query(
       `update employer_directory
           set logo_public_url = '/api/employer-logo?id=' || id
-        where id = $1 and (logo_public_url is null or btrim(logo_public_url) = '')`,
+        where id = $1`,
       [id]
     );
   }
@@ -291,7 +307,7 @@ export async function main() {
       [key]
     );
     const known = existing[0];
-    if (known?.logo_verified && known.logo_public_url) {
+    if (known?.logo_verified && isUsableEmployerLogo(known.logo_public_url)) {
       const cached = {
         logo_url: known.logo_url,
         logo_local_path: null,
@@ -333,6 +349,9 @@ export async function main() {
     noMatchSamples: [],
     skippedNoOrgSamples: [],
     failedSamples: [],
+    logoNeeded: 0,
+    logoResolved: 0,
+    logoUnresolvedSamples: [],
   };
   const extractOptions = {
     rssXml: xml,
@@ -376,6 +395,14 @@ export async function main() {
         rssLink: item.link,
         needs: needsEnrichment(row),
       };
+      if (patch.needs.logo) {
+        stats.logoNeeded += 1;
+        if (patch.logoUrl) {
+          stats.logoResolved += 1;
+        } else if (stats.logoUnresolvedSamples.length < DIAGNOSTIC_LIMIT) {
+          stats.logoUnresolvedSamples.push(sample(row, { org: patch.orgName }));
+        }
+      }
       phase = "database";
       await withClient(async (client) => {
         await client.query("begin");
@@ -405,7 +432,7 @@ export async function main() {
   if (forbidden.length) throw new Error(`zero-visit guard blocked ${forbidden.length} request(s)`);
 
   console.log(
-    `[enrich-etcareers] feed ${stats.feedItems} | candidates ${stats.candidates} | matched ${stats.matched} | updated ${stats.updated} | no org ${stats.skippedNoOrg} | no match ${stats.noMatch} | failed ${stats.failed} | job page requests 0`
+    `[enrich-etcareers] feed ${stats.feedItems} | candidates ${stats.candidates} | matched ${stats.matched} | updated ${stats.updated} | no org ${stats.skippedNoOrg} | no match ${stats.noMatch} | failed ${stats.failed} | logo needed ${stats.logoNeeded} | logo resolved ${stats.logoResolved} | job page requests 0`
   );
   if (stats.failedSamples.length) {
     console.log(`[enrich-etcareers] failure samples ${JSON.stringify(stats.failedSamples)}`);
@@ -415,6 +442,9 @@ export async function main() {
   }
   if (stats.skippedNoOrgSamples.length) {
     console.log(`[enrich-etcareers] no-org samples ${JSON.stringify(stats.skippedNoOrgSamples)}`);
+  }
+  if (stats.logoUnresolvedSamples.length) {
+    console.log(`[enrich-etcareers] unresolved-logo samples ${JSON.stringify(stats.logoUnresolvedSamples)}`);
   }
   return stats;
 }

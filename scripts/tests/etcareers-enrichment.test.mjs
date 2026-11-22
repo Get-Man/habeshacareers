@@ -122,6 +122,16 @@ test("writes identity, logo, description and apply link without SQL parameter ty
          (select id from job_sources where slug = 'etcareers'), 'active', current_date)
     `);
 
+    await db.query(`
+      insert into employer_directory
+        (name, name_key, logo_url, logo_public_url, logo_source,
+         logo_verified, logo_confidence, identity_source)
+      values
+        ('Test Bank S.C', 'test bank s c',
+         'https://etcareers.com/legacy-logo.png', 'https://etcareers.com/legacy-logo.png',
+         'global_search', true, 90, 'manual')
+    `);
+
     const employerId = await ensureEmployer(db, "Test Bank S.C", {
       logo_url: "https://cdn.example.com/test-bank.png",
     });
@@ -142,7 +152,7 @@ test("writes identity, logo, description and apply link without SQL parameter ty
 
     const result = await db.query(`
       select l.company, l.description, l.apply_url, l.apply_url_type,
-             l.organization_logo_source, ed.logo_public_url
+             l.organization_logo_source, ed.logo_url, ed.logo_public_url
         from job_listings l
         left join employer_directory ed on ed.id = l.employer_id
        where l.id = 9901
@@ -153,6 +163,7 @@ test("writes identity, logo, description and apply link without SQL parameter ty
     assert.equal(row.apply_url, "https://forms.gle/test");
     assert.equal(row.apply_url_type, "google_form");
     assert.equal(row.organization_logo_source, "global_search");
+    assert.equal(row.logo_url, "https://cdn.example.com/test-bank.png");
     assert.equal(row.logo_public_url, `/api/employer-logo?id=${employerId}`);
   } finally {
     await db.close();

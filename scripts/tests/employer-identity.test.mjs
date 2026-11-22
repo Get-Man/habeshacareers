@@ -122,3 +122,14 @@ test("third-party platform branding is never a public employer logo", () => {
     "https://cdn.example.et/logo.png"
   );
 });
+
+test("a rejected directory logo falls back to a valid employer listing logo", () => {
+  assert.equal(
+    publicLogo({
+      employer_logo_url:
+        "https://www.google.com/s2/favicons?domain=etcareers.com&sz=128",
+      organization_logo_url: "https://cdn.example.et/logo.png",
+    }),
+    "https://cdn.example.et/logo.png"
+  );
+});

@@ -57,6 +57,7 @@ import {
   applyButtonHtml,
 } from "./etcareers-scraper.mjs";
 import { slugify } from "../lib/jobs/extract/urls.mjs";
+import { isKnownSourceDomain } from "../lib/jobs/extract/hosts.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -76,6 +77,11 @@ const TRACKING_PARAM_RE =
 
 const GENERIC_IMAGE_RE =
   /(?:stock|shutterstock|getty|istock|freepik|watermark|logo\s*maker|template|icon\s*set|vector\s*free|pngtree|dreamstime|clip\s*art|googlelogo|google\s*logo|google\s*wordmark|gstatic|duckduckgo|bing\s*logo|yahoo\s*logo|facebook\s*logo|twitter\s*logo|linkedin\s*logo)/i;
+
+// A search hit may be a real photo from the employer's site but still not be
+// its logo. Editorial and promotional imagery is never a verified brand mark.
+const NON_LOGO_IMAGE_RE =
+  /(?:press[ _-]?release|press[ _-]?statement|annual\s*report|report[ _-]?on|newsletter|news[ _-]?article|article|video|still001|screenshot|conference|gallery|photo\s*gallery|wallpaper|infographic|advertis|promo(?:tion|tional)?[ _-]?image|job[ _-]?(?:vacancy|opening|posting)|vacancy|recruitment|hiring|apply\s*now|career\s*fair)/i;
 
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const GIF_MAGIC = Buffer.from([0x47, 0x49, 0x46, 0x38]);
@@ -483,6 +489,19 @@ function searchResultReason(result, orgName) {
   const haystack = `${result.title} ${result.source} ${result.imageUrl} ${result.pageUrl}`.toLowerCase();
   if (GENERIC_IMAGE_RE.test(haystack) && !tokens.some((t) => haystack.includes(t))) {
     return "generic stock/watermarked image";
+  }
+  const imageHost = hostOf(result.imageUrl || "");
+  if (imageHost && (isKnownSourceDomain(imageHost) || BOARD_HOST_RE.test(imageHost))) {
+    return "discovery-source asset, not an employer logo";
+  }
+  if (NON_LOGO_IMAGE_RE.test(haystack)) {
+    return "editorial/promotional image, not a logo";
+  }
+  // The employer's name must appear in the image itself or in its label — a
+  // merely related page is not enough to call the image that employer's logo.
+  const imageLabel = `${decodeSafe(result.imageUrl || "")} ${result.title || ""}`.toLowerCase();
+  if (!tokens.some((t) => imageLabel.includes(t))) {
+    return "no employer brand signal in the image or its title";
   }
   const { width, height } = result;
   if (width && height && (width < 96 || height < 96)) return `thumbnail too small (${width}x${height})`;

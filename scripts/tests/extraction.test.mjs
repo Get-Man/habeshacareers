@@ -304,6 +304,48 @@ test("an ATS application page is classified as an ATS destination", () => {
   assert.equal(dest.type, APPLY_URL_TYPES.ATS);
 });
 
+test("an official UN Inspira per-vacancy application is an ATS destination", () => {
+  const dest = classifyDestination(
+    "https://inspira.un.org/psp/PUNA1J/EMPLOYEE/HRMS/c/UN_CUSTOMIZATIONS.UN_JOB_DETAIL.GBL?Action=A&UNAction=Apply&JobOpeningId=288503&languageCd=ENG",
+    { source: SOURCE, pageUrl: "https://etcareers.com/jobs/economic-affairs-intern-f7206e1b", employerName: "United Nations" }
+  );
+  assert.equal(dest.valid, true);
+  assert.equal(dest.type, APPLY_URL_TYPES.ATS);
+});
+
+test("SuccessFactors requisition links are ATS destinations, not listing pages", () => {
+  const urls = [
+    "https://career55.sapsf.eu/career?career_ns=job_listing&company=dashenbank&navBarLevel=JOB_SEARCH&career_job_req_id=2248",
+    "https://career55.sapsf.eu/career?company=cooperat05&career_ns=job_listing_summary&navBarLevel=JOB_SEARCH",
+  ];
+  for (const url of urls) {
+    const dest = classifyDestination(url, { source: SOURCE, pageUrl: "https://etcareers.com/jobs/senior-officer-f7206e1b" });
+    assert.equal(dest.valid, true, url);
+    assert.equal(dest.type, APPLY_URL_TYPES.ATS, url);
+  }
+});
+
+test("an employer's own careers portal is a valid application destination", () => {
+  for (const url of [
+    "https://erp.orointbank.com.et/jobs",
+    "https://rammisbank.et/jobs",
+    "https://jobs.addisbanksc.com/jobs",
+  ]) {
+    const dest = classifyDestination(url, { source: SOURCE, pageUrl: "https://etcareers.com/jobs/bank-vacancy-f7206e1b" });
+    assert.equal(dest.valid, true, url);
+    assert.equal(dest.type, APPLY_URL_TYPES.EMPLOYER_WEBSITE, url);
+  }
+});
+
+test("a discovery source's company jobs page is still rejected", () => {
+  const dest = classifyDestination("https://ethiojobs.net/companies/zemen-bank-sc/jobs", {
+    source: SOURCE,
+    pageUrl: "https://etcareers.com/jobs/zemen-bank-vacancy-f7206e1b",
+  });
+  assert.equal(dest.valid, false);
+  assert.equal(dest.type, APPLY_URL_TYPES.SOURCE);
+});
+
 test("a social share link is never an application destination", () => {
   const dest = classifyDestination("https://www.facebook.com/sharer/sharer.php?u=x", { source: SOURCE });
   assert.equal(dest.valid, false);
