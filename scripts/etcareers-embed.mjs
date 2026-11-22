@@ -78,6 +78,15 @@ const TRACKING_PARAM_RE =
 const GENERIC_IMAGE_RE =
   /(?:stock|shutterstock|getty|istock|freepik|watermark|logo\s*maker|template|icon\s*set|vector\s*free|pngtree|dreamstime|clip\s*art|googlelogo|google\s*logo|google\s*wordmark|gstatic|duckduckgo|bing\s*logo|yahoo\s*logo|facebook\s*logo|twitter\s*logo|linkedin\s*logo)/i;
 
+// ETcareers appends a Telegram "Join @Etcareersjobs for Daily Job Updates &
+// Share with Friends" footer to every RSS description. The link itself is
+// stripped by the anchor sanitiser, but the plain-text invitation survives and
+// is not employer content. Remove the whole promo paragraph.
+const SOURCE_PROMO_BLOCK_RE =
+  /<p\b[^>]*>(?:(?!<\/p>)[\s\S])*?(?:etcareersjobs|daily\s+job\s+(?:updates|alerts)|share\s+with\s+friends|t\.me\/etcareersjobs|get\s+daily\s+job\s+alerts)(?:(?!<\/p>)[\s\S])*?<\/p>/gi;
+const SOURCE_PROMO_TEXT_RE =
+  /📲\s*|(?:join|get)\s+(?:on\s+telegram|@?etcareersjobs|daily\s+job\s+(?:updates|alerts))[^\n<>]*(?:daily\s+job\s+(?:updates|alerts)|share\s+with\s+friends|job\s+alerts?)?[^\n<>]*/gi;
+
 // A search hit may be a real photo from the employer's site but still not be
 // its logo. Editorial and promotional imagery is never a verified brand mark.
 const NON_LOGO_IMAGE_RE =
@@ -196,6 +205,12 @@ export function sanitizeCardDescription(descriptionHtml, pageUrl, diag) {
     }
   );
 
+  // Strip the discovery source's Telegram promo before any link unwrapping.
+  html = html.replace(SOURCE_PROMO_BLOCK_RE, () => {
+    diag?.add("description sanitised", "removed discovery-source Telegram promo");
+    return " ";
+  });
+
   html = html.replace(IMG_RE, (full, rawAttrs) => {
     const attrs = parseAttributes(rawAttrs);
     const raw = attrs.src || attrs["data-src"] || attrs["data-lazy-src"] || attrs.srcset || "";
@@ -227,6 +242,13 @@ export function sanitizeCardDescription(descriptionHtml, pageUrl, diag) {
       return " ";
     }
     return full;
+  });
+
+  // A promo that was not wrapped in a paragraph (or whose anchor was stripped
+  // first) still leaves a bare invitation line — remove it as text.
+  html = html.replace(SOURCE_PROMO_TEXT_RE, () => {
+    diag?.add("description sanitised", "removed discovery-source promo text");
+    return " ";
   });
 
   return html.trim();

@@ -123,6 +123,26 @@ test("third-party platform branding is never a public employer logo", () => {
   );
 });
 
+test("an ATS/platform favicon is never an employer logo", () => {
+  assert.equal(
+    publicLogo({
+      employer_logo_url: "https://www.google.com/s2/favicons?domain=sapsf.eu&sz=128",
+    }),
+    null
+  );
+  assert.equal(
+    publicLogo({
+      organization_logo_url: "https://boards.greenhouse.io/acme/logo.png",
+    }),
+    null
+  );
+  // A real employer logo on its own domain is still accepted.
+  assert.equal(
+    publicLogo({ logo: "https://dashenbank.com/logo.png" }),
+    "https://dashenbank.com/logo.png"
+  );
+});
+
 test("a rejected directory logo falls back to a valid employer listing logo", () => {
   assert.equal(
     publicLogo({

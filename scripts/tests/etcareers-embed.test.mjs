@@ -183,3 +183,19 @@ test("sanitizeCardDescription detaches internal links without losing employer wo
   assert.doesNotMatch(cleaned, /href="(?:\/jobs|https:\/\/etcareers\.com)/);
   assert.match(cleaned, /<a href="https:\/\/forms\.gle\/ok">Apply<\/a>/);
 });
+
+test("sanitizeCardDescription removes the ETcareers Telegram promo footer", () => {
+  const employer =
+    "<p>The employer invites qualified applicants to apply.</p>" +
+    "<p>Application Deadline: November 15, 2026</p>";
+  const promos = [
+    '<p>📲 <strong>Join @Etcareersjobs for Daily Job Updates &amp; Share with Friends:</strong> <a href="https://t.me/Etcareersjobs">https://t.me/Etcareersjobs</a></p></p>',
+    '<p>📲 <strong>Join on Telegram for Daily Job Updates &amp; Share with Friends:</strong></p><p><a href="https://t.me/Etcareersjobs">https://t.me/Etcareersjobs</a></p></p>',
+  ];
+  for (const promo of promos) {
+    const cleaned = sanitizeCardDescription(employer + "<br /><hr>" + promo, PAGE_URL, { add() {} });
+    assert.match(cleaned, /The employer invites qualified applicants to apply\./);
+    assert.match(cleaned, /Application Deadline: November 15, 2026/);
+    assert.doesNotMatch(cleaned, /Etcareersjobs|Daily Job Updates|Share with Friends|t\.me|Telegram/i, cleaned);
+  }
+});
