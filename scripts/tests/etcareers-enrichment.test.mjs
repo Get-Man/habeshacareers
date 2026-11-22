@@ -14,6 +14,7 @@ import {
   feedJobTitle,
   htmlToText,
   isStubDescription,
+  needsEnrichment,
   normaliseTitleKey,
   updateListing,
 } from "../enrich-etcareers.mjs";
@@ -70,6 +71,29 @@ test("uses an injected logo resolver without any image search", async () => {
   assert.equal(record.logo_url, "https://cdn.example.com/cached-logo.png");
   assert.equal(record.direct_apply_url, "https://forms.gle/test");
   assert.equal(isForbiddenEtcareersUrl(link), true);
+});
+
+test("a rejected legacy logo still needs logo enrichment", () => {
+  const complete = {
+    company: "Test Organization",
+    description: "Real employer description.",
+    apply_url: "https://example.org/apply",
+    employer_logo_public_url: null,
+    organization_logo_url: null,
+    logo: null,
+  };
+  assert.equal(needsEnrichment(complete).logo, true);
+  assert.equal(
+    needsEnrichment({
+      ...complete,
+      logo: "https://www.google.com/s2/favicons?domain=geezjobs.com&sz=128",
+    }).logo,
+    true
+  );
+  assert.equal(
+    needsEnrichment({ ...complete, logo: "https://cdn.example.org/logo.png" }).logo,
+    false
+  );
 });
 
 test("writes identity, logo, description and apply link without SQL parameter type errors", async () => {

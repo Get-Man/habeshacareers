@@ -27,6 +27,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { hasDatabase, query, withClient } from "../lib/db.mjs";
+import { publicLogo } from "../lib/jobs/repository.mjs";
 import { classifyDestination, APPLY_URL_TYPES } from "../lib/jobs/extract/apply-link.mjs";
 import { Diagnostics } from "./etcareers-scraper.mjs";
 import { resolve_org_logo } from "./etcareers-embed.mjs";
@@ -100,14 +101,22 @@ export function htmlToText(html) {
     .trim();
 }
 
-function needsEnrichment(row) {
+export function needsEnrichment(row) {
+  // A non-null legacy logo is not enough: board favicons and discovery-source
+  // assets are filtered out by the public mapper, so the vacancy still renders
+  // an empty logo tile. Use exactly the same visibility rule here.
+  const visibleLogo = publicLogo({
+    employer_logo_url: row.employer_logo_public_url,
+    organization_logo_url: row.organization_logo_url,
+    logo: row.logo,
+  });
   return {
     identity:
       !row.company ||
       ["Unknown organization", "Organization not verified"].includes(String(row.company).trim()),
     description: !row.description || isStubDescription(row.description),
     apply: !row.apply_url,
-    logo: !(row.employer_logo_public_url || row.logo || row.organization_logo_url),
+    logo: !visibleLogo,
   };
 }
 
