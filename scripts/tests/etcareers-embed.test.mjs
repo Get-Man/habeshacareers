@@ -171,15 +171,17 @@ test("resolve_org_logo returns none instead of inventing a logo when all steps f
   });
 });
 
-test("sanitizeCardDescription detaches internal links without losing employer words", () => {
+test("sanitizeCardDescription detaches internal links and never publishes board branding", () => {
   const diag = { add() {} };
   const cleaned = sanitizeCardDescription(
-    '<p>Read <a href="/jobs/x">the job detail</a> at <a href="https://etcareers.com/jobs/x">ETcareers</a>.</p>' +
+    '<p>SNV invites qualified applicants to apply.</p>\n' +
+      '<p>Read <a href="/jobs/x">the job detail</a> at <a href="https://etcareers.com/jobs/x">ETcareers</a>.</p>\n' +
       '<a href="https://forms.gle/ok">Apply</a>',
     PAGE_URL,
     diag
   );
-  assert.match(cleaned, /Read the job detail at ETcareers\./);
+  assert.match(cleaned, /SNV invites qualified applicants to apply\./);
+  assert.doesNotMatch(cleaned, /ETcareers/i);
   assert.doesNotMatch(cleaned, /href="(?:\/jobs|https:\/\/etcareers\.com)/);
   assert.match(cleaned, /<a href="https:\/\/forms\.gle\/ok">Apply<\/a>/);
 });

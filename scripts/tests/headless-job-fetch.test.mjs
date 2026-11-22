@@ -10,6 +10,7 @@ import { test } from "node:test";
 
 import {
   extractHeadlessJob,
+  extractFeedItemRecord,
   guardedFetch,
   isForbiddenEtcareersUrl,
   parseRssItems,
@@ -331,4 +332,69 @@ test("the zero-visit guard blocks ETcareers job pages but allows public feeds", 
   });
   assert.equal(ok.status, 200);
   assert.deepEqual(networkLog, ["https://etcareers.com/jobs.rss"]);
+});
+
+test("extractFeedItemRecord turns one feed item into a complete employer-only record", () => {
+  const item = parseRssItems(RSS_XML)[0];
+  const record = extractFeedItemRecord(item);
+
+  assert.equal(record.sourceUrl, TARGET_URL);
+  assert.equal(record.title, "Test Bank S.C Job Vacancy 2026");
+  assert.equal(record.org_name, "Test Bank S.C");
+  assert.equal(record.direct_apply_url, "https://forms.gle/test123");
+  assert.equal(
+    record.apply_button_html,
+    '<a href="https://forms.gle/test123" target="_blank" rel="noopener noreferrer" class="apply-now-btn">Apply Now</a>'
+  );
+  assert.equal(record.location, "Addis Ababa, Ethiopia");
+  assert.equal(record.employment_type, "Full-time");
+  assert.equal(record.deadline, "Within 7 days from the announcement date");
+  assert.deepEqual(record.positions, ["Banking Business Officer I", "Branch Manager I"]);
+  assert.equal(record.posted_date, "2026-01-01");
+
+  // Full employer content survives in both HTML and readable text.
+  assert.match(record.description_html, /<h2>Job Overview<\/h2>/);
+  assert.match(record.description_text, /Hiring Organization: Test Bank S.C/);
+  assert.match(record.description_text, /Minimum of 2 years of branch banking experience/);
+  assert.doesNotMatch(record.description_text, /TELEGRAM_URL|Join ETcareers|t\.me\//i);
+  assert.doesNotMatch(record.description_html, /href="\/jobs\/other-vacancy"/);
+});
+
+const BULLET_EMAIL_AND_NOTICE_RSS = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <item>
+    <title>Bulletin Vacancy - Test Organization - Addis Ababa, Ethiopia</title>
+    <link>https://etcareers.com/jobs/bulletin-vacancy-f7206e1b</link>
+    <guid>https://etcareers.com/jobs/bulletin-vacancy-f7206e1b</guid>
+    <description><![CDATA[
+      <p>Test Organization invites qualified applicants to apply.</p>
+      <p><strong>Email Applications:</strong></p>
+      <ul><li>hr@example.org</li></ul>
+      <hr>
+      <p><strong>Important Notice:</strong> ETcareers publishes job opportunities for informational purposes.</p>
+      <p>ETcareers.com – Jobs in Ethiopia</p>
+      <p>Find the latest vacancies at ETcareers.com.</p>
+    ]]></description>
+  </item>
+</channel></rss>`;
+
+test("extractFeedItemRecord drops board boilerplate but keeps a bulleted application email", () => {
+  const record = extractFeedItemRecord(parseRssItems(BULLET_EMAIL_AND_NOTICE_RSS)[0]);
+  assert.equal(record.direct_apply_url, "mailto:hr@example.org");
+  assert.match(record.description_text, /Test Organization invites qualified applicants/);
+  assert.doesNotMatch(record.description_text, /ETcareers|etcareers\.com|informational purposes/i);
+  assert.doesNotMatch(record.description_html, /ETcareers|etcareers\.com/i);
+});
+
+test("extractFeedItemRecord keeps a real application email and rejects a generic contact", () => {
+  const apply = extractFeedItemRecord(parseRssItems(EMAIL_APPLY_RSS)[0]);
+  assert.equal(apply.direct_apply_url, "mailto:hr@example.org");
+  assert.equal(
+    apply.apply_button_html,
+    '<a href="mailto:hr@example.org" target="_blank" rel="noopener noreferrer" class="apply-now-btn">Apply Now</a>'
+  );
+
+  const contact = extractFeedItemRecord(parseRssItems(EMAIL_CONTACT_RSS)[0]);
+  assert.equal(contact.direct_apply_url, null);
+  assert.equal(contact.apply_button_html, null);
 });

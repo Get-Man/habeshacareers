@@ -14,6 +14,10 @@ const runSoft = (cmd, args) => {
 const hasDb = !!(process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED);
 if (hasDb) {
   run("node", ["scripts/migrate.mjs"]);
+  // Bring every listing in the public feed into the catalogue with the same
+  // completeness as an individually enriched vacancy. Only the RSS feed is
+  // read; the script deduplicates and is safe to repeat on every deploy.
+  runSoft("node", ["scripts/backfill-etcareers-feed.mjs"]);
   // Fill ETcareers identity, logos, descriptions and direct apply links from
   // the public feed. Zero page visits, idempotent, and fail-safe.
   runSoft("node", ["scripts/enrich-etcareers.mjs"]);

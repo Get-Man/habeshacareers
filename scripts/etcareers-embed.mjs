@@ -87,6 +87,14 @@ const SOURCE_PROMO_BLOCK_RE =
 const SOURCE_PROMO_TEXT_RE =
   /📲\s*|(?:join|get)\s+(?:on\s+telegram|@?etcareersjobs|daily\s+job\s+(?:updates|alerts))[^\n<>]*(?:daily\s+job\s+(?:updates|alerts)|share\s+with\s+friends|job\s+alerts?)?[^\n<>]*/gi;
 
+// The feed also appends a self-attribution notice ("ETcareers publishes job
+// opportunities for informational purposes…"). It is board boilerplate, not
+// employer content, and must never reach a public vacancy.
+const SOURCE_NOTICE_BLOCK_RE =
+  /<p\b[^>]*>(?:(?!<\/p>)[\s\S])*?etcareers\s+publishes(?:(?!<\/p>)[\s\S])*?<\/p>/gi;
+const SOURCE_NOTICE_TEXT_RE =
+  /(?:important\s+notice\s*:\s*)?etcareers\s+publishes[^\n<>]*/gi;
+
 // A search hit may be a real photo from the employer's site but still not be
 // its logo. Editorial and promotional imagery is never a verified brand mark.
 const NON_LOGO_IMAGE_RE =
@@ -205,9 +213,14 @@ export function sanitizeCardDescription(descriptionHtml, pageUrl, diag) {
     }
   );
 
-  // Strip the discovery source's Telegram promo before any link unwrapping.
+  // Strip the discovery source's Telegram promo and self-attribution notice
+  // before any link unwrapping.
   html = html.replace(SOURCE_PROMO_BLOCK_RE, () => {
     diag?.add("description sanitised", "removed discovery-source Telegram promo");
+    return " ";
+  });
+  html = html.replace(SOURCE_NOTICE_BLOCK_RE, () => {
+    diag?.add("description sanitised", "removed discovery-source attribution notice");
     return " ";
   });
 
@@ -250,6 +263,22 @@ export function sanitizeCardDescription(descriptionHtml, pageUrl, diag) {
     diag?.add("description sanitised", "removed discovery-source promo text");
     return " ";
   });
+  html = html.replace(SOURCE_NOTICE_TEXT_RE, () => {
+    diag?.add("description sanitised", "removed discovery-source attribution text");
+    return " ";
+  });
+
+  // Some feeds prepend a plain-text board banner ("ETcareers.com – Jobs in
+  // Ethiopia") or append a "Find the latest vacancies… at ETcareers.com" line.
+  // These are not employer words and must never be published as job content.
+  const beforeBrandLines = html;
+  html = html
+    .split("\n")
+    .filter((line) => !/\betcareers(?:\.com)?\b/i.test(line))
+    .join("\n");
+  if (html !== beforeBrandLines) {
+    diag?.add("description sanitised", "removed discovery-source brand lines");
+  }
 
   return html.trim();
 }

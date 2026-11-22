@@ -38,6 +38,8 @@ import {
   resolve_org_logo,
   buildPreviewHtml,
 } from "./etcareers-embed.mjs";
+import { htmlToText } from "../lib/jobs/extract/html.mjs";
+import { toDate } from "../lib/jobs/utils.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -553,6 +555,13 @@ export function jobTitleFromFeedTitle(title) {
   return raw.replace(/\s+-\s+[^-]+\s+-\s+[^-]+\s*$/, "").trim();
 }
 
+function locationFromFeedTitle(title) {
+  const raw = String(title || "").trim();
+  if (/\s+-\s*$/.test(raw)) return null;
+  const parts = raw.split(/\s+-\s+/).map((p) => p.trim()).filter(Boolean);
+  return parts.length >= 3 ? parts[parts.length - 1] : null;
+}
+
 /**
  * Some employers publish the application address as plain text instead of a
  * mailto anchor (for example "Email: hr@example.org"). Only accept it when the
@@ -574,13 +583,16 @@ function extractPlaintextApplyEmail(text, diag) {
     if (contactOnly.test(recent) && !applicationWords.test(recent)) continue;
 
     let score = 0;
-    if (/(?:^|[\s>])(?:e-?mail|apply(?:\s+via\s+email)?|submission\s+email)\s*[:\-]\s*$/i.test(before.trim())) {
+    // "Email:", "Email Applications:", "Application Email:" and
+    // "Send your CV to:" all introduce an employer's application mailbox.
+    // The trailing bullet allows "Email Applications:\n\n• hr@example.org".
+    if (/(?:^|[\s>])(?:e-?mail(?:\s+applications?)?|application\s+e-?mails?|apply\s+(?:via|by)\s+e-?mail|send\s+(?:your\s+)?(?:cv|resume|application))\s*[:\-]\s*(?:[•\-*]\s*)?$/i.test(before.trim())) {
       score += 60;
     }
     if (applicationWords.test(`${before} ${after}`)) score += 35;
     if (/\b(?:to|at|via|using)\s+$/i.test(before.slice(-40))) score += 35;
     if (/^(?:hr|hrm|recruit|jobs?|careers?|vacancy)/i.test(email.split("@")[0])) score += 10;
-    if (contactOnly.test(`${before} ${after}`)) score -= 50;
+    if (contactOnly.test(recent)) score -= 50;
 
     if (score >= 70 && (!best || score > best.score)) best = { email, score };
   }
@@ -678,8 +690,46 @@ async function fetchLogo(orgName, pageUrl, options, diag) {
 }
 
 // ---------------------------------------------------------------------------
- // Orchestration
- // ---------------------------------------------------------------------------
+  // Per-item extraction and single-job orchestration
+  // ---------------------------------------------------------------------------
+
+/**
+ * Extract one complete vacancy from a single public RSS item.
+ *
+ * This is the batch-safe sibling of `extractHeadlessJob`: it never fetches,
+ * searches or downloads anything, so a deploy-time backfill can turn every
+ * item in the public feed into a fully described vacancy with its employer's
+ * own application link. Only the item's own fields are used — nothing is
+ * inferred beyond what the employer published in the feed.
+ */
+export function extractFeedItemRecord(item, options = {}) {
+  const title = jobTitleFromFeedTitle(item?.title) || stripTags(item?.title);
+  if (!title) return null;
+
+  const descriptionHtml = cleanRssDescription(item?.description, options.diag);
+  const orgName =
+    extractLabelledValue(descriptionHtml, "Hiring Organization") ||
+    organisationFromFeedTitle(item?.title) ||
+    "";
+  const directApplyUrl = extractApplyUrl(descriptionHtml, item?.link, options.diag);
+
+  return {
+    sourceUrl: item?.link || item?.guid || null,
+    title,
+    org_name: orgName,
+    description_html: descriptionHtml,
+    description_text: htmlToText(descriptionHtml, 50000).replace(/\n{3,}/g, "\n\n").trim(),
+    direct_apply_url: directApplyUrl,
+    apply_button_html: directApplyUrl ? applyButtonHtml(directApplyUrl) : null,
+    location:
+      extractLabelledValue(descriptionHtml, "Job Location") ||
+      locationFromFeedTitle(item?.title),
+    employment_type: extractLabelledValue(descriptionHtml, "Employment Type"),
+    deadline: extractLabelledValue(descriptionHtml, "Application Deadline"),
+    positions: extractPositions(descriptionHtml),
+    posted_date: toDate(item?.pubDate),
+  };
+}
 
 export async function extractHeadlessJob(input, options = {}) {
   const diag = options.diag || new Diagnostics(options.quiet);
