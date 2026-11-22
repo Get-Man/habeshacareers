@@ -52,7 +52,6 @@ begin
 
   update job_listings
      set company = 'Let Me Be A Child e.V.',
-         organization_name = 'Let Me Be A Child e.V.',
          employer_name_key = 'let me be a child e v',
          organization_logo_url = null,
          organization_logo_source = null,
