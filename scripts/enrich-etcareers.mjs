@@ -128,7 +128,7 @@ async function loadCandidateRows() {
   `);
 }
 
-async function ensureEmployer(client, orgName, logo) {
+export async function ensureEmployer(client, orgName, logo) {
   const nameKey = normaliseTitleKey(orgName);
   if (!nameKey) return null;
 
@@ -146,9 +146,9 @@ async function ensureEmployer(client, orgName, logo) {
          logo_source, logo_confidence, logo_verified, logo_verified_at,
          logo_review_note, identity_source)
        values ($1, $2, '{}', $3, null, 'board_cdn', 'global_search',
-               $4, $4, case when $4 then now() else null end, $5, 'manual')
+               $4, $5, case when $5 then now() else null end, $6, 'manual')
        returning id`,
-      [orgName, nameKey, logoUrl, logoUrl ? 90 : 0, LOGO_NOTE]
+      [orgName, nameKey, logoUrl, logoUrl ? 90 : 0, Boolean(logoUrl), LOGO_NOTE]
     );
     id = inserted.rows[0].id;
   } else {
@@ -185,7 +185,7 @@ async function ensureEmployer(client, orgName, logo) {
   return id;
 }
 
-async function updateListing(client, row, patch, employerId) {
+export async function updateListing(client, row, patch, employerId) {
   const applyCheck = patch.applyUrl
     ? classifyDestination(patch.applyUrl, {
         pageUrl: patch.rssLink,
@@ -205,7 +205,7 @@ async function updateListing(client, row, patch, employerId) {
       : null;
   const wantsApply = patch.needs.apply && usableApply;
   const wantsDescription = patch.needs.description && patch.descriptionText;
-  const wantsLogo = patch.needs.logo && patch.logoUrl;
+  const wantsLogo = Boolean(patch.needs.logo && patch.logoUrl);
 
   await client.query(
     `update job_listings
@@ -228,7 +228,7 @@ async function updateListing(client, row, patch, employerId) {
       where id = $1`,
     [
       row.id,
-      patch.needs.identity && patch.orgName,
+      Boolean(patch.needs.identity && patch.orgName),
       patch.orgName || null,
       employerId || null,
       patch.orgName ? normaliseTitleKey(patch.orgName) : null,
