@@ -212,3 +212,28 @@ test("step 9: normalized job JSON carries real, validated apply information", ()
   assert.equal(job.contact_email, null);
   assert.equal(job.application_instructions.includes("etcareers.com/jobs/senior"), false);
 });
+
+// ---------------------------------------------------------------------------
+// Real-board regression: live ETCareers pages render the CTA as
+// <a id="apply-btn" ... href="mailto:...">Apply now</a>, with the employer
+// homepage also present in the description. The mailto must win.
+// ---------------------------------------------------------------------------
+
+const REAL_CTA_HTML = DETAIL_HTML.replace(
+  /<a href="[^"]+">Apply now<\/a>/,
+  '<a id="apply-btn" data-action="click->job#onApply" href="mailto:hiring@benchlinereports.com">Apply now</a>'
+);
+
+test("real-board 'Apply now' mailto button is located, validated and published", () => {
+  const located = locateApplyLink(REAL_CTA_HTML, DETAIL_URL, ETCAREERS_SOURCE);
+  assert.ok(located.chosen);
+  assert.equal(located.chosen.label, "Apply now");
+  assert.equal(located.chosen.primary, true);
+  assert.equal(located.chosen.url, "mailto:hiring@benchlinereports.com");
+  assert.equal(located.chosen.type, APPLY_URL_TYPES.EMAIL);
+  assert.equal(located.chosen.valid, true);
+
+  const job = parseJobPosting(REAL_CTA_HTML, DETAIL_URL, ETCAREERS_SOURCE);
+  assert.equal(job.application_instructions, "Apply by email: hiring@benchlinereports.com");
+  assert.equal(job.application_instructions.includes("benchlinereports.com/"), false);
+});
