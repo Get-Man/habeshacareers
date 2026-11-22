@@ -375,6 +375,26 @@ test("isSourceApplicationPath requires a per-vacancy path", () => {
   assert.equal(isSourceApplicationPath("https://geezjobs.com/job-application/other", { pageUrl: "https://geezjobs.com/job-detail/abc" }), false);
 });
 
+test("an application endpoint keyed by the vacancy id is a per-vacancy destination", () => {
+  // UN Jobnet addresses the application hop as /apply/<id> while the detail
+  // slug carries the same id as its trailing segment. The exact id match is
+  // proof this application belongs to this vacancy (the slug text is often
+  // abbreviated and will not literally appear in the /apply/ path).
+  const pageUrl = "https://www.unjobnet.org/jobs/detail/uneca-nrfscfnd-strengthening-land-tenure-security-for-resilient-agrifood-systems-90804681";
+  const applyUrl = "https://www.unjobnet.org/apply/90804681";
+  const source = { slug: "unjobnet", adapter_key: "unjobnet", base_url: "https://www.unjobnet.org/" };
+
+  assert.equal(isSourceApplicationPath(applyUrl, { pageUrl }), true);
+  const dest = classifyDestination(applyUrl, { source, pageUrl });
+  assert.equal(dest.valid, true);
+  assert.equal(dest.type, APPLY_URL_TYPES.SOURCE_APPLICATION);
+
+  // A different id, or a page without a trailing id, must not be accepted —
+  // otherwise any /apply/<n> on the board would look vacancy-specific.
+  assert.equal(isSourceApplicationPath("https://www.unjobnet.org/apply/99999999", { pageUrl }), false);
+  assert.equal(isSourceApplicationPath(applyUrl, { pageUrl: "https://www.unjobnet.org/jobs" }), false);
+});
+
 test("application links are detected and ranked from a page", () => {
   const html = `<html><body>
     <h2>How to apply</h2>

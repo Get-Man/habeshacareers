@@ -32,7 +32,7 @@ password change, password reset by email webhook, saved jobs, and a session list
 
 ## Job sources
 
-Enabled discovery adapters: `srafelagi`, `aradajobs`, `un-careers-ethiopia`.
+Enabled discovery adapters: `srafelagi`, `aradajobs`, `un-careers-ethiopia`, `unjobnet`.
 Source URLs are stored on every listing; duplicates update the canonical record and
 attach the new source. Expired listings are marked `expired` rather than deleted.
 The admin console's **Source monitoring** tab shows:

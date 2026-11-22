@@ -9,11 +9,13 @@ import { test } from "node:test";
 
 import {
   buildRssKeywordMatcher,
+  discoverSource,
   getAdapter,
   JOB_DETAIL_PATTERNS,
   listAdapterKeys,
   parseRssItems,
 } from "../../lib/jobs/sources/adapters.mjs";
+import { isKnownSourceDomain } from "../../lib/jobs/extract/hosts.mjs";
 import {
   EXTRACTION_STATUS,
   JOB_STATUS,
@@ -23,7 +25,7 @@ import {
 import { toFrontendJob, toMonitoringRow } from "../../lib/jobs/repository.mjs";
 
 test("new discovery adapters resolve by slug and adapter_key", () => {
-  for (const slug of ["srafelagi", "aradajobs", "un-careers-ethiopia"]) {
+  for (const slug of ["srafelagi", "aradajobs", "un-careers-ethiopia", "unjobnet"]) {
     const adapter = getAdapter({ slug });
     assert.ok(adapter, `expected adapter for ${slug}`);
     assert.equal(adapter.key, slug);
@@ -41,6 +43,47 @@ test("job detail patterns match vacancies but skip archive/listing pages", () =>
   assert.ok(!JOB_DETAIL_PATTERNS.aradajobs.test("https://www.aradajobs.com/jobs/location/addis-ababa"));
   assert.ok(JOB_DETAIL_PATTERNS.unCareers.test("https://careers.un.org/jobSearchDescription/287216?language=en"));
   assert.ok(!JOB_DETAIL_PATTERNS.unCareers.test("https://careers.un.org/jobfeed"));
+  assert.ok(JOB_DETAIL_PATTERNS.unjobnet.test("https://www.unjobnet.org/jobs/detail/undp-national-intern-regional-trade-associate-90794392"));
+  assert.ok(!JOB_DETAIL_PATTERNS.unjobnet.test("https://www.unjobnet.org/jobs?locations%5B0%5D=Ethiopia"));
+  assert.ok(!JOB_DETAIL_PATTERNS.unjobnet.test("https://www.unjobnet.org/organizations/UNDP"));
+});
+
+test("UN Jobnet listing fallback yields individual vacancy URLs", async () => {
+  const listingUrl = "https://www.unjobnet.org/jobs?locations%5B0%5D=Ethiopia&orderby=recent";
+  const html = `<div class="js-fallback">
+    <a href="/organizations/UNECA">United Nations Economic Commission for Africa</a>
+    <a href="/jobs/detail/uneca-cfnd-nelga-communication-specialist-90804680">CFND - NELGA Communication Specialist</a>
+    <a href="/jobs/detail/undp-national-intern-regional-trade-associate-90794392">National Intern - Regional Trade Associate</a>
+    <nav><a href="https://www.unjobnet.org/jobs?locations%5B0%5D=Ethiopia&amp;orderby=recent&amp;page=2">Next</a></nav>
+  </div>`;
+  const result = await discoverSource(
+    {
+      adapter_key: "unjobnet",
+      fetch_config: { listingUrl, limit: 10, offset: 1 },
+    },
+    {
+      limit: 10,
+      offset: 1,
+      fetchText: async () => ({ ok: true, status: 200, text: html, url: listingUrl }),
+    }
+  );
+  assert.equal(result.adapter, "unjobnet");
+  assert.equal(result.mode, "listing");
+  assert.deepEqual(
+    result.urls.map((u) => u.url),
+    [
+      "https://www.unjobnet.org/jobs/detail/uneca-cfnd-nelga-communication-specialist-90804680",
+      "https://www.unjobnet.org/jobs/detail/undp-national-intern-regional-trade-associate-90794392",
+    ]
+  );
+  assert.equal(result.nextOffset, 2);
+  assert.equal(result.done, false);
+});
+
+test("UN Jobnet is classified as an internal discovery source", () => {
+  assert.ok(isKnownSourceDomain("www.unjobnet.org"));
+  assert.ok(isKnownSourceDomain("jobs.unjobnet.org"));
+  assert.ok(!isKnownSourceDomain("example.org"));
 });
 
 test("RSS parser keeps item description text for keyword filtering", () => {
@@ -95,6 +138,32 @@ test("public job mapping exposes verificationStatus alongside status/jobStatus",
   });
   assert.equal(job.verificationStatus, "verified");
   assert.equal(job.status, "active");
+});
+
+test("UN Jobnet applications are proxied and source identity never reaches the public job", () => {
+  const job = toFrontendJob({
+    id: 42,
+    title: "Country Consultant for Somalia",
+    company: "United Nations Economic Commission for Africa",
+    status: "active",
+    apply_url: "https://www.unjobnet.org/apply/90804681",
+    apply_url_type: "source_application",
+    canonical_job_url: "https://www.unjobnet.org/jobs/detail/uneca-consultant-90804681",
+    original_job_url: "https://www.unjobnet.org/jobs/detail/uneca-consultant-90804681",
+    // Fields that exist on an internal row but must never reach the public API.
+    source_name: "UN Jobnet (Ethiopia)",
+    source_domain: "www.unjobnet.org",
+    logo_url: "https://www.unjobnet.org/assets/images/logo/platform.png",
+  });
+  // The board-hosted application hop is served via our own redirect, so the
+  // source domain is not exposed to the reader.
+  assert.equal(job.applyUrl, "/api/apply?id=42");
+  assert.equal(job.applyUrlType, "source_application");
+  // No source name, domain, asset URL or detail URL may leak anywhere in the
+  // public job payload (including structured-data and apply metadata).
+  const payload = JSON.stringify(job);
+  assert.ok(!/unjobnet/i.test(payload), payload);
+  assert.ok(!/90804681/.test(payload), payload);
 });
 
 test("monitoring rows map to the required admin columns", () => {
