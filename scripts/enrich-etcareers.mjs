@@ -7,9 +7,9 @@
  * only the public RSS feed, search-index snippets and image search are read.
  * No ETcareers job detail page is ever requested, rendered or navigated to.
  *
- * The script reads the real catalogue from the database, finds rows whose
- * internal source is ETcareers, matches them to the public feed by title, and
- * fills only what is missing:
+ * The script reads the real catalogue from the database and matches rows to the
+ * public feed by title, so older seeded rows without an internal source link
+ * are covered too. It fills only what is missing:
  *   - employer identity (where the row is still "Unknown organization")
  *   - a verified employer logo served through /api/employer-logo
  *   - the full employer description and direct application URL (where the row
@@ -40,7 +40,8 @@ import {
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FEED_URL = "https://etcareers.com/jobs.rss";
 const STUB_DESCRIPTION = "Open the official/original vacancy page";
-const MAX_ROWS = Number(process.env.ETCAREERS_ENRICH_LIMIT || 400);
+const MAX_ROWS = Number(process.env.ETCAREERS_ENRICH_LIMIT || 1000);
+const DIAGNOSTIC_LIMIT = Number(process.env.ETCAREERS_DIAGNOSTIC_LIMIT || 8);
 const LOGO_NOTE =
   "Logo resolved from public image search by the zero-visit ETcareers enrichment; no official domain inferred.";
 
@@ -65,6 +66,14 @@ export function feedJobTitle(value) {
 
 export function isStubDescription(value) {
   return String(value || "").trimStart().startsWith(STUB_DESCRIPTION);
+}
+
+function short(value, max = 140) {
+  return String(value ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+function sample(row, extra = {}) {
+  return { id: row.id, title: short(row.title, 100), ...extra };
 }
 
 export function htmlToText(html) {
@@ -103,27 +112,19 @@ function needsEnrichment(row) {
 }
 
 async function loadCandidateRows() {
-  // The source is identified internally only. No source column is selected for
-  // the public view, and these URLs never leave this script.
+  // A row qualifies by title match against the public feed, so it does not
+  // need an internal source link (older seeded rows have none). Only fields
+  // that are actually missing are written; good data is never overwritten.
   return query(`
-    select distinct on (l.id)
-           l.id, l.title, l.company, l.description, l.apply_url,
+    select l.id, l.title, l.company, l.description, l.apply_url,
            l.logo, l.organization_logo_url, l.employer_id,
            ed.logo_public_url as employer_logo_public_url,
            ed.logo_verified as employer_logo_verified
       from job_listings l
-      left join job_sources s on s.id = l.primary_source_id
-      left join job_listing_sources jls on jls.listing_id = l.id
-      left join job_sources s2 on s2.id = jls.source_id
       left join employer_directory ed on ed.id = l.employer_id
-     where s.slug = 'etcareers'
-        or s2.slug = 'etcareers'
-        or l.original_url ~* 'etcareers\\.com'
-        or l.original_job_url ~* 'etcareers\\.com'
-        or l.listing_page_url ~* 'etcareers\\.com'
-        or l.canonical_job_url ~* 'etcareers\\.com'
+     where coalesce(l.status, '') <> 'archived'
      order by l.id desc
-     limit ${Number(MAX_ROWS) || 400}
+     limit ${Number(MAX_ROWS) || 1000}
   `);
 }
 
@@ -312,7 +313,18 @@ export async function main() {
     return logoCache.get(key);
   };
 
-  const stats = { feedItems: items.length, candidates: candidates.length, updated: 0, matched: 0, noMatch: 0, failed: 0 };
+  const stats = {
+    feedItems: items.length,
+    candidates: candidates.length,
+    matched: 0,
+    updated: 0,
+    skippedNoOrg: 0,
+    noMatch: 0,
+    failed: 0,
+    noMatchSamples: [],
+    skippedNoOrgSamples: [],
+    failedSamples: [],
+  };
   const extractOptions = {
     rssXml: xml,
     quiet: true,
@@ -329,12 +341,23 @@ export async function main() {
       byTitle.get(normaliseTitleKey(row.title));
     if (!item) {
       stats.noMatch += 1;
+      if (stats.noMatchSamples.length < DIAGNOSTIC_LIMIT) {
+        stats.noMatchSamples.push(sample(row));
+      }
       continue;
     }
     stats.matched += 1;
+    let phase = "extract";
     try {
       const record = await extractHeadlessJob(item.link, extractOptions);
-      if (!record.org_name) continue;
+      phase = "record";
+      if (!record.org_name) {
+        stats.skippedNoOrg += 1;
+        if (stats.skippedNoOrgSamples.length < DIAGNOSTIC_LIMIT) {
+          stats.skippedNoOrgSamples.push(sample(row));
+        }
+        continue;
+      }
       const patch = {
         orgName: record.org_name,
         logoUrl: record.logo_url,
@@ -344,6 +367,7 @@ export async function main() {
         rssLink: item.link,
         needs: needsEnrichment(row),
       };
+      phase = "database";
       await withClient(async (client) => {
         await client.query("begin");
         try {
@@ -361,7 +385,10 @@ export async function main() {
       stats.updated += 1;
     } catch (error) {
       stats.failed += 1;
-      diag.add("listing failed", `${row.id}: ${error.message}`);
+      if (stats.failedSamples.length < DIAGNOSTIC_LIMIT) {
+        stats.failedSamples.push(sample(row, { phase, error: short(error?.message || error, 200) }));
+      }
+      diag.add("listing failed", `${row.id} (${phase}): ${error.message}`);
     }
   }
 
@@ -369,8 +396,17 @@ export async function main() {
   if (forbidden.length) throw new Error(`zero-visit guard blocked ${forbidden.length} request(s)`);
 
   console.log(
-    `[enrich-etcareers] feed ${stats.feedItems} | candidates ${stats.candidates} | matched ${stats.matched} | updated ${stats.updated} | no match ${stats.noMatch} | failed ${stats.failed} | job page requests 0`
+    `[enrich-etcareers] feed ${stats.feedItems} | candidates ${stats.candidates} | matched ${stats.matched} | updated ${stats.updated} | no org ${stats.skippedNoOrg} | no match ${stats.noMatch} | failed ${stats.failed} | job page requests 0`
   );
+  if (stats.failedSamples.length) {
+    console.log(`[enrich-etcareers] failure samples ${JSON.stringify(stats.failedSamples)}`);
+  }
+  if (stats.noMatchSamples.length) {
+    console.log(`[enrich-etcareers] no-match samples ${JSON.stringify(stats.noMatchSamples)}`);
+  }
+  if (stats.skippedNoOrgSamples.length) {
+    console.log(`[enrich-etcareers] no-org samples ${JSON.stringify(stats.skippedNoOrgSamples)}`);
+  }
   return stats;
 }
 
