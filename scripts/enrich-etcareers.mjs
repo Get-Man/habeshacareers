@@ -296,6 +296,7 @@ export async function main() {
   });
 
   const logoCache = new Map();
+  const logoResolutionNotes = [];
   const resolveCachedLogo = async (orgName, pageUrl, extractOptions, extractDiag) => {
     const key = normaliseTitleKey(orgName);
     if (!key) return { logo_url: null, logo_local_path: null, logo_source: "none" };
@@ -320,6 +321,7 @@ export async function main() {
     }
 
     let resolved;
+    const diagStart = extractDiag?.lines?.length || 0;
     try {
       resolved = await resolve_org_logo(orgName, { html: "" }, pageUrl, {
         ...extractOptions,
@@ -333,6 +335,14 @@ export async function main() {
     } catch (error) {
       extractDiag?.add("logo resolver", `${orgName}: ${error.message}`);
       resolved = { logo_url: null, logo_local_path: null, logo_source: "none" };
+    }
+    if (!resolved?.logo_url && logoResolutionNotes.length < DIAGNOSTIC_LIMIT) {
+      const notes = (extractDiag?.lines || [])
+        .slice(diagStart)
+        .filter((line) => /global image search|logo download|REJECT|official-domain candidates|logo source/i.test(line))
+        .slice(-4)
+        .map((line) => short(line, 160));
+      logoResolutionNotes.push({ org: orgName, notes });
     }
     logoCache.set(key, resolved || { logo_url: null, logo_local_path: null, logo_source: "none" });
     return logoCache.get(key);
@@ -445,6 +455,9 @@ export async function main() {
   }
   if (stats.logoUnresolvedSamples.length) {
     console.log(`[enrich-etcareers] unresolved-logo samples ${JSON.stringify(stats.logoUnresolvedSamples)}`);
+  }
+  if (logoResolutionNotes.length) {
+    console.log(`[enrich-etcareers] logo resolution notes ${JSON.stringify(logoResolutionNotes)}`);
   }
   return stats;
 }
