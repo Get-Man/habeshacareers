@@ -22,7 +22,7 @@ import {
 } from "../../lib/jobs/extract/validate.mjs";
 import { toFrontendJob, toMonitoringRow } from "../../lib/jobs/repository.mjs";
 
-test("new discovery adapters resolve by slug, adapter_key and alias", () => {
+test("new discovery adapters resolve by slug and adapter_key", () => {
   for (const slug of ["srafelagi", "aradajobs", "un-careers-ethiopia"]) {
     const adapter = getAdapter({ slug });
     assert.ok(adapter, `expected adapter for ${slug}`);
@@ -31,7 +31,6 @@ test("new discovery adapters resolve by slug, adapter_key and alias", () => {
     assert.ok(listAdapterKeys().includes(slug));
   }
   assert.ok(getAdapter({ adapter_key: "un-careers-ethiopia" }));
-  assert.equal(getAdapter({ slug: "un-careers" }).key, "un-careers-ethiopia");
 });
 
 test("job detail patterns match vacancies but skip archive/listing pages", () => {

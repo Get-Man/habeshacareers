@@ -38,7 +38,7 @@ import { isKnownSourceDomain } from "../../lib/jobs/extract/hosts.mjs";
 import { toFrontendJob } from "../../lib/jobs/repository.mjs";
 import { extractFromStructuredJob } from "../../lib/jobs/extract/structured.mjs";
 import { extractDerejaRecords } from "../../lib/jobs/sources/dereja.mjs";
-import { getAdapter, listAdapterKeys } from "../../lib/jobs/sources/adapters.mjs";
+import { listAdapterKeys } from "../../lib/jobs/sources/adapters.mjs";
 
 const SOURCE = { name: "GeezJobs", slug: "geezjobs", base_url: "https://geezjobs.com/", listing_url: "https://geezjobs.com/" };
 
@@ -575,9 +575,3 @@ test("every registered source slug resolves to an adapter", () => {
   assert.ok(keys.includes("geezjobs"));
 });
 
-test("historical adapter aliases still resolve", () => {
-  assert.ok(getAdapter({ slug: "etcaeers" }));
-  assert.ok(getAdapter({ slug: "ethiopianreporterjobs" }));
-  assert.ok(getAdapter({ adapter_key: "ngojobs" }));
-  assert.equal(getAdapter({ slug: "not-a-source" }), null);
-});

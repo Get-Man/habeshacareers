@@ -1,4 +1,4 @@
--- Habesha Career: job aggregator / submissions schema (additive). Preserves existing static frontend.
+-- Habesha Career: job aggregator / submissions schema (additive).
 
 create extension if not exists pgcrypto;
 
@@ -41,13 +41,13 @@ create table if not exists organizations (
 
 create table if not exists job_listings (
   id bigserial primary key,
-  -- compatibility with existing frontend shape
+  -- Legacy-named fields retained because they may still hold live data.
   legacy_external_key text unique, -- stable key for upserts (source+external id or hash)
   title text not null,
   company text not null,
   organization_id bigint references organizations(id) on delete set null,
   logo text,
-  category text, -- primary label for compatibility
+  category text, -- primary label for display and filtering
   location text,
   region_city text,
   job_type text,

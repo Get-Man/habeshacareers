@@ -20,9 +20,6 @@ React app at https://habeshacareers.vercel.app.
   suite.
 - **`scripts/`** — migrations, sync/extract jobs and the smoke test suite.
 
-Legacy `*.html` paths on this host redirect to the equivalent React route so old
-bookmarks keep working without serving a second UI.
-
 ## Accounts
 
 Public registration creates `employee` or `employer` accounts only. Administrators are
