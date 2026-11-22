@@ -546,7 +546,7 @@ const NOISE_ATTR_RE =
   /(?:^|[\s_-])(?:ad|ads|advert|advertisement|sponsor(?:ed)?|promo|promotion|share|social|telegram|newsletter|subscribe|more[-_ ]?jobs|related|similar|job[-_ ]?alerts?)(?:$|[\s_-])/i;
 
 const NOISE_PHRASE_RE =
-  /(?:job\s+search\s+subscription|ethiopian\s+job\s+market|buy\s+maps|career\s+coaching|join\s+etcareers(?:\s+on\s+telegram)?|etcareers\s+job\s+alerts?|daily\s+job\s+updates|share\s+with\s+friends|advertisement|sponsored\s+content)/i;
+  /(?:job\s+search\s+subscription|ethiopian\s+job\s+market|buy\s+maps|career\s+coaching|join\s+etcareers(?:\s+on\s+telegram)?|etcareers\s+job\s+alerts?|job\s+alerts?|daily\s+job\s+updates|subscribe(?:\s+to\s+[^<]{0,60})?|more\s+jobs|share\s+with\s+friends|t\.me\/|telegram|advertis(?:e|ement)|sponsored)/i;
 
 /** Remove whole noisy elements without reformatting the surrounding markup. */
 function stripNoisyElements(html, diag) {
@@ -643,9 +643,12 @@ function cutBeforeRelated(html) {
   return html.slice(0, cut);
 }
 
-function isUsableDestination(url, pageUrl) {
+function isUsableDestination(url, pageUrl, { allowMailto = false } = {}) {
   if (!url) return false;
-  if (/^(?:mailto:|tel:)/i.test(url)) return false; // email/phone-only => apply_url null
+  // Public catalogue stays link-free for email-only jobs. The embeddable card
+  // opts in so a real `mailto:` CTA can be used without inventing a URL.
+  if (/^mailto:/i.test(url)) return allowMailto;
+  if (/^tel:/i.test(url)) return false;
   if (BOARD_HOST_RE.test(hostOf(url)) || hostOf(url) === hostOf(pageUrl)) return false;
   return /^https?:\/\//i.test(url);
 }
@@ -682,7 +685,7 @@ function applyButtonHtml(url) {
   return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="apply-now-btn">Apply Now</a>`;
 }
 
-async function extractApplication(fullHtml, descriptionHtml, descriptionText, pageUrl, diag) {
+async function extractApplication(fullHtml, descriptionHtml, descriptionText, pageUrl, diag, options = {}) {
   diag.section("SELECTOR 6 — APPLICATION URL");
   const region = cutBeforeRelated(fullHtml);
   const candidates = [];
@@ -701,7 +704,7 @@ async function extractApplication(fullHtml, descriptionHtml, descriptionText, pa
     if (/\bapply\b/i.test(attrs.class || "")) score += 20;
 
     const url = absoluteUrl(href, pageUrl);
-    if (url && isUsableDestination(url, pageUrl)) score += 30;
+    if (url && isUsableDestination(url, pageUrl, options)) score += 30;
 
     // JavaScript-opened URL stored on the element.
     const jsUrl =
@@ -743,23 +746,29 @@ async function extractApplication(fullHtml, descriptionHtml, descriptionText, pa
   // Hierarchy: legitimate Apply button href -> JS-opened URL -> final redirect
   // -> employer-provided online application URL -> null.
   if (chosen) {
-    const direct = chosen.url || null;
+    const mailto = options.allowMailto && /^mailto:/i.test(chosen.href) ? chosen.href : null;
+    const direct = chosen.url || mailto;
     const unwrapped = direct ? unwrapRedirect(direct, pageUrl) : null;
-    if (isUsableDestination(unwrapped, pageUrl)) {
+    if (isUsableDestination(unwrapped, pageUrl, options)) {
       applyUrl = unwrapped;
       source = unwrapped === direct ? "primary Apply now href" : "unwrapped redirect href";
-    } else if (isUsableDestination(chosen.jsAbsolute, pageUrl)) {
+    } else if (isUsableDestination(chosen.jsAbsolute, pageUrl, options)) {
       applyUrl = chosen.jsAbsolute;
       source = "JavaScript-opened URL";
     } else if (direct && BOARD_HOST_RE.test(hostOf(direct))) {
       const final = await resolveFinalRedirect(direct);
-      if (isUsableDestination(final, pageUrl)) {
+      if (isUsableDestination(final, pageUrl, options)) {
         applyUrl = final;
         source = "final redirect URL";
       }
     }
     if (/^mailto:/i.test(chosen.href)) {
-      diag.add("primary CTA", `mailto only (${chosen.href}) — email application, apply_url stays null`);
+      diag.add(
+        "primary CTA",
+        options.allowMailto
+          ? `mailto (${chosen.href}) — embeddable card keeps it as direct_apply_url`
+          : `mailto only (${chosen.href}) — email application, apply_url stays null`
+      );
     }
   }
 
@@ -768,7 +777,7 @@ async function extractApplication(fullHtml, descriptionHtml, descriptionText, pa
     for (const m of descriptionHtml.matchAll(ANCHOR_RE)) {
       const attrs = parseAttributes(m[1]);
       const url = absoluteUrl(attrs.href || "", pageUrl);
-      if (!isUsableDestination(url, pageUrl)) continue;
+      if (!isUsableDestination(url, pageUrl, options)) continue;
       const context = collapse(toLines(descriptionText));
       const near = descriptionText.split("\n").find((line) => (attrs.href || "").includes(line.trim())) || "";
       if (!/\b(?:apply|application|online|form|submit)\b/i.test(`${near} ${context.slice(0, 0)}`)) {
@@ -909,5 +918,29 @@ async function main() {
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/").split("/").pop())) {
   await main();
 }
+
+// Named exports let the embeddable-card scraper reuse the exact, already
+// verified selectors without maintaining a second HTML parser.
+export {
+  ANCHOR_RE,
+  IMG_RE,
+  BOARD_HOST_RE,
+  SOCIAL_HOST_RE,
+  Diagnostics,
+  fetchPage,
+  extractHeader,
+  extractOrganization,
+  imageSources,
+  extractDescription,
+  extractApplication,
+  parseAttributes,
+  balancedElement,
+  collapse,
+  toLines,
+  absoluteUrl,
+  hostOf,
+  companyTokens,
+  applyButtonHtml,
+};
 
 export default scrapeEtcareers;
