@@ -932,6 +932,7 @@ export {
   extractOrganization,
   imageSources,
   extractDescription,
+  stripNoisyElements,
   extractApplication,
   parseAttributes,
   balancedElement,

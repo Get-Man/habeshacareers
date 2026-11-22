@@ -10,6 +10,7 @@
     "sync:once": "node scripts/sync-once.mjs",
     "scrape:etcareers": "node scripts/etcareers-scraper.mjs",
     "scrape:embed": "node scripts/etcareers-embed.mjs",
+    "fetch:job": "node scripts/headless-job-fetch.mjs",
     "test:smoke": "node --test scripts/tests/*.test.mjs"
   },
   "dependencies": {
