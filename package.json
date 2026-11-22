@@ -11,6 +11,7 @@
     "scrape:etcareers": "node scripts/etcareers-scraper.mjs",
     "scrape:embed": "node scripts/etcareers-embed.mjs",
     "fetch:job": "node scripts/headless-job-fetch.mjs",
+    "enrich:etcareers": "node scripts/enrich-etcareers.mjs",
     "test:smoke": "node --test scripts/tests/*.test.mjs"
   },
   "dependencies": {

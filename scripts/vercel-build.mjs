@@ -17,6 +17,9 @@ if (hasDb) {
   // Resolve the employers' own websites, careers pages and official logos.
   // Bounded and fail-safe: it never fails the deployment.
   runSoft("node", ["scripts/employer-backfill.mjs", "--limit=25"]);
+  // Fill ETcareers identity, logos, descriptions and direct apply links from
+  // the public feed. Zero page visits, idempotent, and fail-safe.
+  runSoft("node", ["scripts/enrich-etcareers.mjs"]);
 } else {
   console.log("[build] No database URL env var found; skipping migrations. Set DATABASE_URL or connect Neon/Vercel integration and redeploy.");
 }

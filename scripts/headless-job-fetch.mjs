@@ -603,6 +603,12 @@ async function crossReference(item, signals, positions, options, diag) {
 }
 
 async function fetchLogo(orgName, pageUrl, options, diag) {
+  // A batch caller can resolve logos from its own cache (for example an
+  // already-verified employer-directory row) without changing the seven-field
+  // output contract of extractHeadlessJob.
+  if (typeof options.resolveOrgLogo === "function") {
+    return options.resolveOrgLogo(orgName, pageUrl, options, diag);
+  }
   const results = await searchImages(
     `${orgName} Ethiopia official logo png`,
     options,
