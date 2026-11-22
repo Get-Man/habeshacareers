@@ -5,8 +5,6 @@
 // label, and the admin monitoring column mapping.
 
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
 import { test } from "node:test";
 
 import {
@@ -132,10 +130,29 @@ test("monitoring rows map to the required admin columns", () => {
   assert.equal(toMonitoringRow({ enabled: true, integration_status: "blocked" }).status, "Blocked");
 });
 
-test("admin monitoring table uses exactly the required columns", () => {
-  const html = fs.readFileSync(path.join(process.cwd(), "admin.html"), "utf8");
-  const table = /<table class="admin-table" id="monitoringTable"><thead><tr>([\s\S]*?)<\/tr><\/thead>/i.exec(html);
-  assert.ok(table, "monitoring table header not found");
-  const headers = [...table[1].matchAll(/<th>([^<]+)<\/th>/gi)].map((m) => m[1].trim());
-  assert.deepEqual(headers, ["Source", "Status", "Last Fetch", "Jobs Found", "New Jobs", "Updated", "Errors"]);
+test("admin monitoring feed exposes exactly the required columns", () => {
+  const row = toMonitoringRow({
+    id: 1,
+    slug: "test-source",
+    name: "Test Source",
+    enabled: true,
+    integration_status: "connected",
+    last_sync_at: "2026-01-01T00:00:00Z",
+    last_error: null,
+    jobs_found: 12,
+    new_jobs: 3,
+    updated: 4,
+    errors: 0,
+  });
+  // The React admin console renders these fields under the exact headings
+  // Source | Status | Last Fetch | Jobs Found | New Jobs | Updated | Errors.
+  const displayFields = ["name", "slug", "status", "last_fetch", "jobs_found", "new_jobs", "updated", "errors"];
+  for (const field of displayFields) {
+    assert.ok(Object.prototype.hasOwnProperty.call(row, field), `missing monitoring field: ${field}`);
+  }
+  assert.equal(row.last_fetch, "2026-01-01T00:00:00Z");
+  assert.equal(row.jobs_found, 12);
+  assert.equal(row.new_jobs, 3);
+  assert.equal(row.updated, 4);
+  assert.equal(row.errors, 0);
 });

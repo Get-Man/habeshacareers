@@ -2,39 +2,28 @@
   "installCommand": "npm install --no-audit --no-fund",
   "buildCommand": "node scripts/vercel-build.mjs",
   "outputDirectory": ".",
+  "redirects": [
+    { "source": "/", "destination": "https://habeshacareers.vercel.app/", "permanent": true },
+    { "source": "/index.html", "destination": "https://habeshacareers.vercel.app/", "permanent": true },
+    { "source": "/login.html", "destination": "https://habeshacareers.vercel.app/login", "permanent": true },
+    { "source": "/jobs.html", "destination": "https://habeshacareers.vercel.app/jobs", "permanent": true },
+    { "source": "/job-details.html", "destination": "https://habeshacareers.vercel.app/jobs", "permanent": true },
+    { "source": "/job/:id/:slug", "destination": "https://habeshacareers.vercel.app/jobs/:id", "permanent": true },
+    { "source": "/job/:id", "destination": "https://habeshacareers.vercel.app/jobs/:id", "permanent": true },
+    { "source": "/dashboard.html", "destination": "https://habeshacareers.vercel.app/dashboard", "permanent": true },
+    { "source": "/account.html", "destination": "https://habeshacareers.vercel.app/account", "permanent": true },
+    { "source": "/post-job.html", "destination": "https://habeshacareers.vercel.app/post-job", "permanent": true },
+    { "source": "/admin.html", "destination": "https://habeshacareers.vercel.app/admin", "permanent": true },
+    { "source": "/about.html", "destination": "https://habeshacareers.vercel.app/", "permanent": true },
+    { "source": "/contact.html", "destination": "https://habeshacareers.vercel.app/", "permanent": true }
+  ],
   "rewrites": [
-    { "source": "/job/:id/:slug", "destination": "/api/job-page?id=:id" },
-    { "source": "/job/:id", "destination": "/api/job-page?id=:id" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/robots.txt", "destination": "/api/sitemap?type=robots" }
   ],
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "https://habeshacareers.vercel.app/",
-      "permanent": true,
-      "has": [
-        { "type": "header", "key": "host", "value": "habeshacareers-brown.vercel.app" }
-      ]
-    },
-    {
-      "source": "/:path*",
-      "destination": "https://habeshacareers.vercel.app/:path*",
-      "permanent": true,
-      "has": [
-        { "type": "header", "key": "host", "value": "habeshacareers-brown.vercel.app" }
-      ]
-    }
-  ],
   "crons": [
-    {
-      "path": "/api/cron/sync-jobs",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/extract-jobs",
-      "schedule": "0 18 * * *"
-    }
+    { "path": "/api/cron/sync-jobs", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/extract-jobs", "schedule": "0 18 * * *" }
   ],
   "headers": [
     {

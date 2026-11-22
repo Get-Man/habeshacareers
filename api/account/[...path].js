@@ -83,8 +83,8 @@ function hasEmailProvider() {
 
 function buildResetUrl(token) {
   const base = String(process.env.PUBLIC_SITE_URL || "").trim().replace(/\/+$/, "");
-  // The reset panel lives on login.html; the frontend opens it from ?reset=.
-  const path = `/login.html?reset=${encodeURIComponent(token)}`;
+  // The reset panel lives in the canonical React app; it opens from ?reset=.
+  const path = `/login?reset=${encodeURIComponent(token)}`;
   return base ? `${base}${path}` : path;
 }
 

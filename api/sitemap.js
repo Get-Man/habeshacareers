@@ -1,5 +1,4 @@
 import { hasDatabase, query } from "../lib/db.mjs";
-import { jobPublicPath } from "../lib/jobs/extract/urls.mjs";
 
 function siteUrl() {
   return String(process.env.PUBLIC_SITE_URL || process.env.SITE_URL || "https://habeshacareers.vercel.app").replace(/\/+$/, "");
@@ -20,7 +19,9 @@ function robotsBody(base) {
   return [
     "User-agent: *",
     "Allow: /",
-    "Disallow: /admin.html",
+    "Disallow: /admin",
+    "Disallow: /dashboard",
+    "Disallow: /account",
     "Disallow: /api/admin/",
     "Disallow: /api/cron/",
     "",
@@ -58,10 +59,10 @@ export default async function handler(req, res) {
     }
   }
 
-  const staticPages = ["/", "/jobs.html", "/about.html", "/contact.html", "/post-job.html"];
+  const staticPages = ["/", "/jobs", "/post-job", "/sources"];
   const urls = staticPages.map((p) => `  <url><loc>${esc(base + p)}</loc></url>`);
   for (const row of rows) {
-    const loc = `${base}${jobPublicPath(row.id, row.title)}`;
+    const loc = `${base}/jobs/${encodeURIComponent(String(row.id))}`;
     const lastmod = row.updated_at ? new Date(row.updated_at).toISOString().slice(0, 10) : null;
     urls.push(`  <url><loc>${esc(loc)}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}</url>`);
   }
