@@ -28,6 +28,13 @@ test("matches feed titles independent of punctuation and board suffix", () => {
   assert.equal(normaliseTitleKey(feedJobTitle(feed)), normaliseTitleKey(publicTitle));
 });
 
+test("matches a feed title with a dangling separator and no location", () => {
+  const feed = "Social Worker Job for Fresh Graduates - Let Me Be A Child e.V. -";
+  const publicTitle = "Social Worker Job for Fresh Graduates";
+  assert.equal(feedJobTitle(feed), publicTitle);
+  assert.equal(normaliseTitleKey(feedJobTitle(feed)), normaliseTitleKey(publicTitle));
+});
+
 test("recognises only the real stub description", () => {
   assert.equal(isStubDescription("Open the official/original vacancy page for full details."), true);
   assert.equal(isStubDescription("  Open the official/original vacancy page for full details."), true);

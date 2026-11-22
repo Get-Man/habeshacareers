@@ -62,6 +62,9 @@ export function normaliseTitleKey(value) {
 export function feedJobTitle(value) {
   return String(value || "")
     .replace(/\s+-\s+[^-]+\s+-\s+[^-]+\s*$/, "")
+    // Some feed titles end with a dangling separator after the employer
+    // ("... - Let Me Be A Child e.V. -") because the location is missing.
+    .replace(/\s+-\s+[^-]+\s+-\s*$/, "")
     .trim();
 }
 
