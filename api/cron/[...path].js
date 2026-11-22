@@ -10,10 +10,12 @@
 import { json } from "../_lib/http.js";
 import { getUserFromRequest } from "../../lib/auth.mjs";
 
+import expireJobs from "../_lib/handlers/cron/expire-jobs.mjs";
 import extractJobs from "../_lib/handlers/cron/extract-jobs.mjs";
 import syncJobs from "../_lib/handlers/cron/sync-jobs.mjs";
 
 const ROUTES = {
+  "expire-jobs": expireJobs,
   "extract-jobs": extractJobs,
   "sync-jobs": syncJobs,
 };

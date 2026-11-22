@@ -22,11 +22,15 @@ export default async function handler(req, res) {
   if (!Number.isFinite(id) || id <= 0) return json(res, 400, { ok: false, error: "invalid_id" });
 
   try {
+    // Only the public view may be used here: expired, unavailable and demo
+    // rows are hidden from it, so an expired vacancy can no longer be reached
+    // through a remembered /api/apply link.
     const rows = await query(
-      `select id, apply_url, apply_url_type, apply_url_verified, status,
-              canonical_job_url, original_job_url, original_url
-         from job_listings
-        where id = $1
+      `select l.id, j.apply_url, j.apply_url_type, j.apply_url_verified, l.status,
+              j.canonical_job_url, j.original_job_url, j.original_url
+         from public_job_listings l
+         join job_listings j on j.id = l.id
+        where l.id = $1
         limit 1`,
       [id]
     );

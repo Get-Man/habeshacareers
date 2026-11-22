@@ -203,6 +203,7 @@ test("every registered source has a working adapter", { skip }, async () => {
     alljobspo: "alljobspo",
     "ethiopian-reporter": "ethiopian-reporter",
     careersun: "careersun",
+    "careers-un-addisababa": "un-careers-addisababa",
     "reliefweb-ethiopia": "reliefweb-ethiopia",
     "un-ethiopia": "un-ethiopia",
     "ethiojobs-net-et": "ethiojobs-net-et",
@@ -216,15 +217,19 @@ test("every registered source has a working adapter", { skip }, async () => {
   await db.close();
 });
 
-test("new sources are registered but disabled until reviewed", { skip }, async () => {
+test("unreviewed expansion sources stay disabled while repaired sources are live", { skip }, async () => {
   const db = await freshDb();
   const rows = await db.query(
-    `select slug, enabled from job_sources where slug in ('ngojobs','srazone','ethiopianjobs-net','jobwebethiopia','dereja')`
+    `select slug, enabled from job_sources where slug in ('ngojobs','srazone','ethiopianjobs-net','jobwebethiopia','dereja','ethiojobs')`
   );
-  assert.equal(rows.rows.length, 5);
-  for (const row of rows.rows) {
-    assert.equal(row.enabled, false, `${row.slug} must stay disabled until an administrator reviews it`);
+  assert.equal(rows.rows.length, 6);
+  const bySlug = Object.fromEntries(rows.rows.map((r) => [r.slug, r.enabled]));
+  for (const slug of ['ngojobs','srazone','ethiopianjobs-net','jobwebethiopia']) {
+    assert.equal(bySlug[slug], false, `${slug} must stay disabled until an administrator reviews it`);
   }
+  // Live checks confirmed public, robots-allowed vacancy URLs for both sites.
+  assert.equal(bySlug.dereja, true, "dereja must be enabled after the scraping repair");
+  assert.equal(bySlug.ethiojobs, true, "ethiojobs must stay enabled after the repair");
   await db.close();
 });
 

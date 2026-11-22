@@ -1,6 +1,7 @@
 import { json, requireCron, requireAdmin } from "../../http.js";
 import { hasDatabase } from "../../../../lib/db.mjs";
 import { runQueuedExtraction } from "../../../../lib/jobs/sync.mjs";
+import { refreshJobLifecycle } from "../../../../lib/jobs/extract/engine.mjs";
 import { backfillEmployerIdentities } from "../../../../lib/jobs/employer-backfill.mjs";
 
 // Stage B extraction batch. The global lock prevents overlap with a running sync.
@@ -9,6 +10,13 @@ export const maxDuration = 60;
 export default async function handler(req, res) {
   if (!requireCron(req) && !requireAdmin(req)) return json(res, 401, { ok: false, error: "unauthorized" });
   if (!hasDatabase()) return json(res, 503, { ok: false, error: "db_unavailable" });
+  // Expire passed deadlines even when the global extraction lock is held.
+  let expired = null;
+  try {
+    expired = await refreshJobLifecycle();
+  } catch (e) {
+    console.error("[expire-jobs] pre-extract sweep failed", e);
+  }
   try {
     const out = await runQueuedExtraction(req.query?.manual ? "manual" : "cron", {
       extractionBatch: parseInt(req.query?.extract || "10", 10) || 10,
@@ -39,7 +47,7 @@ export default async function handler(req, res) {
       employers = { error: String(e?.message || e) };
     }
 
-    return json(res, 200, { ok: true, ...out, employers });
+    return json(res, 200, { ok: true, expiry: expired || null, ...out, employers });
   } catch (e) {
     console.error(e);
     return json(res, 500, { ok: false, error: "server_error", message: String(e.message || e) });

@@ -14,6 +14,10 @@ const runSoft = (cmd, args) => {
 const hasDb = !!(process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED);
 if (hasDb) {
   run("node", ["scripts/migrate.mjs"]);
+  // Hide vacancies whose application deadline has already passed. The view
+  // hides them regardless, but keeping the stored status in sync makes every
+  // public surface agree from the first request after deploy.
+  runSoft("node", ["scripts/expire-jobs.mjs"]);
   // Bring every listing in the public feed into the catalogue with the same
   // completeness as an individually enriched vacancy. Only the RSS feed is
   // read; the script deduplicates and is safe to repeat on every deploy.
