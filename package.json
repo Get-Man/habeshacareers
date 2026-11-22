@@ -8,6 +8,7 @@
   "scripts": {
     "db:migrate": "node scripts/migrate.mjs",
     "sync:once": "node scripts/sync-once.mjs",
+    "scrape:etcareers": "node scripts/etcareers-scraper.mjs",
     "test:smoke": "node --test scripts/tests/*.test.mjs"
   },
   "dependencies": {
