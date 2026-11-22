@@ -12,6 +12,7 @@ import {
   inferEmployerDomain,
   usableEmployerDomain,
 } from "../../lib/jobs/employer-identity.mjs";
+import { publicLogo } from "../../lib/jobs/repository.mjs";
 
 test("a discovery source's domain is never an employer website", () => {
   assert.equal(usableEmployerDomain("geezjobs.com"), null);
@@ -102,4 +103,22 @@ test("the careers page candidates start with the conventional paths", () => {
   assert.equal(candidates[0], "https://example.et/careers");
   assert.ok(candidates.includes("https://example.et/jobs"));
   assert.ok(candidates.length > 3);
+});
+
+test("third-party platform branding is never a public employer logo", () => {
+  assert.equal(
+    publicLogo({
+      employer_logo_url:
+        "https://www.google.com/images/branding/google_wordmark/v1/1x/googlelogo_color_white_background_272x92dp.png",
+    }),
+    null
+  );
+  assert.equal(
+    publicLogo({ organization_logo_url: "https://www.gstatic.com/images/branding/googlelogo.png" }),
+    null
+  );
+  assert.equal(
+    publicLogo({ employer_logo_url: "https://cdn.example.et/logo.png" }),
+    "https://cdn.example.et/logo.png"
+  );
 });

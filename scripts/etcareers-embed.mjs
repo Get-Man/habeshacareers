@@ -75,7 +75,7 @@ const TRACKING_PARAM_RE =
   /^(?:utm_|fbclid$|gclid$|dclid$|msclkid$|mc_[ce]id$|yclid$|igshid$|ref$|referrer$|source$|src$|campaign$|_ga$)/i;
 
 const GENERIC_IMAGE_RE =
-  /(?:stock|shutterstock|getty|istock|freepik|watermark|logo\s*maker|template|icon\s*set|vector\s*free|pngtree|dreamstime|clip\s*art)/i;
+  /(?:stock|shutterstock|getty|istock|freepik|watermark|logo\s*maker|template|icon\s*set|vector\s*free|pngtree|dreamstime|clip\s*art|googlelogo|google\s*logo|google\s*wordmark|gstatic|duckduckgo|bing\s*logo|yahoo\s*logo|facebook\s*logo|twitter\s*logo|linkedin\s*logo)/i;
 
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const GIF_MAGIC = Buffer.from([0x47, 0x49, 0x46, 0x38]);
