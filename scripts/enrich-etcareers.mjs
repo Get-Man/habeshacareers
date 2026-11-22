@@ -243,6 +243,10 @@ export async function updateListing(client, row, patch, employerId) {
             description_html = case when $7::boolean then $9 else description_html end,
             description_excerpt = case when $7::boolean then left($8, 500) else description_excerpt end,
             apply_url = case when $10::boolean then $11 else apply_url end,
+            application_email = case
+              when $10::boolean and $11 like 'mailto:%' then substring($11 from 8)
+              else application_email
+            end,
             apply_url_type = case when $10::boolean then $12 else apply_url_type end,
             apply_url_source = case when $10::boolean then 'rss_feed' else apply_url_source end,
             apply_url_verified = case when $10::boolean then true else apply_url_verified end,

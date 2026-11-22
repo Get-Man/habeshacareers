@@ -14,12 +14,13 @@ const runSoft = (cmd, args) => {
 const hasDb = !!(process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED);
 if (hasDb) {
   run("node", ["scripts/migrate.mjs"]);
-  // Resolve the employers' own websites, careers pages and official logos.
-  // Bounded and fail-safe: it never fails the deployment.
-  runSoft("node", ["scripts/employer-backfill.mjs", "--limit=25"]);
   // Fill ETcareers identity, logos, descriptions and direct apply links from
   // the public feed. Zero page visits, idempotent, and fail-safe.
   runSoft("node", ["scripts/enrich-etcareers.mjs"]);
+  // Resolve the employers' own websites, careers pages and official logos.
+  // Runs after enrichment so freshly recovered apply URLs and application
+  // emails can reveal the employer's own domain. Bounded and fail-safe.
+  runSoft("node", ["scripts/employer-backfill.mjs", "--limit=200", "--budget=480"]);
 } else {
   console.log("[build] No database URL env var found; skipping migrations. Set DATABASE_URL or connect Neon/Vercel integration and redeploy.");
 }

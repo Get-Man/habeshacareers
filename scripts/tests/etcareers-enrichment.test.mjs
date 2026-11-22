@@ -169,3 +169,41 @@ test("writes identity, logo, description and apply link without SQL parameter ty
     await db.close();
   }
 });
+
+test("a direct application email is stored so the employer domain can be resolved", async () => {
+  const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+  const db = new PGlite();
+  try {
+    for (const file of fs.readdirSync(path.join(repoRoot, "migrations")).filter((f) => f.endsWith(".sql")).sort()) {
+      const sql = fs
+        .readFileSync(path.join(repoRoot, "migrations", file), "utf8")
+        .replace(/create extension if not exists pgcrypto;?/gi, "");
+      await db.exec(sql);
+    }
+    await db.query(`
+      insert into job_listings (id, title, company, status, posted_date)
+      values (9902, 'Email Apply Vacancy', 'Test Organization', 'active', current_date)
+    `);
+    await updateListing(
+      db,
+      { id: 9902 },
+      {
+        orgName: "Test Organization",
+        logoUrl: null,
+        descriptionHtml: "<p>Full employer text</p>",
+        descriptionText: "Full employer text",
+        applyUrl: "mailto:hr@example.org",
+        rssLink: "https://etcareers.com/jobs/email-apply-f7206e1b",
+        needs: { identity: true, description: true, apply: true, logo: false },
+      },
+      null
+    );
+    const result = await db.query(
+      "select apply_url, application_email from job_listings where id = 9902"
+    );
+    assert.equal(result.rows[0].apply_url, "mailto:hr@example.org");
+    assert.equal(result.rows[0].application_email, "hr@example.org");
+  } finally {
+    await db.close();
+  }
+});
