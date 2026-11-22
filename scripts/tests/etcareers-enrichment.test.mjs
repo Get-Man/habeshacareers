@@ -12,6 +12,7 @@ import { PGlite } from "@electric-sql/pglite";
 import {
   ensureEmployer,
   feedJobTitle,
+  findFeedItemForRow,
   htmlToText,
   isStubDescription,
   needsEnrichment,
@@ -33,6 +34,33 @@ test("matches a feed title with a dangling separator and no location", () => {
   const publicTitle = "Social Worker Job for Fresh Graduates";
   assert.equal(feedJobTitle(feed), publicTitle);
   assert.equal(normaliseTitleKey(feedJobTitle(feed)), normaliseTitleKey(publicTitle));
+});
+
+test("a distinctive truncated title matches only its unique feed item", () => {
+  const feed = "Siinqee Bank S.C. Job Vacancy 2026: Apply for 55 Jobs in Ethiopia - Siinqee Bank S.C - Addis Ababa, Ethiopia";
+  const items = [{ title: feed, link: "https://etcareers.com/jobs/siinqee-55" }];
+  const byTitle = new Map([[normaliseTitleKey(feedJobTitle(feed)), items[0]]]);
+  const row = { title: "Siinqee Bank S.C. Job Vacancy 2026: Apply for 55" };
+  assert.equal(findFeedItemForRow(row, byTitle, items), items[0]);
+});
+
+test("a short or ambiguous truncated title is never attached to a vacancy", () => {
+  const items = [
+    { title: "Social Worker - World Vision Ethiopia - Afar, Ethiopia", link: "a" },
+    { title: "Social Worker Job for Fresh Graduates - Let Me Be A Child e.V. -", link: "b" },
+  ];
+  const byTitle = new Map();
+  // Too short to be distinctive.
+  assert.equal(findFeedItemForRow({ title: "Social Worker" }, byTitle, items), null);
+  // Two possible extensions: ambiguous, so no match.
+  const ambiguous = [
+    { title: "Long Employer Vacancy 2026 Addis Ababa Ethiopia One", link: "a" },
+    { title: "Long Employer Vacancy 2026 Addis Ababa Ethiopia Two", link: "b" },
+  ];
+  assert.equal(
+    findFeedItemForRow({ title: "Long Employer Vacancy 2026 Addis Ababa" }, new Map(), ambiguous),
+    null
+  );
 });
 
 test("recognises only the real stub description", () => {

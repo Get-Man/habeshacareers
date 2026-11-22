@@ -80,6 +80,26 @@ function sample(row, extra = {}) {
   return { id: row.id, title: short(row.title, 100), ...extra };
 }
 
+// A stored title can be a truncated copy of the public feed title
+//   "Siinqee Bank S.C. Job Vacancy 2026: Apply for 55"
+//   "Siinqee Bank S.C. Job Vacancy 2026: Apply for 55 Jobs in Ethiopia - ..."
+// Accept that only when the stored key is long and distinctive, the feed key
+// extends it at a word boundary, and exactly one feed item matches. A short or
+// ambiguous title must never be attached to the wrong vacancy.
+export function findFeedItemForRow(row, byTitle, items) {
+  const rowKey = normaliseTitleKey(row.title);
+  const exact =
+    byTitle.get(normaliseTitleKey(feedJobTitle(row.title))) ||
+    byTitle.get(rowKey);
+  if (exact) return exact;
+  if (rowKey.length < 30) return null;
+  const matches = items.filter((item) => {
+    const key = normaliseTitleKey(feedJobTitle(item.title));
+    return key.startsWith(rowKey) && key.charAt(rowKey.length) === " ";
+  });
+  return matches.length === 1 ? matches[0] : null;
+}
+
 export function htmlToText(html) {
   return String(html || "")
     .replace(/<br\s*\/?>/gi, "\n")
@@ -381,9 +401,7 @@ export async function main() {
   };
 
   for (const row of candidates) {
-    const item =
-      byTitle.get(normaliseTitleKey(feedJobTitle(row.title))) ||
-      byTitle.get(normaliseTitleKey(row.title));
+    const item = findFeedItemForRow(row, byTitle, items);
     if (!item) {
       stats.noMatch += 1;
       if (stats.noMatchSamples.length < DIAGNOSTIC_LIMIT) {

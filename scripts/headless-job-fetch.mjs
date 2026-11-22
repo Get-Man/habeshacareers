@@ -530,16 +530,27 @@ function extractPositions(html) {
     .filter(Boolean);
 }
 
-function organisationFromFeedTitle(title) {
-  const parts = String(title || "").split(/\s+-\s+/).map((p) => p.trim()).filter(Boolean);
+export function organisationFromFeedTitle(title) {
+  const raw = String(title || "").trim();
+  // ETcareers occasionally omits the location, leaving a dangling separator:
+  //   "Social Worker ... - Let Me Be A Child e.V. -"
+  // Treat it as a missing location field so the employer is still read from
+  // the second position, instead of falling back to a title-derived guess.
+  const dangling = /\s+-\s*$/.test(raw);
+  const base = dangling ? raw.replace(/\s+-\s*$/, "") : raw;
+  const parts = base.split(/\s+-\s+/).map((p) => p.trim()).filter(Boolean);
+  if (dangling && parts.length === 2) return parts[1];
   if (parts.length >= 3) return parts[parts.length - 2];
   return "";
 }
 
-function jobTitleFromFeedTitle(title) {
-  return String(title || "")
-    .replace(/\s+-\s+[^-]+\s+-\s+[^-]+\s*$/, "")
-    .trim();
+export function jobTitleFromFeedTitle(title) {
+  const raw = String(title || "").trim();
+  if (/\s+-\s*$/.test(raw)) {
+    // Strip the dangling separator, then the employer segment before it.
+    return raw.replace(/\s+-\s*$/, "").replace(/\s+-\s+[^-]+\s*$/, "").trim();
+  }
+  return raw.replace(/\s+-\s+[^-]+\s+-\s+[^-]+\s*$/, "").trim();
 }
 
 /**

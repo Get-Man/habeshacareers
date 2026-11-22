@@ -15,6 +15,8 @@ import {
   parseRssItems,
   parseSlugSignals,
   cleanRssDescription,
+  organisationFromFeedTitle,
+  jobTitleFromFeedTitle,
 } from "../headless-job-fetch.mjs";
 
 const TARGET_URL =
@@ -98,6 +100,20 @@ function offlineOptions(assetsDir, calls = {}) {
     },
   };
 }
+
+test("a feed title with a dangling separator still yields the real employer", () => {
+  const feed = "Social Worker Job for Fresh Graduates - Let Me Be A Child e.V. -";
+  assert.equal(organisationFromFeedTitle(feed), "Let Me Be A Child e.V.");
+  assert.equal(jobTitleFromFeedTitle(feed), "Social Worker Job for Fresh Graduates");
+
+  // The normal three-part shape is unchanged.
+  const normal = "Test Bank S.C Job Vacancy 2026 - Test Bank S.C - Addis Ababa, Ethiopia";
+  assert.equal(organisationFromFeedTitle(normal), "Test Bank S.C");
+  assert.equal(jobTitleFromFeedTitle(normal), "Test Bank S.C Job Vacancy 2026");
+
+  // A two-part title without a trailing separator must not invent an employer.
+  assert.equal(organisationFromFeedTitle("Social Worker - Addis Ababa"), "");
+});
 
 test("extracts exactly the seven embed keys from offline RSS with zero network requests", async () => {
   const assetsDir = mkdtempSync(path.join(tmpdir(), "headless-job-fetch-"));
