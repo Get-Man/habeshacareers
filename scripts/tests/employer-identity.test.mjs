@@ -75,6 +75,28 @@ test("a free mailbox reveals nothing", () => {
   assert.equal(result.domain, null);
 });
 
+test("a tender portal or forwarding mailbox is never the employer's website", () => {
+  const tender = inferEmployerDomain({
+    company: "Welthungerhilfe",
+    applyUrl: "https://eu.eu-supply.com/ctm/supplier/publictenders",
+  });
+  assert.equal(tender.source, "known_employer");
+  assert.equal(tender.domain, "welthungerhilfe.org");
+
+  const mailbox = inferEmployerDomain({
+    company: "Patchee Food Manufacturing PLC",
+    email: "hr.patchee@atomicmail.io",
+  });
+  assert.equal(mailbox.domain, null);
+});
+
+test("a recruitment platform host is not an employer website", () => {
+  assert.equal(usableEmployerDomain("myworkdayjobs.com"), null);
+  assert.equal(usableEmployerDomain("greenhouse.io"), null);
+  assert.equal(usableEmployerDomain("career55.sapsf.eu"), null);
+  assert.equal(usableEmployerDomain("dashenbank.com"), "dashenbank.com");
+});
+
 test("a well-known organisation is recognised by name", () => {
   assert.equal(domainFromEmployerName("World Vision Ethiopia"), "worldvision.org");
   assert.equal(domainFromEmployerName("Ethiopian Airlines"), "ethiopianairlines.com");
